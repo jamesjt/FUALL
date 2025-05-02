@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Tree of Knowledge</title>
+<title>Tree of Wisdom</title>
 <style>
 body {
   margin: 0;
@@ -35,8 +35,9 @@ body {
 <body>
 <select id="filter">
   <option value="all">All</option>
-  <option value="philosophy">Philosophy</option>
-  <option value="politics">Politics</option>
+  <option value="reality">Reality</option>
+  <option value="reason">Reason</option>
+  <option value="right">Right</option>
 </select>
 <div id="canvasContainer">
 <canvas id="treeCanvas" width="800" height="600"></canvas>
@@ -44,42 +45,41 @@ body {
 <div id="infoPanels"></div>
 <script>
 const treeData = {
-  label: 'Knowledge',
+  label: 'Wisdom',
   category: 'root',
   content: {
-    sentence: 'All knowledge.',
-    paragraph: 'Knowledge encompasses various fields including philosophy, politics, social structures, and science.',
-    essay: '<p>This is an essay about knowledge. It includes <img src="https://via.placeholder.com/150" alt="placeholder"> and <video controls src="https://www.w3schools.com/html/mov_bbb.mp4"></video></p>'
+    sentence: 'The foundation of all understanding.',
+    paragraph: 'Wisdom is the ability to think and act using knowledge, experience, understanding, common sense, and insight.',
+    essay: '<p>Wisdom is often considered the pinnacle of human understanding, integrating knowledge from various domains. <img src="https://via.placeholder.com/150" alt="wisdom image"></p>'
   },
   children: [
     {
-      label: 'Philosophy',
-      category: 'philosophy',
+      label: 'Reality',
+      category: 'reality',
       content: {
-        sentence: 'Study of fundamental questions.',
-        paragraph: 'Philosophy addresses questions about existence, knowledge, values, reason, mind, and language.',
-        essay: '<p>Philosophy is the study of general and fundamental questions. <img src="https://via.placeholder.com/150" alt="philosophy image"></p>'
+        sentence: 'The state of things as they actually exist.',
+        paragraph: 'Reality encompasses the physical world, our perceptions, and the underlying truths of existence.',
+        essay: '<p>Reality is the sum or aggregate of all that is real or existent within a system. <video controls src="https://www.w3schools.com/html/mov_bbb.mp4"></video></p>'
       },
-      children: [
-        {
-          label: 'Ethics',
-          category: 'philosophy',
-          content: {
-            sentence: 'Moral principles.',
-            paragraph: 'Ethics is the branch of philosophy that involves systematizing, defending, and recommending concepts of right and wrong behavior.',
-            essay: '<p>Ethics, or moral philosophy, is concerned with questions of how persons ought to act. <video controls src="https://www.w3schools.com/html/mov_bbb.mp4"></video></p>'
-          },
-          children: []
-        }
-      ]
+      children: []
     },
     {
-      label: 'Politics',
-      category: 'politics',
+      label: 'Reason',
+      category: 'reason',
       content: {
-        sentence: 'Governance and power.',
-        paragraph: 'Politics is the set of activities associated with making decisions in groups, or other forms of power relations between individuals.',
-        essay: '<p>Politics involves the exercise of power and the making of decisions that affect groups of people. <img src="https://via.placeholder.com/150" alt="politics image"></p>'
+        sentence: 'The power of the mind to think, understand, and form judgments logically.',
+        paragraph: 'Reason is the capacity for consciously making sense of things, applying logic, and adapting or justifying practices, institutions, and beliefs based on new or existing information.',
+        essay: '<p>Reason is a fundamental aspect of human cognition, allowing us to process information and make decisions. <img src="https://via.placeholder.com/150" alt="reason image"></p>'
+      },
+      children: []
+    },
+    {
+      label: 'Right',
+      category: 'right',
+      content: {
+        sentence: 'Moral or legal entitlement to have or do something.',
+        paragraph: 'Rights are legal, social, or ethical principles of freedom or entitlement; that is, rights are the fundamental normative rules about what is allowed of people or owed to people.',
+        essay: '<p>The concept of rights is central to discussions of justice, democracy, and the rule of law. <video controls src="https://www.w3schools.com/html/mov_bbb.mp4"></video></p>'
       },
       children: []
     }
@@ -93,7 +93,7 @@ let currentTranslateX = 0;
 let currentTranslateY = 0;
 let filteredTree = treeData;
 
-assignPositions(filteredTree, 400, 300, 100, 100);
+assignPositions(filteredTree, 400, 300, 200, 100);
 
 function assignPositions(node, x, y, dx, dy, parent = null) {
   node.x = x;
@@ -103,7 +103,7 @@ function assignPositions(node, x, y, dx, dy, parent = null) {
   if (numChildren > 0) {
     const startX = x - (numChildren - 1) * dx / 2;
     for (let i = 0; i < numChildren; i++) {
-      assignPositions(node.children[i], startX + i * dx, y - dy, dx, dy, node);
+      assignPositions(node.children[i], startX + i * dx, y - dy, dx / 2, dy, node);
     }
   }
 }
@@ -145,7 +145,7 @@ function getFilteredTree(filter) {
 document.getElementById('filter').addEventListener('change', (e) => {
   const filter = e.target.value;
   filteredTree = getFilteredTree(filter);
-  assignPositions(filteredTree, 400, 300, 100, 100);
+  assignPositions(filteredTree, 400, 300, 200, 100);
   redraw();
 });
 
