@@ -57,6 +57,7 @@ async function fetchSheetData() {
             download: true,
             header: true, // Assumes first row is headers: title, author, content
             complete: function(results) {
+                console.log(`Data for ${tab}:`, results.data); // Added console log for debugging
                 if (results.errors.length > 0) {
                     reject(results.errors);
                 } else {
@@ -272,7 +273,7 @@ function findNodeAtPosition(x, y, tree = filteredTree) {
 function showInfoPanel(node) {
     const panel = document.createElement('div');
     panel.className = 'info-panel';
-    const rect = canvas.getBoundingRect();
+    const rect = canvas.getBoundingClientRect();
     const screenX = rect.left + (node.x * currentScale + currentTranslateX);
     const screenY = rect.top + (node.y * currentScale + currentTranslateY);
     panel.style.left = `${screenX + 20}px`;
