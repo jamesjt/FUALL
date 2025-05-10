@@ -1,11 +1,11 @@
-// Sample tree data (same as provided)
+// Hardcoded tree data (unchanged)
 const treeData = {
     label: 'Wisdom',
     category: 'root',
     content: {
         sentence: 'The foundation of all understanding.',
         paragraph: 'Wisdom is the ability to think and act using knowledge, experience, understanding, common sense, and insight.',
-        essay: '<p>Wisdom is often considered the pinnacle of human understanding, integrating knowledge from various domains. <img src=" view-source:https://via.placeholder.com/150" alt="wisdom image"></p>'
+        essay: '<p>Wisdom is often considered the pinnacle of human understanding, integrating knowledge from various domains. <img src="https://via.placeholder.com/150" alt="wisdom image"></p>'
     },
     children: [
         {
@@ -41,30 +41,44 @@ const treeData = {
     ]
 };
 
-// Placeholder for Google Sheet data
-let sheetData = {
-    tabs: [
-        { name: 'B:Book1', data: [{ title: 'Book 1', author: 'Author 1', content: 'Content 1' }] },
-        { name: 'B:Book2', data: [{ title: 'Book 2', author: 'Author 2', content: 'Content 2' }] }
-    ]
-};
+// Declare sheetData to store fetched data
+let sheetData = { tabs: [] };
 
-// Fetch Google Sheet data (placeholder)
+// Fetch data from Google Sheet using PapaParse
 async function fetchSheetData() {
-    // Replace with actual Google Sheets API call
-    // Example using Google Sheets API:
-    /*
-    const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets/1g6d_uNrqofuyeOEVvtioW0wz2LrLtOpU8jsyfg8zgR0?key=YOUR_API_KEY');
-    const data = await response.json();
-    sheetData = data.sheets.filter(sheet => sheet.properties.title.startsWith('B:')).map(sheet => ({
-        name: sheet.properties.title,
-        data: [] // Fetch data using range API
-    }));
-    */
-    console.log('Fetching sheet data:', sheetData);
-    populateSidebar();
-    populateLibrary();
-    populateSimple();
+    // Replace with your actual Google Sheet ID
+    const spreadsheetId = '1g6d_uNrqofuyeOEVvtioW0wz2LrLtOpU8jsyfg8zgR0';
+    // Replace with actual tab names starting with "B:" from your sheet
+    const bookTabs = ['B:Book1', 'B:Book2']; // Example; update with your tab names
+
+    const fetchTab = (tab) => new Promise((resolve, reject) => {
+        const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
+        Papa.parse(url, {
+            download: true,
+            header: true, // Assumes first row is headers: title, author, content
+            complete: function(results) {
+                if (results.errors.length > 0) {
+                    reject(results.errors);
+                } else {
+                    resolve({ name: tab, data: results.data });
+                }
+            },
+            error: function(error) {
+                reject(error);
+            }
+        });
+    });
+
+    try {
+        const tabsData = await Promise.all(bookTabs.map(fetchTab));
+        sheetData.tabs = tabsData;
+        populateSidebar();
+        populateLibrary();
+        populateSimple();
+    } catch (error) {
+        console.error('Error fetching sheet data:', error);
+        // Optional: Add UI feedback, e.g., "Failed to load data"
+    }
 }
 
 // Populate sidebar with book links
@@ -84,7 +98,7 @@ function populateSidebar() {
     });
 }
 
-// Populate Library view
+// Populate Library view with all books
 function populateLibrary() {
     const libraryContent = document.getElementById('library-content');
     libraryContent.innerHTML = '';
@@ -100,7 +114,7 @@ function populateLibrary() {
     });
 }
 
-// Populate Simple view
+// Populate Simple view with book titles
 function populateSimple() {
     const simpleContent = document.getElementById('simple-content');
     simpleContent.innerHTML = '<h3>Book Titles</h3><ul>';
@@ -124,7 +138,7 @@ function showBookContent(tab) {
     switchView('library');
 }
 
-// View switching
+// Switch between views
 function switchView(view) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(`${view}-view`).classList.add('active');
@@ -139,7 +153,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
     });
 });
 
-// Tree visualization (from original code)
+// Tree visualization (unchanged)
 const canvas = document.getElementById('treeCanvas');
 const ctx = canvas.getContext('2d');
 let currentScale = 1;
@@ -258,7 +272,7 @@ function findNodeAtPosition(x, y, tree = filteredTree) {
 function showInfoPanel(node) {
     const panel = document.createElement('div');
     panel.className = 'info-panel';
-    const rect = canvas.getBoundingClientRect();
+    const rect = canvas.getBoundingRect();
     const screenX = rect.left + (node.x * currentScale + currentTranslateX);
     const screenY = rect.top + (node.y * currentScale + currentTranslateY);
     panel.style.left = `${screenX + 20}px`;
@@ -293,7 +307,7 @@ function makeDraggable(element) {
     });
 }
 
-// Initialize
+// Initialize the page
 fetchSheetData();
 redraw();
 switchView('tree');
