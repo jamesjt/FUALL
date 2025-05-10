@@ -49,7 +49,7 @@ async function fetchSheetData() {
     // Replace with your actual Google Sheet ID
     const spreadsheetId = '1g6d_uNrqofuyeOEVvtioW0wz2LrLtOpU8jsyfg8zgR0';
     // Replace with actual tab names starting with "B:" from your sheet
-    const bookTabs = ['B:Book1', 'B:Book2']; // Example; update with your tab names
+    const bookTabs = ['B: On Liberty', 'B: Nicomachaen Ethics']; // Example; update with your tab names
 
     const fetchTab = (tab) => new Promise((resolve, reject) => {
         const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
