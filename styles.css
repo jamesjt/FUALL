@@ -144,6 +144,50 @@ header {
     margin-bottom: 0.5rem;
 }
 
+/* Data Table */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.data-table th,
+.data-table td {
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.data-table th {
+    background: #f4f4f4;
+    font-weight: bold;
+}
+
+.data-table td {
+    vertical-align: middle;
+}
+
+/* Cycle Button */
+.cycle-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid #007bff;
+    background: #fff;
+    color: #007bff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.cycle-button:hover {
+    background: #007bff;
+    color: #fff;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
@@ -167,5 +211,17 @@ header {
 
     .navbar li {
         margin: 0.5rem 0;
+    }
+
+    .data-table th,
+    .data-table td {
+        font-size: 0.9rem;
+        padding: 0.3rem;
+    }
+
+    .cycle-button {
+        width: 25px;
+        height: 25px;
+        font-size: 0.8rem;
     }
 }
