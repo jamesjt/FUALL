@@ -3,8 +3,13 @@
 // URL of the published Google Sheet CSV with CORS proxy
 const csvUrl = 'https://cors-anywhere.herokuapp.com/https://docs.google.com/spreadsheets/d/e/2PACX-1vRdBGxonsMp06IcXX2nEbJmbtA4vYeVIRgPxwdGMtArWLMsuVZeJakOWpyub_pn-IcIkes2PTRJ6xw7/pub?gid=1556566616&single=true&output=csv';
 
-// Fetch and process the CSV data
-fetch(csvUrl)
+// Fetch and process the CSV data with custom header
+fetch(csvUrl, {
+    method: 'GET',
+    headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+    }
+})
     .then(response => {
         if (!response.ok) {
             throw new Error('Network response was not ok: ' + response.statusText);
