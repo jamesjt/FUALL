@@ -1,4 +1,4 @@
-// Hardcoded tree data (unchanged)
+// Hardcoded tree data
 const treeData = {
     label: 'Wisdom',
     category: 'root',
@@ -44,20 +44,23 @@ const treeData = {
 // Declare sheetData to store fetched data
 let sheetData = { tabs: [] };
 
+// Store the current D: column index for each row
+const columnStates = new Map();
+
 // Fetch data from Google Sheet using PapaParse
 async function fetchSheetData() {
     // Replace with your actual Google Sheet ID
     const spreadsheetId = '1g6d_uNrqofuyeOEVvtioW0wz2LrLtOpU8jsyfg8zgR0';
     // Replace with actual tab names starting with "B:" from your sheet
-    const bookTabs = ['B: On Liberty', 'B: Nicomachaen Ethics']; // Example; update with your tab names
+    const bookTabs = ['B: On Liberty', 'B: Nicomachaen Ethics'];
 
     const fetchTab = (tab) => new Promise((resolve, reject) => {
         const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
         Papa.parse(url, {
             download: true,
-            header: true, // Assumes first row is headers: title, author, content
+            header: true,
             complete: function(results) {
-                console.log(`Data for ${tab}:`, results.data); // Added console log for debugging
+                console.log(`Data for ${tab}:`, results.data);
                 if (results.errors.length > 0) {
                     reject(results.errors);
                 } else {
@@ -78,7 +81,8 @@ async function fetchSheetData() {
         populateSimple();
     } catch (error) {
         console.error('Error fetching sheet data:', error);
-        // Optional: Add UI feedback, e.g., "Failed to load data"
+        const libraryContent = document.getElementById('library-content');
+        libraryContent.innerHTML = '<p>Failed to load data. Please try again later.</p>';
     }
 }
 
@@ -99,17 +103,70 @@ function populateSidebar() {
     });
 }
 
+// Get all D: columns from the tab's data
+function getDColumns(tab) {
+    if (!tab.data || tab.data.length === 0) return [];
+    const headers = Object.keys(tab.data[0]);
+    return headers.filter(header => header.startsWith('D:')).sort();
+}
+
 // Populate Library view with all books
 function populateLibrary() {
     const libraryContent = document.getElementById('library-content');
-    libraryContent.innerHTML = '';
+    libraryContent.innerHTML = '<h2>All Books</h2>';
     sheetData.tabs.forEach(tab => {
         if (tab.name.startsWith('B:')) {
             const section = document.createElement('div');
             section.innerHTML = `<h3>${tab.name.replace('B:', '')}</h3>`;
-            tab.data.forEach(book => {
-                section.innerHTML += `<p><strong>${book.title}</strong> by ${book.author}: ${book.content}</p>`;
-            });
+            const dColumns = getDColumns(tab);
+            if (dColumns.length === 0) {
+                section.innerHTML += '<p>No data columns with "D:" prefix found.</p>';
+            } else {
+                const table = document.createElement('table');
+                table.className = 'data-table';
+                const thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>Index</th>
+                        <th>Indicator</th>
+                        <th>Data</th>
+                    </tr>
+                `;
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+                tab.data.forEach((row, rowIndex) => {
+                    const currentDColumnIndex = columnStates.get(`${tab.name}-${rowIndex}`) || 0;
+                    const currentDColumn = dColumns[currentDColumnIndex] || dColumns[0];
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row.Index || rowIndex + 1}</td>
+                        <td><button class="cycle-button" data-tab="${tab.name}" data-row="${rowIndex}">→</button></td>
+                        <td>${row[currentDColumn] || ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                section.appendChild(table);
+
+                // Add event listeners to cycle buttons
+                table.querySelectorAll('.cycle-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const tabName = button.dataset.tab;
+                        const rowIndex = parseInt(button.dataset.row);
+                        const tab = sheetData.tabs.find(t => t.name === tabName);
+                        if (!tab) return;
+
+                        // Update column state
+                        const currentIndex = columnStates.get(`${tabName}-${rowIndex}`) || 0;
+                        const nextIndex = (currentIndex + 1) % dColumns.length;
+                        columnStates.set(`${tabName}-${rowIndex}`, nextIndex);
+
+                        // Refresh the table
+                        populateLibrary();
+                    });
+                });
+            }
             libraryContent.appendChild(section);
         }
     });
@@ -122,7 +179,7 @@ function populateSimple() {
     sheetData.tabs.forEach(tab => {
         if (tab.name.startsWith('B:')) {
             tab.data.forEach(book => {
-                simpleContent.innerHTML += `<li>${book.title}</li>`;
+                simpleContent.innerHTML += `<li>${book.title || 'Untitled'}</li>`;
             });
         }
     });
@@ -133,9 +190,67 @@ function populateSimple() {
 function showBookContent(tab) {
     const libraryContent = document.getElementById('library-content');
     libraryContent.innerHTML = `<h3>${tab.name.replace('B:', '')}</h3>`;
-    tab.data.forEach(book => {
-        libraryContent.innerHTML += `<p><strong>${book.title}</strong> by ${book.author}: ${book.content}</p>`;
+    
+    // Get D: columns
+    const dColumns = getDColumns(tab);
+    if (dColumns.length === 0) {
+        libraryContent.innerHTML += '<p>No data columns with "D:" prefix found.</p>';
+        switchView('library');
+        return;
+    }
+
+    // Create table
+    const table = document.createElement('table');
+    table.className = 'data-table';
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+        <tr>
+            <th>Index</th>
+            <th>Indicator</th>
+            <th>Data</th>
+        </tr>
+    `;
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    tab.data.forEach((row, rowIndex) => {
+        // Initialize column state for this row
+        if (!columnStates.has(`${tab.name}-${rowIndex}`)) {
+            columnStates.set(`${tab.name}-${rowIndex}`, 0);
+        }
+        const currentDColumnIndex = columnStates.get(`${tab.name}-${rowIndex}`);
+        const currentDColumn = dColumns[currentDColumnIndex] || dColumns[0];
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.Index || rowIndex + 1}</td>
+            <td><button class="cycle-button" data-tab="${tab.name}" data-row="${rowIndex}">→</button></td>
+            <td>${row[currentDColumn] || ''}</td>
+        `;
+        tbody.appendChild(tr);
     });
+    table.appendChild(tbody);
+
+    libraryContent.appendChild(table);
+
+    // Add event listeners to cycle buttons
+    table.querySelectorAll('.cycle-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.dataset.tab;
+            const rowIndex = parseInt(button.dataset.row);
+            const tab = sheetData.tabs.find(t => t.name === tabName);
+            if (!tab) return;
+
+            // Update column state
+            const currentIndex = columnStates.get(`${tabName}-${rowIndex}`) || 0;
+            const nextIndex = (currentIndex + 1) % dColumns.length;
+            columnStates.set(`${tabName}-${rowIndex}`, nextIndex);
+
+            // Refresh the table
+            showBookContent(tab);
+        });
+    });
+
     switchView('library');
 }
 
@@ -154,7 +269,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
     });
 });
 
-// Tree visualization (unchanged)
+// Tree visualization
 const canvas = document.getElementById('treeCanvas');
 const ctx = canvas.getContext('2d');
 let currentScale = 1;
