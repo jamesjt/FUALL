@@ -59,7 +59,7 @@ header {
 
 /* Sidebar */
 .sidebar {
-    width: 250px;
+    width: 200px;
     background: #f9f9f9;
     padding: 1rem;
     border-right: 1px solid #ddd;
@@ -94,6 +94,13 @@ header {
     overflow-y: auto;
 }
 
+.content-container{
+}
+
+.content-row{
+display:flex;
+}
+
 .view {
     display: none;
 }
@@ -102,70 +109,7 @@ header {
     display: block;
 }
 
-/* Tree View */
-#canvasContainer {
-    overflow: auto;
-    width: 100%;
-    height: 600px;
-    position: relative;
-}
 
-.info-panel {
-    position: absolute;
-    background: white;
-    border: 1px solid #ccc;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-    padding: 10px;
-    z-index: 10;
-    resize: both;
-    overflow: auto;
-    min-width: 200px;
-    min-height: 100px;
-}
-
-.panel-header {
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.panel-content img,
-.panel-content video {
-    max-width: 100%;
-}
-
-/* Library and Simple Views */
-#library-content,
-#simple-content {
-    margin-top: 1rem;
-}
-
-#library-content h3,
-#simple-content h3 {
-    margin-bottom: 0.5rem;
-}
-
-/* Data Table */
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-}
-
-.data-table th,
-.data-table td {
-    border: 1px solid #ddd;
-    padding: 0.5rem;
-    text-align: left;
-}
-
-.data-table th {
-    background: #f4f4f4;
-    font-weight: bold;
-}
-
-.data-table td {
-    vertical-align: middle;
-}
 
 /* Cycle Button */
 .cycle-button {
