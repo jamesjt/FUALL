@@ -1,12 +1,14 @@
 // script.js
 
-// URL of the published Google Sheet CSV (assumed to be "B: On Liberty")
-const csvUrl = 'https://docs.google.com/spreadsheets/d/1g6d_uNrqofuyeOEVvtioW0wz2LrLtOpU8jsyfg8zgR0/pub?output=csv';
+// URL of the published Google Sheet CSV with CORS proxy
+const csvUrl = 'https://cors-anywhere.herokuapp.com/https://docs.google.com/spreadsheets/d/e/2PACX-1vRdBGxonsMp06IcXX2nEbJmbtA4vYeVIRgPxwdGMtArWLMsuVZeJakOWpyub_pn-IcIkes2PTRJ6xw7/pub?gid=1556566616&single=true&output=csv';
 
 // Fetch and process the CSV data
 fetch(csvUrl)
     .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
         return response.text();
     })
     .then(data => {
@@ -16,6 +18,9 @@ fetch(csvUrl)
 
         // Get the content container
         const contentContainer = document.querySelector('.content-container');
+        if (!contentContainer) {
+            throw new Error('Content container not found in the DOM');
+        }
         contentContainer.innerHTML = ''; // Clear any existing content
 
         // Create a content row for each CSV row
