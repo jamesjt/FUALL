@@ -5,19 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Dashboard</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 </head>
 <body>
     <div class="container">
-        <div class="sidebar" id="sidebar">
+        <div class="sidebar">
             <h2>Sheets</h2>
             <ul id="sheet-list"></ul>
         </div>
         <div class="main-content">
             <h1>Data Dashboard</h1>
-            <div id="content">Select a sheet from the sidebar to view its data.</div>
+            <div class="view-controls">
+                <button class="view-btn" data-view="map">Map View</button>
+                <button class="view-btn" data-view="graph">Graph View</button>
+                <button class="view-btn" data-view="list">List View</button>
+            </div>
+            <div id="map" style="display: none; height: 500px;"></div>
+            <div id="graph-view" style="display: none;"></div>
+            <div id="list-view" style="display: none;"></div>
+            <div id="content">
+                <p>Select a sheet from the sidebar to view its data.</p>
+            </div>
         </div>
     </div>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
