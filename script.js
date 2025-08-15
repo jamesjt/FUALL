@@ -1,72 +1,65 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Direct Google Sheet URL (ensure the sheet is published and publicly accessible)
-    const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
 
-    fetchGoogleSheetData(sheetUrl)
-        .then(data => {
-            const sidebarList = document.querySelector('.sidebar ul');
-            sidebarList.innerHTML = ''; // Clear existing list items
+.container {
+    display: flex;
+    min-height: 100vh;
+}
 
-            if (data.length === 0) {
-                sidebarList.innerHTML = '<li>No data found in the CSV</li>';
-                console.warn('No data found in the CSV');
-                return;
-            }
+.sidebar {
+    width: 250px;
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-right: 1px solid #ddd;
+}
 
-            data.forEach(row => {
-                const book = row['Book']?.trim();
-                const link = row['Link']?.trim();
+.sidebar h2 {
+    margin-top: 0;
+    font-size: 1.5em;
+}
 
-                if (book && link) {
-                    const listItem = document.createElement('li');
-                    const linkElement = document.createElement('a');
-                    linkElement.href = link;
-                    linkElement.textContent = book;
-                    linkElement.target = '_blank'; // Open links in a new tab
-                    listItem.appendChild(linkElement);
-                    sidebarList.appendChild(listItem);
-                }
-            });
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
 
-            if (sidebarList.children.length === 0) {
-                sidebarList.innerHTML = '<li>No valid book/link pairs found</li>';
-            }
-        })
-        .catch(error => {
-            console.error('Error processing CSV data:', error);
-            const sidebarList = document.querySelector('.sidebar ul');
-            sidebarList.innerHTML = '<li>Failed to load book data. Please try again later.</li>';
-        });
-});
+.sidebar li {
+    margin: 10px 0;
+}
 
-function fetchGoogleSheetData(url) {
-    console.log('Fetching URL:', url); // Debugging log
-    return fetch(url)
-        .then(response => {
-            console.log('Response status:', response.status); // Debugging log
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(csvText => {
-            console.log('CSV text:', csvText); // Debugging log
-            return new Promise((resolve, reject) => {
-                Papa.parse(csvText, {
-                    header: true,
-                    complete: function(results) {
-                        console.log('Parsed CSV:', results.data); // Debugging log
-                        resolve(results.data);
-                    },
-                    error: function(error) {
-                        console.error('Papa Parse error:', error);
-                        reject(error);
-                    }
-                });
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching Google Sheet:', error);
-            throw error;
-        });
+.sidebar button.book-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 1.1em;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border-radius: 4px;
+}
+
+.sidebar button.book-button:hover {
+    background-color: #0056b3;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+}
+
+.main-content h1 {
+    margin-top: 0;
+}
+
+.content ul {
+    list-style: disc;
+    padding-left: 20px;
+}
+
+.content p {
+    color: #333;
 }

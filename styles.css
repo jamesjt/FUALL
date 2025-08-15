@@ -30,14 +30,20 @@ body {
     margin: 10px 0;
 }
 
-.sidebar a {
-    text-decoration: none;
-    color: #333;
+.sidebar button.book-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
     font-size: 1.1em;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border-radius: 4px;
 }
 
-.sidebar a:hover {
-    color: #007bff;
+.sidebar button.book-button:hover {
+    background-color: #0056b3;
 }
 
 .main-content {
@@ -47,4 +53,13 @@ body {
 
 .main-content h1 {
     margin-top: 0;
+}
+
+.content ul {
+    list-style: disc;
+    padding-left: 20px;
+}
+
+.content p {
+    color: #333;
 }
