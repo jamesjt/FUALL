@@ -1,14 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
     const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
     const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
-    const bookContent = document.querySelector('.book-content');
+    const bookContent = document.querySelector('#book-content');
+    const sidebarList = document.querySelector('.sidebar ul');
+
+    // Check if bookContent and sidebarList exist
+    if (!bookContent) {
+        console.error('Error: #book-content element not found in the DOM');
+        if (sidebarList) {
+            sidebarList.innerHTML = '<li>Error: book-content div missing</li>';
+        }
+        return;
+    }
+    if (!sidebarList) {
+        console.error('Error: .sidebar ul element not found in the DOM');
+        bookContent.innerHTML = '<p>Error: sidebar list not found</p>';
+        return;
+    }
+
     bookContent.innerHTML = '<p>Please select a book from the sidebar.</p>';
+    sidebarList.innerHTML = ''; // Clear existing list items
 
     fetchGoogleSheetData(proxyUrl + sheetUrl)
         .then(data => {
-            const sidebarList = document.querySelector('.sidebar ul');
-            sidebarList.innerHTML = ''; // Clear existing list items
-
             if (data.length === 0) {
                 sidebarList.innerHTML = '<li>No data found in the CSV</li>';
                 bookContent.innerHTML = '<p>No book data available</p>';
@@ -75,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             console.error('Error processing main CSV:', error);
-            const sidebarList = document.querySelector('.sidebar ul');
             sidebarList.innerHTML = `<li>Error loading book data: ${error.message}. Try requesting access at <a href="https://cors-anywhere.herokuapp.com/" target="_blank">CORS proxy</a>.</li>`;
             bookContent.innerHTML = '<p>Error loading book data. Please try again.</p>';
         });
