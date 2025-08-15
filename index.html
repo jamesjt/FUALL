@@ -3,45 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree of Wisdom</title>
+    <title>Data Dashboard</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Added PapaParse CDN for CSV parsing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="header-content">
-            <h1>Foundational Understanding</h1>
-        </div>
-    </header>
-
-    <!-- Navbar -->
-    <div class="navbar">
-        <div>
-            <div><a href="#" class="nav-link" data-view="tree">Tree</a></div>
-            <div><a href="#" class="nav-link" data-view="library">Library</a></div>
-            <div><a href="#" class="nav-link" data-view="simple">Simple</a></div>
-        </div>
-    </div>
-
-    <!-- Main Container -->
     <div class="container">
-        <!-- Sidebar -->
-        <Div class="sidebar">
-            <h2>Books</h2>
-            <div id="book-list">
-                <!-- Populated dynamically via JavaScript -->
-            </div>
+        <div class="sidebar" id="sidebar">
+            <h2>Sheets</h2>
+            <ul id="sheet-list"></ul>
         </div>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="content-container">
-            </div>
-        </main>
+        <div class="main-content">
+            <h1>Data Dashboard</h1>
+            <div id="content">Select a sheet from the sidebar to view its data.</div>
+        </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>

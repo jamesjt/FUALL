@@ -1,68 +1,84 @@
-// script.js
+const indexSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
 
-// URL of the published Google Sheet CSV with CORS proxy
-const csvUrl = 'https://cors-anywhere.herokuapp.com/https://docs.google.com/spreadsheets/d/e/2PACX-1vRdBGxonsMp06IcXX2nEbJmbtA4vYeVIRgPxwdGMtArWLMsuVZeJakOWpyub_pn-IcIkes2PTRJ6xw7/pub?gid=1556566616&single=true&output=csv';
+function loadIndexSheet() {
+    Papa.parse(indexSheetUrl, {
+        download: true,
+        header: true,
+        complete: function(results) {
+            const sheets = results.data;
+            const sheetList = document.getElementById('sheet-list');
+            sheetList.innerHTML = ''; // Clear existing list
 
-// Fetch and process the CSV data with custom header
-fetch(csvUrl, {
-    method: 'GET',
-    headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-    }
-})
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok: ' + response.statusText);
+            sheets.forEach(sheet => {
+                if (sheet.Name && sheet.URL) { // Assuming columns 'Name' and 'URL'
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.textContent = sheet.Name;
+                    a.onclick = () => loadSheetData(sheet.URL, sheet.Name);
+                    li.appendChild(a);
+                    sheetList.appendChild(li);
+                }
+            });
+        },
+        error: function(error) {
+            console.error('Error loading index sheet:', error);
+            document.getElementById('content').innerHTML = 'Error loading sheet data.';
         }
-        return response.text();
-    })
-    .then(data => {
-        // Parse CSV using PapaParse with headers
-        const parsedData = Papa.parse(data, { header: true });
-        const rows = parsedData.data;
-
-        // Get the content container
-        const contentContainer = document.querySelector('.content-container');
-        if (!contentContainer) {
-            throw new Error('Content container not found in the DOM');
-        }
-        contentContainer.innerHTML = ''; // Clear any existing content
-
-        // Create a content row for each CSV row
-        rows.forEach(row => {
-            // Skip if row is empty or missing key columns
-            if (!row || !row['Index'] || !row['D: Original']) return;
-
-            // Create content-row div
-            const contentRow = document.createElement('div');
-            contentRow.classList.add('content-row');
-
-            // Index div
-            const indexDiv = document.createElement('div');
-            indexDiv.classList.add('index');
-            indexDiv.textContent = row['Index'];
-
-            // Indicator div with round button
-            const indicatorDiv = document.createElement('div');
-            indicatorDiv.classList.add('indicator');
-            const cycleButton = document.createElement('div');
-            cycleButton.classList.add('cycle-button');
-            indicatorDiv.appendChild(cycleButton);
-
-            // Content div
-            const contentDiv = document.createElement('div');
-            contentDiv.classList.add('content');
-            contentDiv.textContent = row['D: Original'];
-
-            // Append child divs to content-row
-            contentRow.appendChild(indexDiv);
-            contentRow.appendChild(indicatorDiv);
-            contentRow.appendChild(contentDiv);
-
-            // Append content-row to content-container
-            contentContainer.appendChild(contentRow);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching or processing CSV:', error);
     });
+}
+
+function loadSheetData(url, name) {
+    Papa.parse(url, {
+        download: true,
+        header: true,
+        complete: function(results) {
+            const data = results.data;
+            const content = document.getElementById('content');
+            content.innerHTML = `<h2>${name}</h2>`;
+
+            if (data.length === 0) {
+                content.innerHTML += '<p>No data available.</p>';
+                return;
+            }
+
+            // Create a table for the sheet data
+            const table = document.createElement('table');
+            table.border = '1';
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+            const headers = Object.keys(data[0]);
+
+            // Create header row
+            const headerRow = document.createElement('tr');
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+
+            // Create data rows
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.textContent = row[header] || '';
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            content.appendChild(table);
+        },
+        error: function(error) {
+            console.error('Error loading sheet:', error);
+            document.getElementById('content').innerHTML = 'Error loading sheet data.';
+        }
+    });
+}
+
+// Load the index sheet on page load
+document.addEventListener('DOMContentLoaded', loadIndexSheet);
