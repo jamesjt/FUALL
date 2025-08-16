@@ -89,6 +89,18 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
         masterSelectContainer.appendChild(addButton);
     }
 
+    // Add minus button to remove this data container (if not the last one)
+    const removeButton = document.createElement('button');
+    removeButton.textContent = '−';
+    removeButton.classList.add('remove-container-button');
+    removeButton.setAttribute('aria-label', 'Remove data column');
+    removeButton.addEventListener('click', () => {
+        if (contentDiv.querySelectorAll('.data-container').length > 1) {
+            dataContainer.remove();
+        }
+    });
+    masterSelectContainer.appendChild(removeButton);
+
     dataContainer.appendChild(masterSelectContainer);
 
     // Create a row for each data entry
@@ -118,6 +130,8 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
             // Update data when dropdown changes
             select.addEventListener('change', () => {
                 dataDiv.textContent = row[select.value]?.trim() || 'No data';
+                dataDiv.classList.add('updated');
+                setTimeout(() => dataDiv.classList.remove('updated'), 500);
             });
 
             rowDiv.appendChild(select);
