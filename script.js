@@ -41,6 +41,94 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 });
 
+// Function to create a data container with dropdowns and data rows
+function createDataContainer(data, columns, defaultColumn, contentDiv) {
+    const dataContainer = document.createElement('div');
+    dataContainer.classList.add('data-container');
+
+    // Create master dropdown
+    const masterSelectContainer = document.createElement('div');
+    masterSelectContainer.classList.add('master-select-container');
+    const masterLabel = document.createElement('label');
+    masterLabel.textContent = 'Set All Data: ';
+    masterLabel.setAttribute('for', `master-select-${Date.now()}`); // Unique ID
+    const masterSelect = document.createElement('select');
+    masterSelect.id = `master-select-${Date.now()}`; // Unique ID to avoid conflicts
+    masterSelect.classList.add('master-select');
+    columns.forEach(column => {
+        const option = document.createElement('option');
+        option.value = column;
+        option.textContent = column.replace(/^D:\s*/, ''); // Remove "D:" for display
+        if (column === defaultColumn) {
+            option.selected = true;
+        }
+        masterSelect.appendChild(option);
+    });
+
+    // Add event listener to master dropdown to update all row dropdowns
+    masterSelect.addEventListener('change', () => {
+        const rowSelects = dataContainer.querySelectorAll('.column-select');
+        rowSelects.forEach(select => {
+            select.value = masterSelect.value;
+            select.dispatchEvent(new Event('change')); // Trigger update of data-content
+        });
+    });
+
+    masterSelectContainer.appendChild(masterLabel);
+    masterSelectContainer.appendChild(masterSelect);
+
+    // Add plus button to the first master-select-container
+    if (contentDiv.querySelectorAll('.data-container').length === 0) {
+        const addButton = document.createElement('button');
+        addButton.textContent = '+';
+        addButton.classList.add('add-container-button');
+        addButton.setAttribute('aria-label', 'Add new data column');
+        addButton.addEventListener('click', () => {
+            createDataContainer(data, columns, defaultColumn, contentDiv);
+        });
+        masterSelectContainer.appendChild(addButton);
+    }
+
+    dataContainer.appendChild(masterSelectContainer);
+
+    // Create a row for each data entry
+    data.forEach((row, index) => {
+        if (Object.values(row).some(value => value?.trim())) { // Skip empty rows
+            const rowDiv = document.createElement('div');
+            rowDiv.classList.add('data-row');
+
+            // Create dropdown for selecting "D:" columns
+            const select = document.createElement('select');
+            select.classList.add('column-select');
+            columns.forEach(column => {
+                const option = document.createElement('option');
+                option.value = column;
+                option.textContent = column.replace(/^D:\s*/, ''); // Remove "D:" for display
+                if (column === defaultColumn) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+
+            // Create div for displaying data
+            const dataDiv = document.createElement('div');
+            dataDiv.classList.add('data-content');
+            dataDiv.textContent = row[defaultColumn]?.trim() || 'No data';
+
+            // Update data when dropdown changes
+            select.addEventListener('change', () => {
+                dataDiv.textContent = row[select.value]?.trim() || 'No data';
+            });
+
+            rowDiv.appendChild(select);
+            rowDiv.appendChild(dataDiv);
+            dataContainer.appendChild(rowDiv);
+        }
+    });
+
+    contentDiv.appendChild(dataContainer);
+}
+
 // Function to fetch and display data from a linked Google Sheet
 function loadBookData(link, bookName) {
     const contentDiv = document.querySelector('.content');
@@ -59,85 +147,15 @@ function loadBookData(link, bookName) {
             // Set default column to "D: Original" or the first "D:" column
             const defaultColumn = columns.includes('D: Original') ? 'D: Original' : columns[0];
 
-            // Create container for master dropdown and data rows
-            const dataContainer = document.createElement('div');
-            dataContainer.classList.add('data-container');
+            // Clear existing content and create the first data container
+            contentDiv.innerHTML = '';
+            createDataContainer(data, columns, defaultColumn, contentDiv);
 
-            // Create master dropdown
-            const masterSelectContainer = document.createElement('div');
-            masterSelectContainer.classList.add('master-select-container');
-            const masterLabel = document.createElement('label');
-            masterLabel.textContent = 'Select All Columns: ';
-            masterLabel.setAttribute('for', 'master-select');
-            const masterSelect = document.createElement('select');
-            masterSelect.id = 'master-select';
-            masterSelect.classList.add('master-select');
-            columns.forEach(column => {
-                const option = document.createElement('option');
-                option.value = column;
-                option.textContent = column.replace(/^D:\s*/, ''); // Remove "D:" for display
-                if (column === defaultColumn) {
-                    option.selected = true;
-                }
-                masterSelect.appendChild(option);
-            });
-
-            // Add event listener to master dropdown to update all row dropdowns
-            masterSelect.addEventListener('change', () => {
-                const rowSelects = dataContainer.querySelectorAll('.column-select');
-                rowSelects.forEach(select => {
-                    select.value = masterSelect.value;
-                    select.dispatchEvent(new Event('change')); // Trigger update of data-content
-                });
-            });
-
-            masterSelectContainer.appendChild(masterLabel);
-            masterSelectContainer.appendChild(masterSelect);
-            dataContainer.appendChild(masterSelectContainer);
-
-            // Create a row for each data entry
-            data.forEach((row, index) => {
-                if (Object.values(row).some(value => value?.trim())) { // Skip empty rows
-                    const rowDiv = document.createElement('div');
-                    rowDiv.classList.add('data-row');
-
-                    // Create dropdown for selecting "D:" columns
-                    const select = document.createElement('select');
-                    select.classList.add('column-select');
-                    columns.forEach(column => {
-                        const option = document.createElement('option');
-                        option.value = column;
-                        option.textContent = column.replace(/^D:\s*/, ''); // Remove "D:" for display
-                        if (column === defaultColumn) {
-                            option.selected = true;
-                        }
-                        select.appendChild(option);
-                    });
-
-                    // Create div for displaying data
-                    const dataDiv = document.createElement('div');
-                    dataDiv.classList.add('data-content');
-                    dataDiv.textContent = row[defaultColumn]?.trim() || 'No data';
-
-                    // Update data when dropdown changes
-                    select.addEventListener('change', () => {
-                        dataDiv.textContent = row[select.value]?.trim() || 'No data';
-                    });
-
-                    rowDiv.appendChild(select);
-                    rowDiv.appendChild(dataDiv);
-                    dataContainer.appendChild(rowDiv);
-                }
-            });
-
-            if (dataContainer.children.length === 0) {
+            if (contentDiv.querySelectorAll('.data-row').length === 0) {
                 contentDiv.innerHTML = '<p class="error">No valid data found for ' + bookName + '.</p>';
                 console.warn('No valid data for:', bookName);
                 return;
             }
-
-            contentDiv.innerHTML = ''; // Clear loading state
-            contentDiv.appendChild(dataContainer);
         })
         .catch(error => {
             console.error('Error loading data for ' + bookName + ':', error);
@@ -174,6 +192,6 @@ function fetchGoogleSheetData(url) {
         })
         .catch(error => {
             console.error('Error fetching Google Sheet:', error);
-            throw error;
+            throw error);
         });
 }

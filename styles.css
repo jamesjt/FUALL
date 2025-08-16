@@ -59,6 +59,14 @@ body {
     font-size: 1.8em;
 }
 
+.content {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
 .content p {
     color: #333;
 }
@@ -76,6 +84,8 @@ body {
 }
 
 .data-container {
+    flex: 0 0 auto;
+    max-width: 650px;
     margin-top: 15px;
 }
 
@@ -99,6 +109,22 @@ body {
     background-color: #fff;
     cursor: pointer;
     min-width: 150px;
+}
+
+.add-container-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.add-container-button:hover {
+    background-color: #218838;
 }
 
 .data-row {
