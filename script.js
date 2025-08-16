@@ -59,9 +59,41 @@ function loadBookData(link, bookName) {
             // Set default column to "D: Original" or the first "D:" column
             const defaultColumn = columns.includes('D: Original') ? 'D: Original' : columns[0];
 
-            // Create container for data rows
+            // Create container for master dropdown and data rows
             const dataContainer = document.createElement('div');
             dataContainer.classList.add('data-container');
+
+            // Create master dropdown
+            const masterSelectContainer = document.createElement('div');
+            masterSelectContainer.classList.add('master-select-container');
+            const masterLabel = document.createElement('label');
+            masterLabel.textContent = 'Select All Columns: ';
+            masterLabel.setAttribute('for', 'master-select');
+            const masterSelect = document.createElement('select');
+            masterSelect.id = 'master-select';
+            masterSelect.classList.add('master-select');
+            columns.forEach(column => {
+                const option = document.createElement('option');
+                option.value = column;
+                option.textContent = column.replace(/^D:\s*/, ''); // Remove "D:" for display
+                if (column === defaultColumn) {
+                    option.selected = true;
+                }
+                masterSelect.appendChild(option);
+            });
+
+            // Add event listener to master dropdown to update all row dropdowns
+            masterSelect.addEventListener('change', () => {
+                const rowSelects = dataContainer.querySelectorAll('.column-select');
+                rowSelects.forEach(select => {
+                    select.value = masterSelect.value;
+                    select.dispatchEvent(new Event('change')); // Trigger update of data-content
+                });
+            });
+
+            masterSelectContainer.appendChild(masterLabel);
+            masterSelectContainer.appendChild(masterSelect);
+            dataContainer.appendChild(masterSelectContainer);
 
             // Create a row for each data entry
             data.forEach((row, index) => {

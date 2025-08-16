@@ -79,6 +79,28 @@ body {
     margin-top: 15px;
 }
 
+.master-select-container {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.master-select-container label {
+    font-weight: 500;
+    font-size: 1.1em;
+}
+
+.master-select {
+    padding: 8px;
+    font-size: 1.1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+    min-width: 150px;
+}
+
 .data-row {
     display: flex;
     align-items: center;
