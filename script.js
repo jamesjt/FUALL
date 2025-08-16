@@ -192,6 +192,6 @@ function fetchGoogleSheetData(url) {
         })
         .catch(error => {
             console.error('Error fetching Google Sheet:', error);
-            throw error);
+            throw error;
         });
 }
