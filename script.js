@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const listItem = document.createElement('li');
                     const buttonElement = document.createElement('button');
                     buttonElement.textContent = book;
-                    buttonElement.classList.add('book-button'); // Add class for styling
+                    buttonElement.classList.add('book-button');
                     buttonElement.addEventListener('click', () => {
                         loadBookData(link, book);
                     });
@@ -48,26 +48,64 @@ function loadBookData(link, bookName) {
 
     fetchGoogleSheetData(link)
         .then(data => {
-            // Extract data from the "Original" column
-            const originalData = data
-                .map(row => row['Original']?.trim())
-                .filter(data => data); // Remove undefined or empty entries
-
-            if (originalData.length === 0) {
-                contentDiv.innerHTML = '<p>No data found in the "Original" column for ' + bookName + '.</p>';
-                console.warn('No data in "Original" column for:', bookName);
+            // Get columns with headers containing "D:"
+            const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
+            if (columns.length === 0) {
+                contentDiv.innerHTML = '<p>No columns with "D:" found for ' + bookName + '.</p>';
+                console.warn('No "D:" columns found for:', bookName);
                 return;
             }
 
-            // Display the data as a list
-            const list = document.createElement('ul');
-            originalData.forEach(item => {
-                const listItem = document.createElement('li');
-                listItem.textContent = item;
-                list.appendChild(listItem);
+            // Set default column to "D: Original" or the first "D:" column
+            const defaultColumn = columns.includes('D: Original') ? 'D: Original' : columns[0];
+
+            // Create container for data rows
+            const dataContainer = document.createElement('div');
+            dataContainer.classList.add('data-container');
+
+            // Create a row for each data entry
+            data.forEach((row, index) => {
+                if (Object.values(row).some(value => value?.trim())) { // Skip empty rows
+                    const rowDiv = document.createElement('div');
+                    rowDiv.classList.add('data-row');
+
+                    // Create dropdown for selecting "D:" columns
+                    const select = document.createElement('select');
+                    select.classList.add('column-select');
+                    columns.forEach(column => {
+                        const option = document.createElement('option');
+                        option.value = column;
+                        option.textContent = column;
+                        if (column === defaultColumn) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+
+                    // Create div for displaying data
+                    const dataDiv = document.createElement('div');
+                    dataDiv.classList.add('data-content');
+                    dataDiv.textContent = row[defaultColumn]?.trim() || 'No data';
+
+                    // Update data when dropdown changes
+                    select.addEventListener('change', () => {
+                        dataDiv.textContent = row[select.value]?.trim() || 'No data';
+                    });
+
+                    rowDiv.appendChild(select);
+                    rowDiv.appendChild(dataDiv);
+                    dataContainer.appendChild(rowDiv);
+                }
             });
+
+            if (dataContainer.children.length === 0) {
+                contentDiv.innerHTML = '<p>No valid data found for ' + bookName + '.</p>';
+                console.warn('No valid data for:', bookName);
+                return;
+            }
+
             contentDiv.innerHTML = ''; // Clear loading state
-            contentDiv.appendChild(list);
+            contentDiv.appendChild(dataContainer);
         })
         .catch(error => {
             console.error('Error loading data for ' + bookName + ':', error);
@@ -77,22 +115,22 @@ function loadBookData(link, bookName) {
 
 // Reusable function to fetch and parse CSV data from a Google Sheet
 function fetchGoogleSheetData(url) {
-    console.log('Fetching URL:', url); // Debugging log
+    console.log('Fetching URL:', url);
     return fetch(url)
         .then(response => {
-            console.log('Response status:', response.status); // Debugging log
+            console.log('Response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             return response.text();
         })
         .then(csvText => {
-            console.log('CSV text:', csvText); // Debugging log
+            console.log('CSV text:', csvText);
             return new Promise((resolve, reject) => {
                 Papa.parse(csvText, {
                     header: true,
                     complete: function(results) {
-                        console.log('Parsed CSV:', results.data); // Debugging log
+                        console.log('Parsed CSV:', results.data);
                         resolve(results.data);
                     },
                     error: function(error) {
