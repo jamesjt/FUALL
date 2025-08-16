@@ -44,14 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // Function to fetch and display data from a linked Google Sheet
 function loadBookData(link, bookName) {
     const contentDiv = document.querySelector('.content');
-    contentDiv.innerHTML = '<p>Loading data for ' + bookName + '...</p>'; // Show loading state
+    contentDiv.innerHTML = '<p class="loading">Loading data for ' + bookName + '...</p>'; // Show loading state
 
     fetchGoogleSheetData(link)
         .then(data => {
             // Get columns with headers containing "D:"
             const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
             if (columns.length === 0) {
-                contentDiv.innerHTML = '<p>No columns with "D:" found for ' + bookName + '.</p>';
+                contentDiv.innerHTML = '<p class="error">No columns with "D:" found for ' + bookName + '.</p>';
                 console.warn('No "D:" columns found for:', bookName);
                 return;
             }
@@ -75,7 +75,7 @@ function loadBookData(link, bookName) {
                     columns.forEach(column => {
                         const option = document.createElement('option');
                         option.value = column;
-                        option.textContent = column;
+                        option.textContent = column.replace(/^D:\s*/, ''); // Remove "D:" for display
                         if (column === defaultColumn) {
                             option.selected = true;
                         }
@@ -99,7 +99,7 @@ function loadBookData(link, bookName) {
             });
 
             if (dataContainer.children.length === 0) {
-                contentDiv.innerHTML = '<p>No valid data found for ' + bookName + '.</p>';
+                contentDiv.innerHTML = '<p class="error">No valid data found for ' + bookName + '.</p>';
                 console.warn('No valid data for:', bookName);
                 return;
             }
@@ -109,7 +109,7 @@ function loadBookData(link, bookName) {
         })
         .catch(error => {
             console.error('Error loading data for ' + bookName + ':', error);
-            contentDiv.innerHTML = '<p>Failed to load data for ' + bookName + '. Please try again later.</p>';
+            contentDiv.innerHTML = '<p class="error">Failed to load data for ' + bookName + '. Please try again later.</p>';
         });
 }
 
