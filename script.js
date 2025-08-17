@@ -44,7 +44,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // Function to synchronize row heights across data containers
 function synchronizeRowHeights(contentDiv) {
     const containers = contentDiv.querySelectorAll('.data-container');
-    if (containers.length < 2) return; // No synchronization needed for single container
+    
+    // If only one container, reset row heights to auto
+    if (containers.length < 2) {
+        containers.forEach(container => {
+            const rows = container.querySelectorAll('.data-row');
+            rows.forEach(row => {
+                row.style.height = 'auto';
+            });
+        });
+        return;
+    }
 
     // Reset heights to measure natural height
     containers.forEach(container => {
