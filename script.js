@@ -41,6 +41,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 });
 
+// Function to synchronize row heights across data containers
+function synchronizeRowHeights(contentDiv) {
+    const containers = contentDiv.querySelectorAll('.data-container');
+    if (containers.length < 2) return; // No synchronization needed for single container
+
+    // Reset heights to measure natural height
+    containers.forEach(container => {
+        const rows = container.querySelectorAll('.data-row');
+        rows.forEach(row => {
+            row.style.height = 'auto';
+        });
+    });
+
+    // Find maximum height for each row index
+    const maxHeights = [];
+    containers.forEach(container => {
+        const rows = container.querySelectorAll('.data-row');
+        rows.forEach((row, index) => {
+            const height = row.offsetHeight;
+            maxHeights[index] = Math.max(maxHeights[index] || 0, height);
+        });
+    });
+
+    // Apply maximum height to each row
+    containers.forEach(container => {
+        const rows = container.querySelectorAll('.data-row');
+        rows.forEach((row, index) => {
+            row.style.height = `${maxHeights[index]}px`;
+        });
+    });
+}
+
 // Function to update plus and minus buttons (only on the rightmost data container)
 function updateContainerButtons(contentDiv, data, columns, defaultColumn) {
     const containers = contentDiv.querySelectorAll('.data-container');
@@ -63,7 +95,7 @@ function updateContainerButtons(contentDiv, data, columns, defaultColumn) {
         addButton.setAttribute('aria-label', 'Add new data column');
         addButton.addEventListener('click', () => {
             createDataContainer(data, columns, defaultColumn, contentDiv);
-            updateContainerButtons(contentDiv, data, columns, defaultColumn);
+            synchronizeRowHeights(contentDiv);
         });
         masterSelectContainer.appendChild(addButton);
 
@@ -76,10 +108,13 @@ function updateContainerButtons(contentDiv, data, columns, defaultColumn) {
             removeButton.addEventListener('click', () => {
                 rightmostContainer.remove();
                 updateContainerButtons(contentDiv, data, columns, defaultColumn);
+                synchronizeRowHeights(contentDiv);
             });
             masterSelectContainer.appendChild(removeButton);
         }
     }
+
+    synchronizeRowHeights(contentDiv);
 }
 
 // Function to create a data container with dropdowns and data rows
@@ -113,6 +148,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
             select.value = masterSelect.value;
             select.dispatchEvent(new Event('change')); // Trigger update of data-content
         });
+        synchronizeRowHeights(contentDiv);
     });
 
     masterSelectContainer.appendChild(masterLabel);
@@ -148,6 +184,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
                 dataDiv.textContent = row[select.value]?.trim() || 'No data';
                 dataDiv.classList.add('updated');
                 setTimeout(() => dataDiv.classList.remove('updated'), 500);
+                synchronizeRowHeights(contentDiv);
             });
 
             rowDiv.appendChild(select);
