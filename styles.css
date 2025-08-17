@@ -136,7 +136,7 @@ body {
     font-weight: bold;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s ease mischievously
+    transition: background-color 0.2s ease;
 }
 
 .remove-container-button:hover {

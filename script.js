@@ -41,6 +41,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 });
 
+// Function to update plus and minus buttons (only on the rightmost data container)
+function updateContainerButtons(contentDiv, data, columns, defaultColumn) {
+    const containers = contentDiv.querySelectorAll('.data-container');
+    containers.forEach(container => {
+        const masterSelectContainer = container.querySelector('.master-select-container');
+        const addButton = masterSelectContainer.querySelector('.add-container-button');
+        const removeButton = masterSelectContainer.querySelector('.remove-container-button');
+        if (addButton) addButton.remove();
+        if (removeButton) removeButton.remove();
+    });
+
+    const rightmostContainer = containers[containers.length - 1];
+    if (rightmostContainer) {
+        const masterSelectContainer = rightmostContainer.querySelector('.master-select-container');
+
+        // Add plus button
+        const addButton = document.createElement('button');
+        addButton.textContent = '+';
+        addButton.classList.add('add-container-button');
+        addButton.setAttribute('aria-label', 'Add new data column');
+        addButton.addEventListener('click', () => {
+            createDataContainer(data, columns, defaultColumn, contentDiv);
+            updateContainerButtons(contentDiv, data, columns, defaultColumn);
+        });
+        masterSelectContainer.appendChild(addButton);
+
+        // Add minus button only if there are at least two containers
+        if (containers.length > 1) {
+            const removeButton = document.createElement('button');
+            removeButton.textContent = '−';
+            removeButton.classList.add('remove-container-button');
+            removeButton.setAttribute('aria-label', 'Remove data column');
+            removeButton.addEventListener('click', () => {
+                rightmostContainer.remove();
+                updateContainerButtons(contentDiv, data, columns, defaultColumn);
+            });
+            masterSelectContainer.appendChild(removeButton);
+        }
+    }
+}
+
 // Function to create a data container with dropdowns and data rows
 function createDataContainer(data, columns, defaultColumn, contentDiv) {
     const dataContainer = document.createElement('div');
@@ -76,31 +117,6 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
 
     masterSelectContainer.appendChild(masterLabel);
     masterSelectContainer.appendChild(masterSelect);
-
-    // Add plus button to the first master-select-container
-    if (contentDiv.querySelectorAll('.data-container').length === 0) {
-        const addButton = document.createElement('button');
-        addButton.textContent = '+';
-        addButton.classList.add('add-container-button');
-        addButton.setAttribute('aria-label', 'Add new data column');
-        addButton.addEventListener('click', () => {
-            createDataContainer(data, columns, defaultColumn, contentDiv);
-        });
-        masterSelectContainer.appendChild(addButton);
-    }
-
-    // Add minus button to remove this data container (if not the last one)
-    const removeButton = document.createElement('button');
-    removeButton.textContent = '−';
-    removeButton.classList.add('remove-container-button');
-    removeButton.setAttribute('aria-label', 'Remove data column');
-    removeButton.addEventListener('click', () => {
-        if (contentDiv.querySelectorAll('.data-container').length > 1) {
-            dataContainer.remove();
-        }
-    });
-    masterSelectContainer.appendChild(removeButton);
-
     dataContainer.appendChild(masterSelectContainer);
 
     // Create a row for each data entry
@@ -141,6 +157,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
     });
 
     contentDiv.appendChild(dataContainer);
+    updateContainerButtons(contentDiv, data, columns, defaultColumn);
 }
 
 // Function to fetch and display data from a linked Google Sheet
