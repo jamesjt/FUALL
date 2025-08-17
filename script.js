@@ -187,11 +187,11 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
             // Create div for displaying data
             const dataDiv = document.createElement('div');
             dataDiv.classList.add('data-content');
-            dataDiv.textContent = row[defaultColumn]?.trim() || 'No data';
+            dataDiv.textContent = row[defaultColumn]?.trim() || '.';
 
             // Update data when dropdown changes
             select.addEventListener('change', () => {
-                dataDiv.textContent = row[select.value]?.trim() || 'No data';
+                dataDiv.textContent = row[select.value]?.trim() || '.';
                 dataDiv.classList.add('updated');
                 setTimeout(() => dataDiv.classList.remove('updated'), 500);
                 synchronizeRowHeights(contentDiv);
