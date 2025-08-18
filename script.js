@@ -1,15 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Main Google Sheet URL (ensure it is published and publicly accessible)
-    const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
+    // Main Google Sheet URL for Books sheet (first tab, gid=0 by default)
+    const booksSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
 
-    fetchGoogleSheetData(sheetUrl)
+    // Articles sheet URL (second tab, replace XXXXXXXX with the actual gid from the Articles tab)
+    const articlesSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=XXXXXXXX&output=csv';
+
+    // Fetch and populate Articles
+    fetchGoogleSheetData(articlesSheetUrl)
         .then(data => {
-            const sidebarList = document.querySelector('.sidebar ul');
-            sidebarList.innerHTML = ''; // Clear existing list items
+            const articlesList = document.querySelector('.articles-list');
+            articlesList.innerHTML = ''; // Clear existing list items
 
             if (data.length === 0) {
-                sidebarList.innerHTML = '<li>No data found in the CSV</li>';
-                console.warn('No data found in the CSV');
+                articlesList.innerHTML = '<li>No data found in the CSV</li>';
+                console.warn('No data found in the Articles CSV');
+                return;
+            }
+
+            data.forEach(row => {
+                const article = row['Article']?.trim();
+                const link = row['Link']?.trim();
+
+                if (article && link) {
+                    const listItem = document.createElement('li');
+                    const buttonElement = document.createElement('button');
+                    buttonElement.textContent = article;
+                    buttonElement.classList.add('book-button'); // Reuse style for consistency
+                    buttonElement.addEventListener('click', () => {
+                        loadArticleData(link, article);
+                    });
+                    listItem.appendChild(buttonElement);
+                    articlesList.appendChild(listItem);
+                }
+            });
+
+            if (articlesList.children.length === 0) {
+                articlesList.innerHTML = '<li>No valid article/link pairs found</li>';
+            }
+        })
+        .catch(error => {
+            console.error('Error processing Articles CSV data:', error);
+            const articlesList = document.querySelector('.articles-list');
+            articlesList.innerHTML = '<li>Failed to load article data. Please try again later.</li>';
+        });
+
+    // Fetch and populate Books (existing code)
+    fetchGoogleSheetData(booksSheetUrl)
+        .then(data => {
+            const booksList = document.querySelector('.books-list');
+            booksList.innerHTML = ''; // Clear existing list items
+
+            if (data.length === 0) {
+                booksList.innerHTML = '<li>No data found in the CSV</li>';
+                console.warn('No data found in the Books CSV');
                 return;
             }
 
@@ -23,21 +66,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     buttonElement.textContent = book;
                     buttonElement.classList.add('book-button');
                     buttonElement.addEventListener('click', () => {
-                        loadBookData(link, book);
+                        loadCsvData(link, book);
                     });
                     listItem.appendChild(buttonElement);
-                    sidebarList.appendChild(listItem);
+                    booksList.appendChild(listItem);
                 }
             });
 
-            if (sidebarList.children.length === 0) {
-                sidebarList.innerHTML = '<li>No valid book/link pairs found</li>';
+            if (booksList.children.length === 0) {
+                booksList.innerHTML = '<li>No valid book/link pairs found</li>';
             }
         })
         .catch(error => {
-            console.error('Error processing main CSV data:', error);
-            const sidebarList = document.querySelector('.sidebar ul');
-            sidebarList.innerHTML = '<li>Failed to load book data. Please try again later.</li>';
+            console.error('Error processing Books CSV data:', error);
+            const booksList = document.querySelector('.books-list');
+            booksList.innerHTML = '<li>Failed to load book data. Please try again later.</li>';
         });
 });
 
@@ -207,18 +250,46 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
     updateContainerButtons(contentDiv, data, columns, defaultColumn);
 }
 
-// Function to fetch and display data from a linked Google Sheet
-function loadBookData(link, bookName) {
+// Function to load article data (handles both Google Docs and Sheets)
+async function loadArticleData(link, articleName) {
     const contentDiv = document.querySelector('.content');
-    contentDiv.innerHTML = '<p class="loading">Loading data for ' + bookName + '...</p>'; // Show loading state
+    contentDiv.innerHTML = '<p class="loading">Loading data for ' + articleName + '...</p>'; // Show loading state
+
+    try {
+        if (link.includes('document')) {
+            // Handle Google Doc: Fetch as HTML to maintain formatting and links
+            const htmlLink = link.replace('/edit', '/export?format=html');
+            const response = await fetch(htmlLink);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const htmlText = await response.text();
+            contentDiv.innerHTML = htmlText;
+        } else if (link.includes('spreadsheets')) {
+            // Handle Google Sheet: Fetch as CSV and display with dropdowns
+            const csvLink = link.replace('/edit', '/pub?output=csv');
+            loadCsvData(csvLink, articleName);
+        } else {
+            contentDiv.innerHTML = '<p class="error">Unsupported link type for ' + articleName + '.</p>';
+        }
+    } catch (error) {
+        console.error('Error loading article data for ' + articleName + ':', error);
+        contentDiv.innerHTML = '<p class="error">Failed to load data for ' + articleName + '. Please try again later.</p>';
+    }
+}
+
+// Function to load CSV data (for Sheets and Books)
+function loadCsvData(link, name) {
+    const contentDiv = document.querySelector('.content');
+    contentDiv.innerHTML = '<p class="loading">Loading data for ' + name + '...</p>'; // Show loading state
 
     fetchGoogleSheetData(link)
         .then(data => {
             // Get columns with headers containing "D:"
             const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
             if (columns.length === 0) {
-                contentDiv.innerHTML = '<p class="error">No columns with "D:" found for ' + bookName + '.</p>';
-                console.warn('No "D:" columns found for:', bookName);
+                contentDiv.innerHTML = '<p class="error">No columns with "D:" found for ' + name + '.</p>';
+                console.warn('No "D:" columns found for:', name);
                 return;
             }
 
@@ -230,14 +301,14 @@ function loadBookData(link, bookName) {
             createDataContainer(data, columns, defaultColumn, contentDiv);
 
             if (contentDiv.querySelectorAll('.data-row').length === 0) {
-                contentDiv.innerHTML = '<p class="error">No valid data found for ' + bookName + '.</p>';
-                console.warn('No valid data for:', bookName);
+                contentDiv.innerHTML = '<p class="error">No valid data found for ' + name + '.</p>';
+                console.warn('No valid data for:', name);
                 return;
             }
         })
         .catch(error => {
-            console.error('Error loading data for ' + bookName + ':', error);
-            contentDiv.innerHTML = '<p class="error">Failed to load data for ' + bookName + '. Please try again later.</p>';
+            console.error('Error loading CSV data for ' + name + ':', error);
+            contentDiv.innerHTML = '<p class="error">Failed to load data for ' + name + '. Please try again later.</p>';
         });
 }
 
