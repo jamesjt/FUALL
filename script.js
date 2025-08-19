@@ -267,6 +267,9 @@ async function loadArticleData(link, articleName) {
             // Create a temporary container to parse HTML
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = htmlText;
+            // Remove style elements from head to prevent unwanted styles
+            const styleElements = tempDiv.querySelectorAll('head style');
+            styleElements.forEach(style => style.remove());
             // Extract body content and remove banner elements
             const bodyContent = tempDiv.querySelector('body');
             if (bodyContent) {
