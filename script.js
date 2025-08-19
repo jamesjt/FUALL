@@ -270,7 +270,12 @@ async function loadArticleData(link, articleName) {
             // Extract body content and remove banner elements
             const bodyContent = tempDiv.querySelector('body');
             if (bodyContent) {
-                // Remove elements containing metadata or banner-like content
+                // Remove the banners div explicitly
+                const bannersDiv = bodyContent.querySelector('#banners');
+                if (bannersDiv) {
+                    bannersDiv.remove();
+                }
+                // Additional cleanup for any remaining metadata
                 const elements = bodyContent.querySelectorAll('p, div, span, footer, header');
                 elements.forEach(element => {
                     const text = element.textContent.toLowerCase();
@@ -287,7 +292,7 @@ async function loadArticleData(link, articleName) {
                         element.remove();
                     }
                 });
-                // Remove empty or irrelevant elements at the start or end
+                // Remove short elements at the start or end
                 const children = bodyContent.children;
                 if (children.length > 0) {
                     // Remove first element if it's a banner-like div or p
