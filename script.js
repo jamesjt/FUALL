@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             data.forEach(row => {
-                const article = row['Articles']?.trim(); // Changed from 'Article' to 'Articles'
+                const article = row['Articles']?.trim();
                 const link = row['Link']?.trim();
 
                 if (article && link) {
@@ -264,11 +264,24 @@ async function loadArticleData(link, articleName) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const htmlText = await response.text();
-            // Create a temporary container to extract the body content
+            // Create a temporary container to parse HTML
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = htmlText;
-            const bodyContent = tempDiv.querySelector('body')?.innerHTML || htmlText;
-            contentDiv.innerHTML = '<div class="doc-content">' + bodyContent + '</div>';
+            // Extract body content and remove header elements
+            const bodyContent = tempDiv.querySelector('body');
+            if (bodyContent) {
+                // Remove elements containing "Published by Google" or resembling document title
+                const elements = bodyContent.querySelectorAll('p, div, span');
+                elements.forEach(element => {
+                    const text = element.textContent.toLowerCase();
+                    if (text.includes('published by google') || text.includes(articleName.toLowerCase())) {
+                        element.remove();
+                    }
+                });
+                contentDiv.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
+            } else {
+                contentDiv.innerHTML = '<div class="doc-content">' + htmlText + '</div>';
+            }
         } else if (link.includes('spreadsheets')) {
             // Handle Google Sheet: Fetch as CSV and display with dropdowns
             const csvLink = link.replace('/edit', '/pub?output=csv');
