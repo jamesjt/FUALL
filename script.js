@@ -267,17 +267,42 @@ async function loadArticleData(link, articleName) {
             // Create a temporary container to parse HTML
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = htmlText;
-            // Extract body content and remove header elements
+            // Extract body content and remove banner elements
             const bodyContent = tempDiv.querySelector('body');
             if (bodyContent) {
-                // Remove elements containing "Published by Google" or resembling document title
-                const elements = bodyContent.querySelectorAll('p, div, span');
+                // Remove elements containing metadata or banner-like content
+                const elements = bodyContent.querySelectorAll('p, div, span, footer, header');
                 elements.forEach(element => {
                     const text = element.textContent.toLowerCase();
-                    if (text.includes('published by google') || text.includes(articleName.toLowerCase())) {
+                    if (
+                        text.includes('published by google') ||
+                        text.includes(articleName.toLowerCase()) ||
+                        text.includes('google docs') ||
+                        text.includes('share') ||
+                        text.includes('document') ||
+                        element.className.includes('docs') ||
+                        element.tagName.toLowerCase() === 'footer' ||
+                        element.tagName.toLowerCase() === 'header'
+                    ) {
                         element.remove();
                     }
                 });
+                // Remove empty or irrelevant elements at the start or end
+                const children = bodyContent.children;
+                if (children.length > 0) {
+                    // Remove first element if it's a banner-like div or p
+                    if (children[0].tagName.toLowerCase() === 'div' || children[0].tagName.toLowerCase() === 'p') {
+                        if (children[0].textContent.trim().length < 50) {
+                            children[0].remove();
+                        }
+                    }
+                    // Remove last element if it's a footer-like div or p
+                    if (children[children.length - 1].tagName.toLowerCase() === 'div' || children[children.length - 1].tagName.toLowerCase() === 'p') {
+                        if (children[children.length - 1].textContent.trim().length < 50) {
+                            children[children.length - 1].remove();
+                        }
+                    }
+                }
                 contentDiv.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
             } else {
                 contentDiv.innerHTML = '<div class="doc-content">' + htmlText + '</div>';
