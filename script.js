@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             data.forEach(row => {
-                const article = row['Article']?.trim();
+                const article = row['Articles']?.trim(); // Changed from 'Article' to 'Articles'
                 const link = row['Link']?.trim();
 
                 if (article && link) {
