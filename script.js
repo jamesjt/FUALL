@@ -267,8 +267,8 @@ async function loadArticleData(link, articleName) {
             // Create a temporary container to parse HTML
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = htmlText;
-            // Remove style elements from head to prevent unwanted styles
-            const styleElements = tempDiv.querySelectorAll('head style');
+            // Remove all style elements from the entire document
+            const styleElements = tempDiv.querySelectorAll('style');
             styleElements.forEach(style => style.remove());
             // Extract body content and remove banner elements
             const bodyContent = tempDiv.querySelector('body');
@@ -296,7 +296,7 @@ async function loadArticleData(link, articleName) {
                     }
                 });
                 // Remove short elements at the start or end
-                const children = bodyContent.children;
+                const children = Array.from(bodyContent.children);
                 if (children.length > 0) {
                     // Remove first element if it's a banner-like div or p
                     if (children[0].tagName.toLowerCase() === 'div' || children[0].tagName.toLowerCase() === 'p') {
@@ -305,7 +305,7 @@ async function loadArticleData(link, articleName) {
                         }
                     }
                     // Remove last element if it's a footer-like div or p
-                    if (children[children.length - 1].tagName.toLowerCase() === 'div' || children[children.length - 1].tagName.toLowerCase() === 'p') {
+                    if (children.length > 0 && (children[children.length - 1].tagName.toLowerCase() === 'div' || children[children.length - 1].tagName.toLowerCase() === 'p')) {
                         if (children[children.length - 1].textContent.trim().length < 50) {
                             children[children.length - 1].remove();
                         }
@@ -313,7 +313,12 @@ async function loadArticleData(link, articleName) {
                 }
                 contentDiv.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
             } else {
-                contentDiv.innerHTML = '<div class="doc-content">' + htmlText + '</div>';
+                // Fallback: Clean entire HTML of style tags and banners
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.innerHTML = htmlText;
+                fallbackDiv.querySelectorAll('style').forEach(style => style.remove());
+                fallbackDiv.querySelectorAll('#banners').forEach(banner => banner.remove());
+                contentDiv.innerHTML = '<div class="doc-content">' + fallbackDiv.innerHTML + '</div>';
             }
         } else if (link.includes('spreadsheets')) {
             // Handle Google Sheet: Fetch as CSV and display with dropdowns
