@@ -188,3 +188,20 @@ body {
 .data-content.updated {
     background-color: #e8f0fe;
 }
+
+.doc-content {
+    max-width: 800px;
+    padding: 15px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.doc-content a {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+.doc-content a:hover {
+    color: #0056b3;
+}

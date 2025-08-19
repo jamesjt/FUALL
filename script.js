@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Main Google Sheet URL for Books sheet (first tab, gid=0 by default)
     const booksSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
 
-    // Articles sheet URL (second tab, replace XXXXXXXX with the actual gid from the Articles tab)
-    const articlesSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=XXXXXXXX&output=csv';
+    // Articles sheet URL (second tab, gid=464648636)
+    const articlesSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=464648636&output=csv';
 
     // Fetch and populate Articles
     fetchGoogleSheetData(articlesSheetUrl)
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
             articlesList.innerHTML = ''; // Clear existing list items
 
             if (data.length === 0) {
-                articlesList.innerHTML = '<li>No data found in the CSV</li>';
+                articlesList.innerHTML = '<li>No data found in the Articles CSV</li>';
                 console.warn('No data found in the Articles CSV');
                 return;
             }
@@ -44,14 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
             articlesList.innerHTML = '<li>Failed to load article data. Please try again later.</li>';
         });
 
-    // Fetch and populate Books (existing code)
+    // Fetch and populate Books
     fetchGoogleSheetData(booksSheetUrl)
         .then(data => {
             const booksList = document.querySelector('.books-list');
             booksList.innerHTML = ''; // Clear existing list items
 
             if (data.length === 0) {
-                booksList.innerHTML = '<li>No data found in the CSV</li>';
+                booksList.innerHTML = '<li>No data found in the Books CSV</li>';
                 console.warn('No data found in the Books CSV');
                 return;
             }
@@ -264,13 +264,18 @@ async function loadArticleData(link, articleName) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const htmlText = await response.text();
-            contentDiv.innerHTML = htmlText;
+            // Create a temporary container to extract the body content
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlText;
+            const bodyContent = tempDiv.querySelector('body')?.innerHTML || htmlText;
+            contentDiv.innerHTML = '<div class="doc-content">' + bodyContent + '</div>';
         } else if (link.includes('spreadsheets')) {
             // Handle Google Sheet: Fetch as CSV and display with dropdowns
             const csvLink = link.replace('/edit', '/pub?output=csv');
             loadCsvData(csvLink, articleName);
         } else {
             contentDiv.innerHTML = '<p class="error">Unsupported link type for ' + articleName + '.</p>';
+            console.warn('Unsupported link type for:', articleName);
         }
     } catch (error) {
         console.error('Error loading article data for ' + articleName + ':', error);
