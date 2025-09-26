@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     buttonElement.textContent = article;
                     buttonElement.classList.add('book-button');
                     buttonElement.addEventListener('click', () => {
-                        loadArticleData(link, article, data);
+                        loadArticleData(link, article);
                     });
                     listItem.appendChild(buttonElement);
                     articlesList.appendChild(listItem);
@@ -233,7 +233,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
 }
 
 // Function to load article data (HTML or CSV)
-async function loadArticleData(link, articleName, articlesData) {
+async function loadArticleData(link, articleName) {
     const contentDiv = document.querySelector('.content');
     const tabsDiv = contentDiv.querySelector('.tabs');
     const contentBody = contentDiv.querySelector('.content-body');
@@ -323,27 +323,45 @@ async function loadArticleData(link, articleName, articlesData) {
                         return;
                     }
 
-                    tabsDiv.innerHTML = '';
-                    columns.forEach((col, index) => {
-                        const tab = document.createElement('div');
-                        tab.className = 'tab';
-                        tab.textContent = index + 1;
-                        tab.dataset.column = col;
-                        tab.addEventListener('click', () => {
-                            tabsDiv.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                            tab.classList.add('active');
-                            const allText = data.map(row => row[col] || '').filter(text => text.trim() !== '').join('<br><br>');
-                            contentBody.innerHTML = `<div class="doc-content">${allText}</div>`;
-                        });
-                        tabsDiv.appendChild(tab);
-                    });
+                    tabsDiv.innerHTML = ''; // Clear main tabs
+                    contentBody.innerHTML = '';
 
-                    // Set the first tab as active
-                    if (columns.length > 0) {
-                        tabsDiv.querySelector('.tab').classList.add('active');
-                        const allText = data.map(row => row[columns[0]] || '').filter(text => text.trim() !== '').join('<br><br>');
-                        contentBody.innerHTML = `<div class="doc-content">${allText}</div>`;
-                    }
+                    // Create a row container for each CSV row
+                    data.forEach((row, rowIndex) => {
+                        const rowContainer = document.createElement('div');
+                        rowContainer.className = 'row-container';
+
+                        const rowTabs = document.createElement('div');
+                        rowTabs.className = 'row-tabs';
+
+                        columns.forEach((col, colIndex) => {
+                            const tab = document.createElement('div');
+                            tab.className = 'tab';
+                            tab.textContent = colIndex + 1;
+                            tab.dataset.column = col;
+                            tab.dataset.rowIndex = rowIndex;
+                            tab.addEventListener('click', () => {
+                                rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                                tab.classList.add('active');
+                                const rowContent = rowContainer.querySelector('.row-content');
+                                rowContent.innerHTML = row[col] || '';
+                            });
+                            rowTabs.appendChild(tab);
+                        });
+
+                        const rowContent = document.createElement('div');
+                        rowContent.className = 'row-content';
+                        rowContent.innerHTML = row[columns[0]] || ''; // Default to first D: column
+
+                        // Set first tab as active
+                        if (columns.length > 0) {
+                            rowTabs.querySelector('.tab').classList.add('active');
+                        }
+
+                        rowContainer.appendChild(rowTabs);
+                        rowContainer.appendChild(rowContent);
+                        contentBody.appendChild(rowContainer);
+                    });
                 })
                 .catch(error => {
                     console.error('Error loading CSV data for ' + articleName + ':', error);
