@@ -1,15 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Main Google Sheet URL for Books sheet (first tab, gid=0 by default)
-    const booksSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
-
-    // Articles sheet URL (second tab, gid=464648636)
+    // Articles sheet URL
     const articlesSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=464648636&output=csv';
+
+    // Books sheet URL
+    const booksSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
 
     // Fetch and populate Articles
     fetchGoogleSheetData(articlesSheetUrl)
         .then(data => {
             const articlesList = document.querySelector('.articles-list');
-            articlesList.innerHTML = ''; // Clear existing list items
+            articlesList.innerHTML = '';
 
             if (data.length === 0) {
                 articlesList.innerHTML = '<li>No data found in the Articles CSV</li>';
@@ -25,9 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const listItem = document.createElement('li');
                     const buttonElement = document.createElement('button');
                     buttonElement.textContent = article;
-                    buttonElement.classList.add('book-button'); // Reuse style for consistency
+                    buttonElement.classList.add('book-button');
                     buttonElement.addEventListener('click', () => {
-                        loadArticleData(link, article);
+                        loadArticleData(link, article, data);
                     });
                     listItem.appendChild(buttonElement);
                     articlesList.appendChild(listItem);
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchGoogleSheetData(booksSheetUrl)
         .then(data => {
             const booksList = document.querySelector('.books-list');
-            booksList.innerHTML = ''; // Clear existing list items
+            booksList.innerHTML = '';
 
             if (data.length === 0) {
                 booksList.innerHTML = '<li>No data found in the Books CSV</li>';
@@ -88,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function synchronizeRowHeights(contentDiv) {
     const containers = contentDiv.querySelectorAll('.data-container');
     
-    // If only one container, reset row heights to auto
     if (containers.length < 2) {
         containers.forEach(container => {
             const rows = container.querySelectorAll('.data-row');
@@ -99,7 +98,6 @@ function synchronizeRowHeights(contentDiv) {
         return;
     }
 
-    // Reset heights to measure natural height
     containers.forEach(container => {
         const rows = container.querySelectorAll('.data-row');
         rows.forEach(row => {
@@ -107,7 +105,6 @@ function synchronizeRowHeights(contentDiv) {
         });
     });
 
-    // Find maximum height for each row index
     const maxHeights = [];
     containers.forEach(container => {
         const rows = container.querySelectorAll('.data-row');
@@ -117,7 +114,6 @@ function synchronizeRowHeights(contentDiv) {
         });
     });
 
-    // Apply maximum height to each row
     containers.forEach(container => {
         const rows = container.querySelectorAll('.data-row');
         rows.forEach((row, index) => {
@@ -140,145 +136,125 @@ function updateContainerButtons(contentDiv, data, columns, defaultColumn) {
     const rightmostContainer = containers[containers.length - 1];
     if (rightmostContainer) {
         const masterSelectContainer = rightmostContainer.querySelector('.master-select-container');
-
-        // Add plus button
         const addButton = document.createElement('button');
+        addButton.className = 'add-container-button';
         addButton.textContent = '+';
-        addButton.classList.add('add-container-button');
-        addButton.setAttribute('aria-label', 'Add new data column');
         addButton.addEventListener('click', () => {
             createDataContainer(data, columns, defaultColumn, contentDiv);
             synchronizeRowHeights(contentDiv);
         });
+
+        const removeButton = document.createElement('button');
+        removeButton.className = 'remove-container-button';
+        removeButton.textContent = '−';
+        removeButton.addEventListener('click', () => {
+            rightmostContainer.remove();
+            synchronizeRowHeights(contentDiv);
+            updateContainerButtons(contentDiv, data, columns, defaultColumn);
+        });
+
         masterSelectContainer.appendChild(addButton);
-
-        // Add minus button only if there are at least two containers
-        if (containers.length > 1) {
-            const removeButton = document.createElement('button');
-            removeButton.textContent = '−';
-            removeButton.classList.add('remove-container-button');
-            removeButton.setAttribute('aria-label', 'Remove data column');
-            removeButton.addEventListener('click', () => {
-                rightmostContainer.remove();
-                updateContainerButtons(contentDiv, data, columns, defaultColumn);
-                synchronizeRowHeights(contentDiv);
-            });
-            masterSelectContainer.appendChild(removeButton);
-        }
+        masterSelectContainer.appendChild(removeButton);
     }
-
-    synchronizeRowHeights(contentDiv);
 }
 
-// Function to create a data container with dropdowns and data rows
+// Function to create a data container for CSV data
 function createDataContainer(data, columns, defaultColumn, contentDiv) {
     const dataContainer = document.createElement('div');
-    dataContainer.classList.add('data-container');
+    dataContainer.className = 'data-container';
 
-    // Create master dropdown
     const masterSelectContainer = document.createElement('div');
-    masterSelectContainer.classList.add('master-select-container');
-    const masterLabel = document.createElement('label');
-    masterLabel.textContent = 'Set All Data: ';
-    masterLabel.setAttribute('for', `master-select-${Date.now()}`); // Unique ID
+    masterSelectContainer.className = 'master-select-container';
+
+    const masterSelectLabel = document.createElement('label');
+    masterSelectLabel.textContent = 'Select Column:';
     const masterSelect = document.createElement('select');
-    masterSelect.id = `master-select-${Date.now()}`; // Unique ID to avoid conflicts
-    masterSelect.classList.add('master-select');
-    columns.forEach(column => {
+    masterSelect.className = 'master-select';
+
+    columns.forEach(col => {
         const option = document.createElement('option');
-        option.value = column;
-        option.textContent = column.replace(/^D:\s*/, ''); // Remove "D:" for display
-        if (column === defaultColumn) {
-            option.selected = true;
-        }
+        option.value = col;
+        option.textContent = col;
+        if (col === defaultColumn) option.selected = true;
         masterSelect.appendChild(option);
     });
 
-    // Add event listener to master dropdown to update all row dropdowns
-    masterSelect.addEventListener('change', () => {
-        const rowSelects = dataContainer.querySelectorAll('.column-select');
-        rowSelects.forEach(select => {
-            select.value = masterSelect.value;
-            select.dispatchEvent(new Event('change')); // Trigger update of data-content
-        });
-        synchronizeRowHeights(contentDiv);
-    });
-
-    masterSelectContainer.appendChild(masterLabel);
+    masterSelectContainer.appendChild(masterSelectLabel);
     masterSelectContainer.appendChild(masterSelect);
+
     dataContainer.appendChild(masterSelectContainer);
 
-    // Create a row for each data entry
-    data.forEach((row, index) => {
-        if (Object.values(row).some(value => value?.trim())) { // Skip empty rows
-            const rowDiv = document.createElement('div');
-            rowDiv.classList.add('data-row');
+    data.forEach(row => {
+        const dataRow = document.createElement('div');
+        dataRow.className = 'data-row';
+        const columnSelect = document.createElement('select');
+        columnSelect.className = 'column-select';
 
-            // Create dropdown for selecting "D:" columns
-            const select = document.createElement('select');
-            select.classList.add('column-select');
-            columns.forEach(column => {
-                const option = document.createElement('option');
-                option.value = column;
-                option.textContent = column.replace(/^D:\s*/, ''); // Remove "D:" for display
-                if (column === defaultColumn) {
-                    option.selected = true;
-                }
-                select.appendChild(option);
+        columns.forEach(col => {
+            const option = document.createElement('option');
+            option.value = col;
+            option.textContent = col;
+            if (col === defaultColumn) option.selected = true;
+            columnSelect.appendChild(option);
+        });
+
+        const dataContent = document.createElement('div');
+        dataContent.className = 'data-content';
+        dataContent.textContent = row[defaultColumn] || '';
+
+        columnSelect.addEventListener('change', () => {
+            dataContent.textContent = row[columnSelect.value] || '';
+            dataContent.classList.add('updated');
+            setTimeout(() => dataContent.classList.remove('updated'), 1000);
+            synchronizeRowHeights(contentDiv);
+        });
+
+        masterSelect.addEventListener('change', () => {
+            const rows = dataContainer.querySelectorAll('.data-row');
+            rows.forEach((row, index) => {
+                const select = row.querySelector('.column-select');
+                const content = row.querySelector('.data-content');
+                select.value = masterSelect.value;
+                content.textContent = data[index][masterSelect.value] || '';
+                content.classList.add('updated');
+                setTimeout(() => content.classList.remove('updated'), 1000);
             });
+            synchronizeRowHeights(contentDiv);
+        });
 
-            // Create div for displaying data
-            const dataDiv = document.createElement('div');
-            dataDiv.classList.add('data-content');
-            dataDiv.textContent = row[defaultColumn]?.trim() || '.';
-
-            // Update data when dropdown changes
-            select.addEventListener('change', () => {
-                dataDiv.textContent = row[select.value]?.trim() || '.';
-                dataDiv.classList.add('updated');
-                setTimeout(() => dataDiv.classList.remove('updated'), 500);
-                synchronizeRowHeights(contentDiv);
-            });
-
-            rowDiv.appendChild(select);
-            rowDiv.appendChild(dataDiv);
-            dataContainer.appendChild(rowDiv);
-        }
+        dataRow.appendChild(columnSelect);
+        dataRow.appendChild(dataContent);
+        dataContainer.appendChild(dataRow);
     });
 
-    contentDiv.appendChild(dataContainer);
+    contentDiv.querySelector('.content-body').appendChild(dataContainer);
     updateContainerButtons(contentDiv, data, columns, defaultColumn);
+    synchronizeRowHeights(contentDiv);
 }
 
-// Function to load article data (handles both Google Docs and Sheets)
-async function loadArticleData(link, articleName) {
+// Function to load article data (HTML or CSV)
+async function loadArticleData(link, articleName, articlesData) {
     const contentDiv = document.querySelector('.content');
-    contentDiv.innerHTML = '<p class="loading">Loading data for ' + articleName + '...</p>'; // Show loading state
+    const tabsDiv = contentDiv.querySelector('.tabs');
+    const contentBody = contentDiv.querySelector('.content-body');
+    contentBody.innerHTML = '<p class="loading">Loading data for ' + articleName + '...</p>';
 
     try {
         if (link.includes('document')) {
-            // Handle Google Doc: Fetch as HTML to maintain formatting and links
-            const htmlLink = link.replace('/edit', '/export?format=html');
-            const response = await fetch(htmlLink);
+            const response = await fetch(link);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const htmlText = await response.text();
-            // Create a temporary container to parse HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = htmlText;
-            // Remove all style elements from the entire document
-            const styleElements = tempDiv.querySelectorAll('style');
-            styleElements.forEach(style => style.remove());
-            // Extract body content and remove banner elements
-            const bodyContent = tempDiv.querySelector('body');
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            const bodyContent = doc.querySelector('body');
+
             if (bodyContent) {
-                // Remove the banners div explicitly
                 const bannersDiv = bodyContent.querySelector('#banners');
                 if (bannersDiv) {
                     bannersDiv.remove();
                 }
-                // Additional cleanup for any remaining metadata
                 const elements = bodyContent.querySelectorAll('p, div, span, footer, header');
                 elements.forEach(element => {
                     const text = element.textContent.toLowerCase();
@@ -295,76 +271,96 @@ async function loadArticleData(link, articleName) {
                         element.remove();
                     }
                 });
-                // Remove short elements at the start or end
                 const children = Array.from(bodyContent.children);
                 if (children.length > 0) {
-                    // Remove first element if it's a banner-like div or p
                     if (children[0].tagName.toLowerCase() === 'div' || children[0].tagName.toLowerCase() === 'p') {
                         if (children[0].textContent.trim().length < 50) {
                             children[0].remove();
                         }
                     }
-                    // Remove last element if it's a footer-like div or p
                     if (children.length > 0 && (children[children.length - 1].tagName.toLowerCase() === 'div' || children[children.length - 1].tagName.toLowerCase() === 'p')) {
                         if (children[children.length - 1].textContent.trim().length < 50) {
                             children[children.length - 1].remove();
                         }
                     }
                 }
-                contentDiv.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
+                tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
+                contentBody.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
             } else {
-                // Fallback: Clean entire HTML of style tags and banners
                 const fallbackDiv = document.createElement('div');
                 fallbackDiv.innerHTML = htmlText;
                 fallbackDiv.querySelectorAll('style').forEach(style => style.remove());
                 fallbackDiv.querySelectorAll('#banners').forEach(banner => banner.remove());
-                contentDiv.innerHTML = '<div class="doc-content">' + fallbackDiv.innerHTML + '</div>';
+                tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
+                contentBody.innerHTML = '<div class="doc-content">' + fallbackDiv.innerHTML + '</div>';
             }
         } else if (link.includes('spreadsheets')) {
-            // Handle Google Sheet: Fetch as CSV and display with dropdowns
             const csvLink = link.replace('/edit', '/pub?output=csv');
-            loadCsvData(csvLink, articleName);
+            const row = articlesData.find(r => r['Articles']?.trim() === articleName && r['Link']?.trim() === link);
+            if (!row) {
+                contentBody.innerHTML = '<p class="error">Article data not found for ' + articleName + '.</p>';
+                console.warn('Article data not found for:', articleName);
+                return;
+            }
+
+            const columns = Object.keys(row).filter(key => key.startsWith('D:'));
+            if (columns.length === 0) {
+                contentBody.innerHTML = '<p class="error">No columns with "D:" found for ' + articleName + '.</p>';
+                console.warn('No "D:" columns found for:', articleName);
+                return;
+            }
+
+            tabsDiv.innerHTML = '';
+            columns.forEach((col, index) => {
+                const tab = document.createElement('div');
+                tab.className = 'tab';
+                tab.textContent = index + 1;
+                tab.dataset.column = col;
+                tab.addEventListener('click', () => {
+                    tabsDiv.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    contentBody.innerHTML = `<div class="doc-content">${row[col] || ''}</div>`;
+                });
+                tabsDiv.appendChild(tab);
+            });
+
+            // Set the first tab as active
+            if (columns.length > 0) {
+                tabsDiv.querySelector('.tab').classList.add('active');
+                contentBody.innerHTML = `<div class="doc-content">${row[columns[0]] || ''}</div>`;
+            }
         } else {
-            contentDiv.innerHTML = '<p class="error">Unsupported link type for ' + articleName + '.</p>';
+            contentBody.innerHTML = '<p class="error">Unsupported link type for ' + articleName + '.</p>';
             console.warn('Unsupported link type for:', articleName);
         }
     } catch (error) {
         console.error('Error loading article data for ' + articleName + ':', error);
-        contentDiv.innerHTML = '<p class="error">Failed to load data for ' + articleName + '. Please try again later.</p>';
+        contentBody.innerHTML = '<p class="error">Failed to load data for ' + articleName + '. Please try again later.</p>';
     }
 }
 
-// Function to load CSV data (for Sheets and Books)
+// Function to load CSV data (for Books)
 function loadCsvData(link, name) {
     const contentDiv = document.querySelector('.content');
-    contentDiv.innerHTML = '<p class="loading">Loading data for ' + name + '...</p>'; // Show loading state
+    contentDiv.querySelector('.content-body').innerHTML = '<p class="loading">Loading data for ' + name + '...</p>';
 
     fetchGoogleSheetData(link)
         .then(data => {
-            // Get columns with headers containing "D:"
             const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
             if (columns.length === 0) {
-                contentDiv.innerHTML = '<p class="error">No columns with "D:" found for ' + name + '.</p>';
+                contentDiv.querySelector('.content-body').innerHTML = '<p class="error">No columns with "D:" found for ' + name + '.</p>';
                 console.warn('No "D:" columns found for:', name);
                 return;
             }
 
-            // Set default column to "D: Original" or the first "D:" column
             const defaultColumn = columns.includes('D: Original') ? 'D: Original' : columns[0];
-
-            // Clear existing content and create the first data container
-            contentDiv.innerHTML = '';
+            contentDiv.querySelector('.tabs').innerHTML = ''; // Clear tabs for Books
+            contentDiv.querySelector('.content-body').innerHTML = '';
             createDataContainer(data, columns, defaultColumn, contentDiv);
-
-            if (contentDiv.querySelectorAll('.data-row').length === 0) {
-                contentDiv.innerHTML = '<p class="error">No valid data found for ' + name + '.</p>';
-                console.warn('No valid data for:', name);
-                return;
-            }
         })
         .catch(error => {
             console.error('Error loading CSV data for ' + name + ':', error);
-            contentDiv.innerHTML = '<p class="error">Failed to load data for ' + name + '. Please try again later.</p>';
+            contentDiv.querySelector('.content-body').innerHTML = '<p class="error">Failed to load data for ' + name + '. Please try again later.</p>';
         });
 }
 
