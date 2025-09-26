@@ -308,39 +308,45 @@ async function loadArticleData(link, articleName, articlesData) {
             }
         } else if (link.includes('spreadsheets')) {
             const csvLink = link.replace('/edit', '/pub?output=csv');
-            const row = articlesData.find(r => r['Articles']?.trim() === articleName && r['Link']?.trim() === link);
-            if (!row) {
-                contentBody.innerHTML = '<p class="error">Article data not found for ' + articleName + '.</p>';
-                console.warn('Article data not found for:', articleName);
-                return;
-            }
+            fetchGoogleSheetData(csvLink)
+                .then(data => {
+                    if (!data || data.length === 0) {
+                        contentBody.innerHTML = '<p class="error">No data found for ' + articleName + '.</p>';
+                        console.warn('No data found for:', articleName);
+                        return;
+                    }
 
-            const columns = Object.keys(row).filter(key => key.startsWith('D:'));
-            if (columns.length === 0) {
-                contentBody.innerHTML = '<p class="error">No columns with "D:" found for ' + articleName + '.</p>';
-                console.warn('No "D:" columns found for:', articleName);
-                return;
-            }
+                    const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
+                    if (columns.length === 0) {
+                        contentBody.innerHTML = '<p class="error">No columns with "D:" found for ' + articleName + '.</p>';
+                        console.warn('No "D:" columns found for:', articleName);
+                        return;
+                    }
 
-            tabsDiv.innerHTML = '';
-            columns.forEach((col, index) => {
-                const tab = document.createElement('div');
-                tab.className = 'tab';
-                tab.textContent = index + 1;
-                tab.dataset.column = col;
-                tab.addEventListener('click', () => {
-                    tabsDiv.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    contentBody.innerHTML = `<div class="doc-content">${row[col] || ''}</div>`;
+                    tabsDiv.innerHTML = '';
+                    columns.forEach((col, index) => {
+                        const tab = document.createElement('div');
+                        tab.className = 'tab';
+                        tab.textContent = index + 1;
+                        tab.dataset.column = col;
+                        tab.addEventListener('click', () => {
+                            tabsDiv.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                            tab.classList.add('active');
+                            contentBody.innerHTML = `<div class="doc-content">${data[0][col] || ''}</div>`;
+                        });
+                        tabsDiv.appendChild(tab);
+                    });
+
+                    // Set the first tab as active
+                    if (columns.length > 0) {
+                        tabsDiv.querySelector('.tab').classList.add('active');
+                        contentBody.innerHTML = `<div class="doc-content">${data[0][col] || ''}</div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading CSV data for ' + articleName + ':', error);
+                    contentBody.innerHTML = '<p class="error">Failed to load data for ' + articleName + '. Please try again later.</p>';
                 });
-                tabsDiv.appendChild(tab);
-            });
-
-            // Set the first tab as active
-            if (columns.length > 0) {
-                tabsDiv.querySelector('.tab').classList.add('active');
-                contentBody.innerHTML = `<div class="doc-content">${row[columns[0]] || ''}</div>`;
-            }
         } else {
             contentBody.innerHTML = '<p class="error">Unsupported link type for ' + articleName + '.</p>';
             console.warn('Unsupported link type for:', articleName);
