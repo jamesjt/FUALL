@@ -238,7 +238,7 @@ async function loadArticleData(link, articleName, articlesData) {
     const tabsDiv = contentDiv.querySelector('.tabs');
     const contentBody = contentDiv.querySelector('.content-body');
 
-    // Debug: Log DOM elements to verify they exist
+    // Debug: Log DOM elements
     console.log('contentDiv:', contentDiv);
     console.log('tabsDiv:', tabsDiv);
     console.log('contentBody:', contentBody);
@@ -332,7 +332,8 @@ async function loadArticleData(link, articleName, articlesData) {
                         tab.addEventListener('click', () => {
                             tabsDiv.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                             tab.classList.add('active');
-                            contentBody.innerHTML = `<div class="doc-content">${data[0][col] || ''}</div>`;
+                            const allText = data.map(row => row[col] || '').filter(text => text.trim() !== '').join('<br><br>');
+                            contentBody.innerHTML = `<div class="doc-content">${allText}</div>`;
                         });
                         tabsDiv.appendChild(tab);
                     });
@@ -340,7 +341,8 @@ async function loadArticleData(link, articleName, articlesData) {
                     // Set the first tab as active
                     if (columns.length > 0) {
                         tabsDiv.querySelector('.tab').classList.add('active');
-                        contentBody.innerHTML = `<div class="doc-content">${data[0][col] || ''}</div>`;
+                        const allText = data.map(row => row[columns[0]] || '').filter(text => text.trim() !== '').join('<br><br>');
+                        contentBody.innerHTML = `<div class="doc-content">${allText}</div>`;
                     }
                 })
                 .catch(error => {
