@@ -237,6 +237,18 @@ async function loadArticleData(link, articleName, articlesData) {
     const contentDiv = document.querySelector('.content');
     const tabsDiv = contentDiv.querySelector('.tabs');
     const contentBody = contentDiv.querySelector('.content-body');
+
+    // Debug: Log DOM elements to verify they exist
+    console.log('contentDiv:', contentDiv);
+    console.log('tabsDiv:', tabsDiv);
+    console.log('contentBody:', contentBody);
+
+    if (!contentBody) {
+        console.error('Error: .content-body element not found in the DOM');
+        contentDiv.innerHTML = '<p class="error">Error: Content area not found. Please check the HTML structure.</p>';
+        return;
+    }
+
     contentBody.innerHTML = '<p class="loading">Loading data for ' + articleName + '...</p>';
 
     try {
@@ -342,25 +354,37 @@ async function loadArticleData(link, articleName, articlesData) {
 // Function to load CSV data (for Books)
 function loadCsvData(link, name) {
     const contentDiv = document.querySelector('.content');
-    contentDiv.querySelector('.content-body').innerHTML = '<p class="loading">Loading data for ' + name + '...</p>';
+    const contentBody = contentDiv.querySelector('.content-body');
+
+    // Debug: Log DOM elements
+    console.log('contentDiv:', contentDiv);
+    console.log('contentBody:', contentBody);
+
+    if (!contentBody) {
+        console.error('Error: .content-body element not found in the DOM');
+        contentDiv.innerHTML = '<p class="error">Error: Content area not found. Please check the HTML structure.</p>';
+        return;
+    }
+
+    contentBody.innerHTML = '<p class="loading">Loading data for ' + name + '...</p>';
 
     fetchGoogleSheetData(link)
         .then(data => {
             const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
             if (columns.length === 0) {
-                contentDiv.querySelector('.content-body').innerHTML = '<p class="error">No columns with "D:" found for ' + name + '.</p>';
+                contentBody.innerHTML = '<p class="error">No columns with "D:" found for ' + name + '.</p>';
                 console.warn('No "D:" columns found for:', name);
                 return;
             }
 
             const defaultColumn = columns.includes('D: Original') ? 'D: Original' : columns[0];
             contentDiv.querySelector('.tabs').innerHTML = ''; // Clear tabs for Books
-            contentDiv.querySelector('.content-body').innerHTML = '';
+            contentBody.innerHTML = '';
             createDataContainer(data, columns, defaultColumn, contentDiv);
         })
         .catch(error => {
             console.error('Error loading CSV data for ' + name + ':', error);
-            contentDiv.querySelector('.content-body').innerHTML = '<p class="error">Failed to load data for ' + name + '. Please try again later.</p>';
+            contentBody.innerHTML = '<p class="error">Failed to load data for ' + name + '. Please try again later.</p>';
         });
 }
 
