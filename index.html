@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Books</title>
+    <title>Data Dashboard</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Papa Parse library for CSV parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
             <h2>Articles</h2>
             <ul class="articles-list"></ul>
             <h2>Books</h2>
@@ -19,7 +18,8 @@
         <div class="main-content">
             <h1>Data Dashboard</h1>
             <div class="content">
-                <p>Please select a book or article from the sidebar to view its data.</p>
+                <div class="tabs"></div>
+                <div class="content-body"></div>
             </div>
         </div>
     </div>
