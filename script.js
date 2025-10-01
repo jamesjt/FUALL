@@ -217,7 +217,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
                 select.value = masterSelect.value;
                 content.textContent = data[index][masterSelect.value] || '';
                 content.classList.add('updated');
-                setTimeout(() => content.classList.remove('updated'), 1000);
+                setTimeout(() => dataContent.classList.remove('updated'), 1000);
             });
             synchronizeRowHeights(contentDiv);
         });
@@ -331,34 +331,38 @@ async function loadArticleData(link, articleName) {
                         const rowContainer = document.createElement('div');
                         rowContainer.className = 'row-container';
 
-                        const rowTabs = document.createElement('div');
-                        rowTabs.className = 'row-tabs';
+                        let rowTabs = null;
+                        if (columns.length > 1) {
+                            // Only create tabs if there are multiple D: columns
+                            rowTabs = document.createElement('div');
+                            rowTabs.className = 'row-tabs';
 
-                        columns.forEach((col, colIndex) => {
-                            const tab = document.createElement('div');
-                            tab.className = 'tab';
-                            tab.textContent = colIndex + 1;
-                            tab.dataset.column = col;
-                            tab.dataset.rowIndex = rowIndex;
-                            tab.addEventListener('click', () => {
-                                rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                                tab.classList.add('active');
-                                const rowContent = rowContainer.querySelector('.row-content');
-                                rowContent.innerHTML = row[col] || '';
+                            columns.forEach((col, colIndex) => {
+                                const tab = document.createElement('div');
+                                tab.className = 'tab';
+                                tab.textContent = colIndex + 1;
+                                tab.dataset.column = col;
+                                tab.dataset.rowIndex = rowIndex;
+                                tab.addEventListener('click', () => {
+                                    rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                                    tab.classList.add('active');
+                                    const rowContent = rowContainer.querySelector('.row-content');
+                                    rowContent.innerHTML = row[col] || '';
+                                });
+                                rowTabs.appendChild(tab);
                             });
-                            rowTabs.appendChild(tab);
-                        });
+
+                            // Set first tab as active
+                            rowTabs.querySelector('.tab').classList.add('active');
+                        }
 
                         const rowContent = document.createElement('div');
                         rowContent.className = 'row-content';
                         rowContent.innerHTML = row[columns[0]] || ''; // Default to first D: column
 
-                        // Set first tab as active
-                        if (columns.length > 0) {
-                            rowTabs.querySelector('.tab').classList.add('active');
+                        if (rowTabs) {
+                            rowContainer.appendChild(rowTabs);
                         }
-
-                        rowContainer.appendChild(rowTabs);
                         rowContainer.appendChild(rowContent);
                         contentBody.appendChild(rowContainer);
                     });
