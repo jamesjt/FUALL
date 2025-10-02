@@ -5,6 +5,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Books sheet URL
     const booksSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
 
+    // Initialize canvas for lines
+    const canvas = document.getElementById('line-canvas');
+    const ctx = canvas.getContext('2d');
+    function drawLines() {
+        const width = canvas.width = canvas.parentElement.clientWidth;
+        const height = canvas.height = canvas.parentElement.clientHeight;
+        ctx.clearRect(0, 0, width, height);
+        ctx.beginPath();
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < height; i += 50) {
+            ctx.moveTo(0, i);
+            ctx.lineTo(width, i);
+        }
+        ctx.stroke();
+    }
+    drawLines();
+    window.addEventListener('resize', drawLines);
+
     // Fetch and populate Articles
     fetchGoogleSheetData(articlesSheetUrl)
         .then(data => {
@@ -331,10 +350,15 @@ async function loadArticleData(link, articleName) {
                         const rowContainer = document.createElement('div');
                         rowContainer.className = 'row-container';
 
-                        let rowTabs = null;
-                        if (columns.length > 1) {
-                            // Only create tabs if there are multiple D: columns
-                            rowTabs = document.createElement('div');
+                        let rowContent = document.createElement('div');
+                        rowContent.className = 'row-content';
+
+                        if (columns.length === 1) {
+                            // Single D: column, display content directly
+                            rowContent.innerHTML = row[columns[0]] || '';
+                        } else {
+                            // Multiple D: columns, create tabs
+                            const rowTabs = document.createElement('div');
                             rowTabs.className = 'row-tabs';
 
                             columns.forEach((col, colIndex) => {
@@ -346,7 +370,6 @@ async function loadArticleData(link, articleName) {
                                 tab.addEventListener('click', () => {
                                     rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                                     tab.classList.add('active');
-                                    const rowContent = rowContainer.querySelector('.row-content');
                                     rowContent.innerHTML = row[col] || '';
                                 });
                                 rowTabs.appendChild(tab);
@@ -354,15 +377,11 @@ async function loadArticleData(link, articleName) {
 
                             // Set first tab as active
                             rowTabs.querySelector('.tab').classList.add('active');
-                        }
+                            rowContent.innerHTML = row[columns[0]] || '';
 
-                        const rowContent = document.createElement('div');
-                        rowContent.className = 'row-content';
-                        rowContent.innerHTML = row[columns[0]] || ''; // Default to first D: column
-
-                        if (rowTabs) {
                             rowContainer.appendChild(rowTabs);
                         }
+
                         rowContainer.appendChild(rowContent);
                         contentBody.appendChild(rowContainer);
                     });
