@@ -19,40 +19,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 // Draw woven pattern with gold, blue, and red lines
-                ctx.beginPath();
-                const spacing = 50;
-                for (let i = 0; i < canvas.width + canvas.height; i += spacing) {
-                    // Gold lines (top-left to bottom-right)
-                    ctx.strokeStyle = '#FFD700';
-                    ctx.lineWidth = 2;
+                const spacing = 40;
+                ctx.lineWidth = 2;
+
+                // Gold lines (diagonal top-left to bottom-right)
+                ctx.strokeStyle = '#FFD700';
+                for (let i = 0; i < canvas.width + canvas.height; i += spacing * 2) {
+                    ctx.beginPath();
                     ctx.moveTo(0, i);
-                    ctx.lineTo(i, 0);
+                    ctx.lineTo(i, canvas.height);
                     if (i < canvas.height) {
                         ctx.moveTo(0, i);
                         ctx.lineTo(canvas.width, i + (canvas.width - i));
                     }
+                    ctx.stroke();
+                }
 
-                    // Blue lines (bottom-left to top-right)
-                    ctx.strokeStyle = '#0000FF';
-                    ctx.lineWidth = 2;
+                // Blue lines (diagonal bottom-left to top-right)
+                ctx.strokeStyle = '#0000FF';
+                for (let i = 0; i < canvas.width + canvas.height; i += spacing * 2) {
+                    ctx.beginPath();
                     ctx.moveTo(i, canvas.height);
                     ctx.lineTo(canvas.width, canvas.height - i);
                     if (i < canvas.width) {
                         ctx.moveTo(i, canvas.height);
                         ctx.lineTo(i + (canvas.height - i), 0);
                     }
-
-                    // Red lines (offset for weaving effect)
-                    ctx.strokeStyle = '#FF0000';
-                    ctx.lineWidth = 2;
-                    ctx.moveTo(spacing / 2, i + spacing / 2);
-                    ctx.lineTo(i + spacing / 2, canvas.height - spacing / 2);
-                    if (i < canvas.height - spacing / 2) {
-                        ctx.moveTo(spacing / 2, i + spacing / 2);
-                        ctx.lineTo(canvas.width - spacing / 2, i + spacing / 2 + (canvas.width - spacing));
-                    }
+                    ctx.stroke();
                 }
-                ctx.stroke();
+
+                // Red lines (offset for weaving effect)
+                ctx.strokeStyle = '#FF0000';
+                for (let i = spacing; i < canvas.width + canvas.height - spacing; i += spacing * 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(i - spacing, canvas.height);
+                    if (i < canvas.height) {
+                        ctx.moveTo(spacing, i);
+                        ctx.lineTo(canvas.width - spacing, i + (canvas.width - spacing));
+                    }
+                    ctx.stroke();
+                }
             }
             drawLines();
             setTimeout(drawLines, 100); // Force redraw after DOM settles
