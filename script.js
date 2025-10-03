@@ -17,12 +17,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 canvas.height = parentHeight;
                 console.log('Canvas dimensions:', canvas.width, canvas.height);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw woven pattern with gold, blue, and red lines
                 ctx.beginPath();
-                ctx.strokeStyle = '#e0e0e0';
-                ctx.lineWidth = 1;
-                for (let i = 0; i < canvas.height; i += 50) {
+                const spacing = 50;
+                for (let i = 0; i < canvas.width + canvas.height; i += spacing) {
+                    // Gold lines (top-left to bottom-right)
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 2;
                     ctx.moveTo(0, i);
-                    ctx.lineTo(canvas.width, i);
+                    ctx.lineTo(i, 0);
+                    if (i < canvas.height) {
+                        ctx.moveTo(0, i);
+                        ctx.lineTo(canvas.width, i + (canvas.width - i));
+                    }
+
+                    // Blue lines (bottom-left to top-right)
+                    ctx.strokeStyle = '#0000FF';
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(i, canvas.height);
+                    ctx.lineTo(canvas.width, canvas.height - i);
+                    if (i < canvas.width) {
+                        ctx.moveTo(i, canvas.height);
+                        ctx.lineTo(i + (canvas.height - i), 0);
+                    }
+
+                    // Red lines (offset for weaving effect)
+                    ctx.strokeStyle = '#FF0000';
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(spacing / 2, i + spacing / 2);
+                    ctx.lineTo(i + spacing / 2, canvas.height - spacing / 2);
+                    if (i < canvas.height - spacing / 2) {
+                        ctx.moveTo(spacing / 2, i + spacing / 2);
+                        ctx.lineTo(canvas.width - spacing / 2, i + spacing / 2 + (canvas.width - spacing));
+                    }
                 }
                 ctx.stroke();
             }

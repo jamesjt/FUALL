@@ -53,8 +53,8 @@ body {
     flex-grow: 1;
     padding: 20px;
     position: relative;
-    overflow: hidden; /* Prevent content overflow affecting canvas */
-    min-height: 400px; /* Ensure minimum height for canvas */
+    overflow: hidden;
+    min-height: 400px;
 }
 
 .main-content h1 {
@@ -69,7 +69,7 @@ body {
     overflow-x: auto;
     padding-bottom: 10px;
     position: relative;
-    z-index: 1; /* Bring content above canvas */
+    z-index: 1;
 }
 
 .content p {
