@@ -11,16 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = canvas.getContext('2d');
         if (ctx) {
             function drawLines() {
-                const width = canvas.width = canvas.parentElement.clientWidth || 800; // Fallback width
-                const height = canvas.height = canvas.parentElement.clientHeight || 400; // Fallback height
-                console.log('Canvas dimensions:', width, height);
-                ctx.clearRect(0, 0, width, height);
+                const parentWidth = canvas.parentElement.clientWidth || 800;
+                const parentHeight = canvas.parentElement.clientHeight || 400;
+                canvas.width = parentWidth;
+                canvas.height = parentHeight;
+                console.log('Canvas dimensions:', canvas.width, canvas.height);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.beginPath();
                 ctx.strokeStyle = '#e0e0e0';
                 ctx.lineWidth = 1;
-                for (let i = 0; i < height; i += 50) {
+                for (let i = 0; i < canvas.height; i += 50) {
                     ctx.moveTo(0, i);
-                    ctx.lineTo(width, i);
+                    ctx.lineTo(canvas.width, i);
                 }
                 ctx.stroke();
             }
