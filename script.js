@@ -7,22 +7,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize canvas for lines
     const canvas = document.getElementById('line-canvas');
-    const ctx = canvas.getContext('2d');
-    function drawLines() {
-        const width = canvas.width = canvas.parentElement.clientWidth;
-        const height = canvas.height = canvas.parentElement.clientHeight;
-        ctx.clearRect(0, 0, width, height);
-        ctx.beginPath();
-        ctx.strokeStyle = '#e0e0e0';
-        ctx.lineWidth = 1;
-        for (let i = 0; i < height; i += 50) {
-            ctx.moveTo(0, i);
-            ctx.lineTo(width, i);
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            function drawLines() {
+                const width = canvas.width = canvas.parentElement.clientWidth || 800; // Fallback width
+                const height = canvas.height = canvas.parentElement.clientHeight || 400; // Fallback height
+                console.log('Canvas dimensions:', width, height);
+                ctx.clearRect(0, 0, width, height);
+                ctx.beginPath();
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < height; i += 50) {
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(width, i);
+                }
+                ctx.stroke();
+            }
+            drawLines();
+            setTimeout(drawLines, 100); // Force redraw after DOM settles
+            window.addEventListener('resize', drawLines);
+        } else {
+            console.error('Failed to get 2D context for canvas');
         }
-        ctx.stroke();
+    } else {
+        console.error('Canvas element not found');
     }
-    drawLines();
-    window.addEventListener('resize', drawLines);
 
     // Fetch and populate Articles
     fetchGoogleSheetData(articlesSheetUrl)
