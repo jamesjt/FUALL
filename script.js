@@ -11,55 +11,63 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = canvas.getContext('2d');
         if (ctx) {
             function drawLines() {
-                const parentWidth = canvas.parentElement.clientWidth || 800;
-                const parentHeight = canvas.parentElement.clientHeight || 400;
+                const parentWidth = canvas.parentElement.clientWidth || 500;
+                const parentHeight = canvas.parentElement.clientHeight || 500;
                 canvas.width = parentWidth;
                 canvas.height = parentHeight;
                 console.log('Canvas dimensions:', canvas.width, canvas.height);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                // Draw woven pattern with gold, blue, and red lines
-                const spacing = 40;
-                ctx.lineWidth = 2;
+                // Define colors
+                const blue = '#87CEEB'; // Light blue
+                const gold = '#FFD700'; // Gold
+                const red = '#FFB6C1'; // Light red (pinkish)
 
-                // Gold lines (diagonal top-left to bottom-right)
-                ctx.strokeStyle = '#FFD700';
-                for (let i = 0; i < canvas.width + canvas.height; i += spacing * 2) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, i);
-                    ctx.lineTo(i, canvas.height);
-                    if (i < canvas.height) {
-                        ctx.moveTo(0, i);
-                        ctx.lineTo(canvas.width, i + (canvas.width - i));
-                    }
-                    ctx.stroke();
-                }
+                // Define starting points at the bottom
+                const startY = canvas.height;
+                const midX = canvas.width / 2;
+                const blueStartX = midX - 100;
+                const goldStartX = midX;
+                const redStartX = midX + 100;
 
-                // Blue lines (diagonal bottom-left to top-right)
-                ctx.strokeStyle = '#0000FF';
-                for (let i = 0; i < canvas.width + canvas.height; i += spacing * 2) {
-                    ctx.beginPath();
-                    ctx.moveTo(i, canvas.height);
-                    ctx.lineTo(canvas.width, canvas.height - i);
-                    if (i < canvas.width) {
-                        ctx.moveTo(i, canvas.height);
-                        ctx.lineTo(i + (canvas.height - i), 0);
-                    }
-                    ctx.stroke();
-                }
+                // Draw blue line
+                ctx.beginPath();
+                ctx.strokeStyle = blue;
+                ctx.lineWidth = 3;
+                ctx.moveTo(blueStartX, startY);
+                ctx.lineTo(blueStartX, startY - 100); // Go up 100 units
+                ctx.lineTo(goldStartX, startY - 150); // Angle right to gold position
+                ctx.lineTo(blueStartX, startY - 200); // Angle back left
+                ctx.lineTo(goldStartX, startY - 250); // Weave right again
+                ctx.lineTo(blueStartX, startY - 300); // Continue weaving
+                ctx.lineTo(blueStartX, 0); // Go up to top
+                ctx.stroke();
 
-                // Red lines (offset for weaving effect)
-                ctx.strokeStyle = '#FF0000';
-                for (let i = spacing; i < canvas.width + canvas.height - spacing; i += spacing * 2) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, i);
-                    ctx.lineTo(i - spacing, canvas.height);
-                    if (i < canvas.height) {
-                        ctx.moveTo(spacing, i);
-                        ctx.lineTo(canvas.width - spacing, i + (canvas.width - spacing));
-                    }
-                    ctx.stroke();
-                }
+                // Draw gold line
+                ctx.beginPath();
+                ctx.strokeStyle = gold;
+                ctx.lineWidth = 3;
+                ctx.moveTo(goldStartX, startY);
+                ctx.lineTo(goldStartX, startY - 100); // Go up 100 units
+                ctx.lineTo(blueStartX, startY - 150); // Angle left to blue position
+                ctx.lineTo(goldStartX, startY - 200); // Go up a bit
+                ctx.lineTo(redStartX, startY - 250); // Angle right to red position
+                ctx.lineTo(goldStartX, startY - 300); // Angle back to center
+                ctx.lineTo(goldStartX, 0); // Go up to top
+                ctx.stroke();
+
+                // Draw red line
+                ctx.beginPath();
+                ctx.strokeStyle = red;
+                ctx.lineWidth = 3;
+                ctx.moveTo(redStartX, startY);
+                ctx.lineTo(redStartX, startY - 100); // Go up 100 units
+                ctx.lineTo(goldStartX, startY - 150); // Angle left to gold position
+                ctx.lineTo(redStartX, startY - 200); // Angle back right
+                ctx.lineTo(blueStartX, startY - 250); // Angle left to blue position
+                ctx.lineTo(redStartX, startY - 300); // Angle back right
+                ctx.lineTo(redStartX, 0); // Go up to top
+                ctx.stroke();
             }
             drawLines();
             setTimeout(drawLines, 100); // Force redraw after DOM settles
