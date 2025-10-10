@@ -458,12 +458,22 @@ function addTooltips(container, tooltips) {
     refs.forEach(ref => {
         const keyPhrase = ref.textContent.trim();
         if (tooltips && tooltips[keyPhrase]) {
-            const tooltip = document.createElement('span');
-            tooltip.className = 'tooltip';
+            // Ensure the tooltip is added or updated
+            let tooltip = ref.querySelector('.tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('span');
+                tooltip.className = 'tooltip';
+                ref.appendChild(tooltip);
+            }
             tooltip.textContent = tooltips[keyPhrase];
-            ref.appendChild(tooltip);
+            console.log(`Added tooltip for ${keyPhrase}: ${tooltips[keyPhrase]}`);
         } else {
             console.warn(`No tooltip found for key phrase: ${keyPhrase}`);
+            // Remove any existing tooltip if no data is found
+            const existingTooltip = ref.querySelector('.tooltip');
+            if (existingTooltip) {
+                existingTooltip.remove();
+            }
         }
     });
 }
