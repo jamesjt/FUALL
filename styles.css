@@ -270,3 +270,33 @@ body {
     border: 1px solid #e0e0e0;
     border-radius: 6px;
 }
+
+/* Tooltip styling */
+.ref {
+    border-bottom: 1px dotted #007bff;
+    position: relative;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.ref .tooltip {
+    visibility: hidden;
+    width: 200px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 4px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.ref:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}

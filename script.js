@@ -5,6 +5,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Books sheet URL
     const booksSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
 
+    // Internal refs URL
+    const refsSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=1749170252&single=true&output=csv';
+
+    // Fetch tooltips data
+    let tooltips = {};
+    fetchGoogleSheetData(refsSheetUrl)
+        .then(data => {
+            tooltips = data.reduce((acc, row) => {
+                if (row.Word && row.Tooltip) {
+                    acc[row.Word.trim()] = row.Tooltip.trim();
+                }
+                return acc;
+            }, {});
+            console.log('Tooltips loaded:', tooltips);
+        })
+        .catch(error => {
+            console.error('Error loading tooltips data:', error);
+        });
+
     // Fetch and populate Articles
     fetchGoogleSheetData(articlesSheetUrl)
         .then(data => {
@@ -207,6 +226,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
             dataContent.classList.add('updated');
             setTimeout(() => dataContent.classList.remove('updated'), 1000);
             synchronizeRowHeights(contentDiv);
+            addTooltips(dataContent);
         });
 
         masterSelect.addEventListener('change', () => {
@@ -218,6 +238,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
                 content.innerHTML = (data[index][masterSelect.value] || '').replace(/\n/g, '<br/>');
                 content.classList.add('updated');
                 setTimeout(() => dataContent.classList.remove('updated'), 1000);
+                addTooltips(content);
             });
             synchronizeRowHeights(contentDiv);
         });
@@ -298,6 +319,7 @@ async function loadArticleData(link, articleName) {
                 }
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
+                addTooltips(contentBody.querySelector('.doc-content'));
             } else {
                 const fallbackDiv = document.createElement('div');
                 fallbackDiv.innerHTML = htmlText;
@@ -305,6 +327,7 @@ async function loadArticleData(link, articleName) {
                 fallbackDiv.querySelectorAll('#banners').forEach(banner => banner.remove());
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + fallbackDiv.innerHTML + '</div>';
+                addTooltips(contentBody.querySelector('.doc-content'));
             }
         } else if (link.includes('spreadsheets')) {
             const csvLink = link.replace('/edit', '/pub?output=csv');
@@ -352,6 +375,7 @@ async function loadArticleData(link, articleName) {
                                     rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                                     tab.classList.add('active');
                                     rowContent.innerHTML = (row[col] || '').replace(/\n/g, '<br/>');
+                                    addTooltips(rowContent);
                                 });
                                 rowTabs.appendChild(tab);
                             });
@@ -359,6 +383,7 @@ async function loadArticleData(link, articleName) {
                             // Set first tab as active
                             rowTabs.querySelector('.tab').classList.add('active');
                             rowContent.innerHTML = (row[columns[0]] || '').replace(/\n/g, '<br/>');
+                            addTooltips(rowContent);
 
                             rowContainer.appendChild(rowTabs);
                         }
@@ -449,4 +474,18 @@ function fetchGoogleSheetData(url) {
             console.error('Error fetching Google Sheet:', error);
             throw error;
         });
+}
+
+// Function to add tooltips to elements with class 'ref'
+function addTooltips(container) {
+    const refs = container.querySelectorAll('.ref');
+    refs.forEach(ref => {
+        const keyPhrase = ref.textContent.trim();
+        if (tooltips[keyPhrase]) {
+            const tooltip = document.createElement('span');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = tooltips[keyPhrase];
+            ref.appendChild(tooltip);
+        }
+    });
 }
