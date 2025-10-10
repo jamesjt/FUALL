@@ -198,6 +198,7 @@ body {
     font-size: 16px;
     line-height: 1.6;
     color: #333;
+    position: relative;
 }
 
 .doc-content a {
@@ -289,9 +290,10 @@ body {
     padding: 8px;
     position: absolute;
     z-index: 1000;
-    bottom: 125%;
+    bottom: 100%; /* Position directly above the text */
     left: 50%;
-    margin-left: -100px;
+    transform: translateX(-50%); /* Center the tooltip */
+    margin-left: 0; /* Remove margin for transform-based centering */
     opacity: 0;
     transition: opacity 0.2s;
     pointer-events: none;

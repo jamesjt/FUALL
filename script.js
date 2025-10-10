@@ -73,6 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (booksList.children.length === 0) {
                 booksList.innerHTML = '<li>No valid book/link pairs found</li>';
             }
+
+            // Add tooltips to any static .ref elements on page load
+            addTooltips(document, tooltips);
         })
         .catch(error => {
             console.error('Error loading data:', error);
@@ -154,7 +157,7 @@ function updateContainerButtons(contentDiv, data, columns, defaultColumn) {
 }
 
 // Function to create a data container for CSV data
-function createDataContainer(data, columns, defaultColumn, contentDiv) {
+function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips) {
     const dataContainer = document.createElement('div');
     dataContainer.className = 'data-container';
 
@@ -202,7 +205,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
             dataContent.classList.add('updated');
             setTimeout(() => dataContent.classList.remove('updated'), 1000);
             synchronizeRowHeights(contentDiv);
-            addTooltips(dataContent);
+            addTooltips(dataContent, tooltips);
         });
 
         masterSelect.addEventListener('change', () => {
@@ -214,7 +217,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
                 content.innerHTML = (data[index][masterSelect.value] || '').replace(/\n/g, '<br/>');
                 content.classList.add('updated');
                 setTimeout(() => dataContent.classList.remove('updated'), 1000);
-                addTooltips(content);
+                addTooltips(content, tooltips);
             });
             synchronizeRowHeights(contentDiv);
         });
@@ -455,21 +458,21 @@ function fetchGoogleSheetData(url) {
 // Function to add tooltips to elements with class 'ref'
 function addTooltips(container, tooltips) {
     const refs = container.querySelectorAll('.ref');
+    console.log('Found refs:', refs.length); // Debug: Check how many .ref elements are found
     refs.forEach(ref => {
         const keyPhrase = ref.textContent.trim();
         if (tooltips && tooltips[keyPhrase]) {
-            // Ensure the tooltip is added or updated
             let tooltip = ref.querySelector('.tooltip');
             if (!tooltip) {
                 tooltip = document.createElement('span');
                 tooltip.className = 'tooltip';
                 ref.appendChild(tooltip);
+                console.log(`Added tooltip for ${keyPhrase}`);
             }
             tooltip.textContent = tooltips[keyPhrase];
-            console.log(`Added tooltip for ${keyPhrase}: ${tooltips[keyPhrase]}`);
+            console.log(`Set tooltip content for ${keyPhrase}: ${tooltips[keyPhrase]}`);
         } else {
             console.warn(`No tooltip found for key phrase: ${keyPhrase}`);
-            // Remove any existing tooltip if no data is found
             const existingTooltip = ref.querySelector('.tooltip');
             if (existingTooltip) {
                 existingTooltip.remove();
