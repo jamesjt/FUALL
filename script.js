@@ -274,10 +274,10 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
 
         const dataContent = document.createElement('div');
         dataContent.className = 'data-content';
-        dataContent.textContent = row[defaultColumn] || '';
+        dataContent.innerHTML = (row[defaultColumn] || '').replace(/\n/g, '<br/>');
 
         columnSelect.addEventListener('change', () => {
-            dataContent.textContent = row[columnSelect.value] || '';
+            dataContent.innerHTML = (row[columnSelect.value] || '').replace(/\n/g, '<br/>');
             dataContent.classList.add('updated');
             setTimeout(() => dataContent.classList.remove('updated'), 1000);
             synchronizeRowHeights(contentDiv);
@@ -289,7 +289,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
                 const select = row.querySelector('.column-select');
                 const content = row.querySelector('.data-content');
                 select.value = masterSelect.value;
-                content.textContent = data[index][masterSelect.value] || '';
+                content.innerHTML = (data[index][masterSelect.value] || '').replace(/\n/g, '<br/>');
                 content.classList.add('updated');
                 setTimeout(() => dataContent.classList.remove('updated'), 1000);
             });
@@ -410,7 +410,7 @@ async function loadArticleData(link, articleName) {
 
                         if (columns.length === 1) {
                             // Single D: column, display content directly
-                            rowContent.innerHTML = row[columns[0]] || '';
+                            rowContent.innerHTML = (row[columns[0]] || '').replace(/\n/g, '<br/>');
                         } else {
                             // Multiple D: columns, create tabs
                             const rowTabs = document.createElement('div');
@@ -425,14 +425,14 @@ async function loadArticleData(link, articleName) {
                                 tab.addEventListener('click', () => {
                                     rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                                     tab.classList.add('active');
-                                    rowContent.innerHTML = row[col] || '';
+                                    rowContent.innerHTML = (row[col] || '').replace(/\n/g, '<br/>');
                                 });
                                 rowTabs.appendChild(tab);
                             });
 
                             // Set first tab as active
                             rowTabs.querySelector('.tab').classList.add('active');
-                            rowContent.innerHTML = row[columns[0]] || '';
+                            rowContent.innerHTML = (row[columns[0]] || '').replace(/\n/g, '<br/>');
 
                             rowContainer.appendChild(rowTabs);
                         }

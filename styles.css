@@ -52,6 +52,9 @@ body {
 .main-content {
     flex-grow: 1;
     padding: 20px;
+    position: relative;
+    overflow: hidden;
+    min-height: 500px;
 }
 
 .main-content h1 {
@@ -62,9 +65,11 @@ body {
 .content {
     display: flex;
     flex-wrap: nowrap;
-    gap: 20px;
+    gap: 10px;
     overflow-x: auto;
     padding-bottom: 10px;
+    position: relative;
+    z-index: 1;
 }
 
 .content p {
