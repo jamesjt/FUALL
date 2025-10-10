@@ -54,7 +54,7 @@ body {
     padding: 20px;
     position: relative;
     overflow: hidden;
-    min-height: 500px; /* Ensure minimum height for canvas */
+    min-height: 500px;
 }
 
 .main-content h1 {
