@@ -8,98 +8,74 @@ document.addEventListener('DOMContentLoaded', () => {
     // Internal refs URL
     const refsSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=1749170252&single=true&output=csv';
 
-    // Fetch tooltips data
-    let tooltips = {};
-    fetchGoogleSheetData(refsSheetUrl)
-        .then(data => {
-            tooltips = data.reduce((acc, row) => {
+    // Fetch all data simultaneously
+    Promise.all([
+        fetchGoogleSheetData(articlesSheetUrl),
+        fetchGoogleSheetData(booksSheetUrl),
+        fetchGoogleSheetData(refsSheetUrl)
+    ])
+        .then(([articlesData, booksData, refsData]) => {
+            // Process tooltips data
+            const tooltips = refsData.reduce((acc, row) => {
                 if (row.Word && row.Tooltip) {
                     acc[row.Word.trim()] = row.Tooltip.trim();
                 }
                 return acc;
             }, {});
             console.log('Tooltips loaded:', tooltips);
-        })
-        .catch(error => {
-            console.error('Error loading tooltips data:', error);
-        });
 
-    // Fetch and populate Articles
-    fetchGoogleSheetData(articlesSheetUrl)
-        .then(data => {
+            // Populate Articles
             const articlesList = document.querySelector('.articles-list');
             articlesList.innerHTML = '';
-
-            if (data.length === 0) {
+            if (articlesData.length === 0) {
                 articlesList.innerHTML = '<li>No data found in the Articles CSV</li>';
                 console.warn('No data found in the Articles CSV');
                 return;
             }
-
-            data.forEach(row => {
+            articlesData.forEach(row => {
                 const article = row['Articles']?.trim();
                 const link = row['Link']?.trim();
-
                 if (article && link) {
                     const listItem = document.createElement('li');
                     const buttonElement = document.createElement('button');
                     buttonElement.textContent = article;
                     buttonElement.classList.add('book-button');
-                    buttonElement.addEventListener('click', () => {
-                        loadArticleData(link, article);
-                    });
+                    buttonElement.addEventListener('click', () => loadArticleData(link, article, tooltips));
                     listItem.appendChild(buttonElement);
                     articlesList.appendChild(listItem);
                 }
             });
-
             if (articlesList.children.length === 0) {
                 articlesList.innerHTML = '<li>No valid article/link pairs found</li>';
             }
-        })
-        .catch(error => {
-            console.error('Error processing Articles CSV data:', error);
-            const articlesList = document.querySelector('.articles-list');
-            articlesList.innerHTML = '<li>Failed to load article data. Please try again later.</li>';
-        });
 
-    // Fetch and populate Books
-    fetchGoogleSheetData(booksSheetUrl)
-        .then(data => {
+            // Populate Books
             const booksList = document.querySelector('.books-list');
             booksList.innerHTML = '';
-
-            if (data.length === 0) {
+            if (booksData.length === 0) {
                 booksList.innerHTML = '<li>No data found in the Books CSV</li>';
                 console.warn('No data found in the Books CSV');
                 return;
             }
-
-            data.forEach(row => {
+            booksData.forEach(row => {
                 const book = row['Book']?.trim();
                 const link = row['Link']?.trim();
-
                 if (book && link) {
                     const listItem = document.createElement('li');
                     const buttonElement = document.createElement('button');
                     buttonElement.textContent = book;
                     buttonElement.classList.add('book-button');
-                    buttonElement.addEventListener('click', () => {
-                        loadCsvData(link, book);
-                    });
+                    buttonElement.addEventListener('click', () => loadCsvData(link, book, tooltips));
                     listItem.appendChild(buttonElement);
                     booksList.appendChild(listItem);
                 }
             });
-
             if (booksList.children.length === 0) {
                 booksList.innerHTML = '<li>No valid book/link pairs found</li>';
             }
         })
         .catch(error => {
-            console.error('Error processing Books CSV data:', error);
-            const booksList = document.querySelector('.books-list');
-            booksList.innerHTML = '<li>Failed to load book data. Please try again later.</li>';
+            console.error('Error loading data:', error);
         });
 });
 
@@ -254,7 +230,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv) {
 }
 
 // Function to load article data (HTML or CSV)
-async function loadArticleData(link, articleName) {
+async function loadArticleData(link, articleName, tooltips) {
     const contentDiv = document.querySelector('.content');
     const tabsDiv = contentDiv.querySelector('.tabs');
     const contentBody = contentDiv.querySelector('.content-body');
@@ -319,7 +295,7 @@ async function loadArticleData(link, articleName) {
                 }
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
-                addTooltips(contentBody.querySelector('.doc-content'));
+                addTooltips(contentBody.querySelector('.doc-content'), tooltips);
             } else {
                 const fallbackDiv = document.createElement('div');
                 fallbackDiv.innerHTML = htmlText;
@@ -327,7 +303,7 @@ async function loadArticleData(link, articleName) {
                 fallbackDiv.querySelectorAll('#banners').forEach(banner => banner.remove());
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + fallbackDiv.innerHTML + '</div>';
-                addTooltips(contentBody.querySelector('.doc-content'));
+                addTooltips(contentBody.querySelector('.doc-content'), tooltips);
             }
         } else if (link.includes('spreadsheets')) {
             const csvLink = link.replace('/edit', '/pub?output=csv');
@@ -375,7 +351,7 @@ async function loadArticleData(link, articleName) {
                                     rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                                     tab.classList.add('active');
                                     rowContent.innerHTML = (row[col] || '').replace(/\n/g, '<br/>');
-                                    addTooltips(rowContent);
+                                    addTooltips(rowContent, tooltips);
                                 });
                                 rowTabs.appendChild(tab);
                             });
@@ -383,7 +359,7 @@ async function loadArticleData(link, articleName) {
                             // Set first tab as active
                             rowTabs.querySelector('.tab').classList.add('active');
                             rowContent.innerHTML = (row[columns[0]] || '').replace(/\n/g, '<br/>');
-                            addTooltips(rowContent);
+                            addTooltips(rowContent, tooltips);
 
                             rowContainer.appendChild(rowTabs);
                         }
@@ -407,7 +383,7 @@ async function loadArticleData(link, articleName) {
 }
 
 // Function to load CSV data (for Books)
-function loadCsvData(link, name) {
+function loadCsvData(link, name, tooltips) {
     const contentDiv = document.querySelector('.content');
     const contentBody = contentDiv.querySelector('.content-body');
 
@@ -435,7 +411,7 @@ function loadCsvData(link, name) {
             const defaultColumn = columns.includes('D: Original') ? 'D: Original' : columns[0];
             contentDiv.querySelector('.tabs').innerHTML = ''; // Clear tabs for Books
             contentBody.innerHTML = '';
-            createDataContainer(data, columns, defaultColumn, contentDiv);
+            createDataContainer(data, columns, defaultColumn, contentDiv, tooltips);
         })
         .catch(error => {
             console.error('Error loading CSV data for ' + name + ':', error);
@@ -477,15 +453,17 @@ function fetchGoogleSheetData(url) {
 }
 
 // Function to add tooltips to elements with class 'ref'
-function addTooltips(container) {
+function addTooltips(container, tooltips) {
     const refs = container.querySelectorAll('.ref');
     refs.forEach(ref => {
         const keyPhrase = ref.textContent.trim();
-        if (tooltips[keyPhrase]) {
+        if (tooltips && tooltips[keyPhrase]) {
             const tooltip = document.createElement('span');
             tooltip.className = 'tooltip';
             tooltip.textContent = tooltips[keyPhrase];
             ref.appendChild(tooltip);
+        } else {
+            console.warn(`No tooltip found for key phrase: ${keyPhrase}`);
         }
     });
 }
