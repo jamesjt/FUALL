@@ -205,7 +205,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
             dataContent.classList.add('updated');
             setTimeout(() => dataContent.classList.remove('updated'), 1000);
             synchronizeRowHeights(contentDiv);
-            addTooltips(dataContent, tooltips);
+            addTooltips(contentDiv.querySelector('.content-body'), tooltips); // Apply to entire content-body
         });
 
         masterSelect.addEventListener('change', () => {
@@ -217,9 +217,9 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
                 content.innerHTML = (data[index][masterSelect.value] || '').replace(/\n/g, '<br/>');
                 content.classList.add('updated');
                 setTimeout(() => dataContent.classList.remove('updated'), 1000);
-                addTooltips(content, tooltips);
             });
             synchronizeRowHeights(contentDiv);
+            addTooltips(contentDiv.querySelector('.content-body'), tooltips); // Apply to entire content-body
         });
 
         dataRow.appendChild(columnSelect);
@@ -230,6 +230,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
     contentDiv.querySelector('.content-body').appendChild(dataContainer);
     updateContainerButtons(contentDiv, data, columns, defaultColumn);
     synchronizeRowHeights(contentDiv);
+    addTooltips(contentDiv.querySelector('.content-body'), tooltips); // Apply immediately after adding container
 }
 
 // Function to load article data (HTML or CSV)
@@ -298,7 +299,8 @@ async function loadArticleData(link, articleName, tooltips) {
                 }
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
-                addTooltips(contentBody.querySelector('.doc-content'), tooltips);
+                // Wait for DOM to update before applying tooltips
+                setTimeout(() => addTooltips(contentBody.querySelector('.doc-content'), tooltips), 0);
             } else {
                 const fallbackDiv = document.createElement('div');
                 fallbackDiv.innerHTML = htmlText;
@@ -306,7 +308,7 @@ async function loadArticleData(link, articleName, tooltips) {
                 fallbackDiv.querySelectorAll('#banners').forEach(banner => banner.remove());
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + fallbackDiv.innerHTML + '</div>';
-                addTooltips(contentBody.querySelector('.doc-content'), tooltips);
+                setTimeout(() => addTooltips(contentBody.querySelector('.doc-content'), tooltips), 0);
             }
         } else if (link.includes('spreadsheets')) {
             const csvLink = link.replace('/edit', '/pub?output=csv');
@@ -354,7 +356,7 @@ async function loadArticleData(link, articleName, tooltips) {
                                     rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                                     tab.classList.add('active');
                                     rowContent.innerHTML = (row[col] || '').replace(/\n/g, '<br/>');
-                                    addTooltips(rowContent, tooltips);
+                                    setTimeout(() => addTooltips(contentBody, tooltips), 0); // Apply to entire content-body
                                 });
                                 rowTabs.appendChild(tab);
                             });
@@ -362,7 +364,7 @@ async function loadArticleData(link, articleName, tooltips) {
                             // Set first tab as active
                             rowTabs.querySelector('.tab').classList.add('active');
                             rowContent.innerHTML = (row[columns[0]] || '').replace(/\n/g, '<br/>');
-                            addTooltips(rowContent, tooltips);
+                            setTimeout(() => addTooltips(contentBody, tooltips), 0); // Apply to entire content-body
 
                             rowContainer.appendChild(rowTabs);
                         }

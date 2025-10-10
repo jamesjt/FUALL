@@ -296,7 +296,7 @@ body {
     margin-left: 0; /* Remove margin for transform-based centering */
     opacity: 0;
     transition: opacity 0.2s;
-    pointer-events: none;
+    pointer-events: none; /* Prevent tooltip from blocking hover */
 }
 
 .ref:hover .tooltip {
