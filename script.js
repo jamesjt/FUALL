@@ -113,7 +113,7 @@ function synchronizeRowHeights(contentDiv) {
     });
 
     containers.forEach(container => {
-        const rows = container.querySelectorAll('.data-row');
+        const rows = container.queryselectorAll('.data-row');
         rows.forEach((row, index) => {
             row.style.height = `${maxHeights[index]}px`;
         });
@@ -299,8 +299,8 @@ async function loadArticleData(link, articleName, tooltips) {
                 }
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
-                // Wait for DOM to update before applying tooltips
-                setTimeout(() => addTooltips(contentBody.querySelector('.doc-content'), tooltips), 0);
+                // Wait for DOM to update and apply tooltips to content-body
+                setTimeout(() => addTooltips(contentBody, tooltips), 100); // Increased delay to 100ms
             } else {
                 const fallbackDiv = document.createElement('div');
                 fallbackDiv.innerHTML = htmlText;
@@ -308,7 +308,7 @@ async function loadArticleData(link, articleName, tooltips) {
                 fallbackDiv.querySelectorAll('#banners').forEach(banner => banner.remove());
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + fallbackDiv.innerHTML + '</div>';
-                setTimeout(() => addTooltips(contentBody.querySelector('.doc-content'), tooltips), 0);
+                setTimeout(() => addTooltips(contentBody, tooltips), 100); // Increased delay to 100ms
             }
         } else if (link.includes('spreadsheets')) {
             const csvLink = link.replace('/edit', '/pub?output=csv');
@@ -356,7 +356,7 @@ async function loadArticleData(link, articleName, tooltips) {
                                     rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                                     tab.classList.add('active');
                                     rowContent.innerHTML = (row[col] || '').replace(/\n/g, '<br/>');
-                                    setTimeout(() => addTooltips(contentBody, tooltips), 0); // Apply to entire content-body
+                                    setTimeout(() => addTooltips(contentBody, tooltips), 100); // Apply to entire content-body
                                 });
                                 rowTabs.appendChild(tab);
                             });
@@ -364,7 +364,7 @@ async function loadArticleData(link, articleName, tooltips) {
                             // Set first tab as active
                             rowTabs.querySelector('.tab').classList.add('active');
                             rowContent.innerHTML = (row[columns[0]] || '').replace(/\n/g, '<br/>');
-                            setTimeout(() => addTooltips(contentBody, tooltips), 0); // Apply to entire content-body
+                            setTimeout(() => addTooltips(contentBody, tooltips), 100); // Apply to entire content-body
 
                             rowContainer.appendChild(rowTabs);
                         }
@@ -389,7 +389,7 @@ async function loadArticleData(link, articleName, tooltips) {
 
 // Function to load CSV data (for Books)
 function loadCsvData(link, name, tooltips) {
-    const contentDiv = document.querySelector('.content');
+    const contentDiv = document.queryselector('.content');
     const contentBody = contentDiv.querySelector('.content-body');
 
     // Debug: Log DOM elements
