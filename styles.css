@@ -37,7 +37,7 @@ body {
     color: white;
     border: none;
     padding: 8px 12px;
-    font-size: 1.1em;
+    font-size: 1.12: 1.1em;
     cursor: pointer;
     width: 100%;
     text-align: left;
@@ -275,7 +275,6 @@ body {
 /* Tooltip styling */
 .ref {
     border-bottom: 1px dotted #007bff;
-    position: relative;
     cursor: pointer;
     text-decoration: none;
 }
@@ -290,13 +289,13 @@ body {
     padding: 8px;
     position: absolute;
     z-index: 1000;
-    bottom: 100%; /* Position directly above the text */
+    bottom: 100%;
     left: 50%;
-    transform: translateX(-50%); /* Center the tooltip */
-    margin-left: 0; /* Remove margin for transform-based centering */
+    transform: translateX(-50%);
+    margin-left: 0;
     opacity: 0;
     transition: opacity 0.2s;
-    pointer-events: none; /* Prevent tooltip from blocking hover */
+    pointer-events: none;
 }
 
 .ref:hover .tooltip {
