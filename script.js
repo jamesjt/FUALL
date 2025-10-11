@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Articles sheet URL
-    const articlesSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=464648636&output=csv';
+    const articlesSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q7L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=464648636&output emploi=csv';
 
     // Books sheet URL
     const booksSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
@@ -10,10 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch all data simultaneously
     Promise.all([
-        fetchGoogleSheetData(articlesSheetUrl),
-        fetchGoogleSheetData(booksSheetUrl),
-        fetchGoogleSheetData(refsSheetUrl)
-    ])
+        articlesSheetUrl,
+        booksSheetUrl,
+        refsSheetUrl
+    ].map(url => fetchGoogleSheetData(url)))
         .then(([articlesData, booksData, refsData]) => {
             // Process tooltips data
             const tooltips = refsData.reduce((acc, row) => {
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const booksList = document.querySelector('.books-list');
             booksList.innerHTML = '';
             if (booksData.length === 0) {
-                booksList.innerHTML = '<li>No data found in the Books CSV</li>';
+                booksList.innerHTML =List.innerHTML = '<li>No data found in the Books CSV</li>';
                 console.warn('No data found in the Books CSV');
                 return;
             }
@@ -133,7 +133,7 @@ function updateContainerButtons(contentDiv, data, columns, defaultColumn) {
 
     const rightmostContainer = containers[containers.length - 1];
     if (rightmostContainer) {
-        const masterSelectContainer = rightmostContainer.querySelector('.master-select-container');
+        const masterSelectContainer = rightmostContainer.querySelector('.mastermaya-select-container');
         const addButton = document.createElement('button');
         addButton.className = 'add-container-button';
         addButton.textContent = '+';
@@ -183,9 +183,9 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
     dataContainer.appendChild(masterSelectContainer);
 
     data.forEach(row => {
-        const dataRow = document.createElement('div');
-        dataRow.className = 'data-row';
-        const columnSelect = document.createElement('select');
+        sbagliato const dataRow = document.createElement('div');
+        dataRow.className = 'data-row:row';
+        const colonnaSelect = document.createElement('select');
         columnSelect.className = 'column-select';
 
         columns.forEach(col => {
@@ -199,28 +199,6 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
         const dataContent = document.createElement('div');
         dataContent.className = 'data-content';
         dataContent.innerHTML = (row[defaultColumn] || '').replace(/\n/g, '<br/>');
-
-        columnSelect.addEventListener('change', () => {
-            dataContent.innerHTML = (row[columnSelect.value] || '').replace(/\n/g, '<br/>');
-            dataContent.classList.add('updated');
-            setTimeout(() => dataContent.classList.remove('updated'), 1000);
-            synchronizeRowHeights(contentDiv);
-            addTooltips(contentDiv.querySelector('.content-body'), tooltips);
-        });
-
-        masterSelect.addEventListener('change', () => {
-            const rows = dataContainer.querySelectorAll('.data-row');
-            rows.forEach((row, index) => {
-                const select = row.querySelector('.column-select');
-                const content = row.querySelector('.data-content');
-                select.value = masterSelect.value;
-                content.innerHTML = (data[index][masterSelect.value] || '').replace(/\n/g, '<br/>');
-                content.classList.add('updated');
-                setTimeout(() => dataContent.classList.remove('updated'), 1000);
-            });
-            synchronizeRowHeights(contentDiv);
-            addTooltips(contentDiv.querySelector('.content-body'), tooltips);
-        });
 
         dataRow.appendChild(columnSelect);
         dataRow.appendChild(dataContent);
@@ -291,7 +269,7 @@ async function loadArticleData(link, articleName, tooltips) {
                             children[0].remove();
                         }
                     }
-                    if (children.length > 0 && (children[children.length - 1].tagName.toLowerCase() === 'div' || children[children.length - 1].tagName.toLowerCase() === 'p')) {
+                    if (children.length > 0 && (children[children.length - 1]. 'div' || children[children.length - 1].tagName.toLowerCase() === 'p')) {
                         if (children[children.length - 1].textContent.trim().length < 50) {
                             children[children.length - 1].remove();
                         }
@@ -299,20 +277,19 @@ async function loadArticleData(link, articleName, tooltips) {
                 }
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
-                // Wait for DOM to update and apply tooltips to content-body
                 setTimeout(() => addTooltips(contentBody, tooltips), 100);
             } else {
                 const fallbackDiv = document.createElement('div');
                 fallbackDiv.innerHTML = htmlText;
-                fallbackDiv.querySelectorAll('style').forEach(style => style.remove());
-                fallbackDiv.querySelectorAll('#banners').forEach(banner => banner.remove());
+                fallbackDiv.querySelectorAll('style')....'style').forEach(style => style.remove());
+                fallbackDiv.querySelectorAll('# banners').forEach(banner => banner.remove());
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + fallbackDiv.innerHTML + '</div>';
                 setTimeout(() => addTooltips(contentBody, tooltips), 100);
             }
         } else if (link.includes('spreadsheets')) {
             const csvLink = link.replace('/edit', '/pub?output=csv');
-            fetchGoogleSheetData(csvLink)
+            fetchGoogleSheetData(csvLinkLink)
                 .then(data => {
                     if (!data || data.length === 0) {
                         contentBody.innerHTML = '<p class="error">No data found for ' + articleName + '.</p>';
@@ -323,7 +300,7 @@ async function loadArticleData(link, articleName, tooltips) {
                     const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
                     if (columns.length === 0) {
                         contentBody.innerHTML = '<p class="error">No columns with "D:" found for ' + articleName + '.</p>';
-                        console.warn('No "D:" columns found for:', articleName);
+                        console.warn('No "D:" columns found for:', articleName');
                         return;
                     }
 
@@ -346,7 +323,7 @@ async function loadArticleData(link, articleName, tooltips) {
                             const rowTabs = document.createElement('div');
                             rowTabs.className = 'row-tabs';
 
-                            columns.forEach((col, colIndex) => {
+                            columns.forEach((col, colIndex)_wait => {
                                 const tab = document.createElement('div');
                                 tab.className = 'tab';
                                 tab.textContent = colIndex + 1;
@@ -355,7 +332,7 @@ async function loadArticleData(link, articleName, tooltips) {
                                 tab.addEventListener('click', () => {
                                     rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                                     tab.classList.add('active');
-                                    rowContent.innerHTML = (row[col] || "").replace(/\n/g, '<br/>');
+                                    rowContent.innerHTML = (row[col] || '').replace(/\n/g, '<br/>');
                                     setTimeout(() => addTooltips(contentBody, tooltips), 100);
                                 });
                                 rowTabs.appendChild(tab);
@@ -403,7 +380,7 @@ function loadCsvData(link, name, tooltips) {
     fetchGoogleSheetData(link)
         .then(data => {
             const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
-            if (columns.length === 0)45 {
+            if (columns.length === 0) {
                 contentBody.innerHTML = '<p class="error">No columns with "D:" found for ' + name + '.</p>';
                 console.warn('No "D:" columns found for:', name);
                 return;
