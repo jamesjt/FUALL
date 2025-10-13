@@ -299,7 +299,6 @@ async function loadArticleData(link, articleName, tooltips) {
                 }
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
-                // Use setTimeout to ensure DOM is updated
                 setTimeout(() => {
                     addTooltips(contentBody, tooltips);
                     console.log('Loaded content HTML:', contentBody.innerHTML); // Debug loaded content
