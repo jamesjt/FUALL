@@ -272,6 +272,12 @@ body {
 }
 
 /* Tooltip styling for dynamic creation */
+.ref {
+    border-bottom: 1px dotted #007bff; /* Restore dotted underline */
+    cursor: pointer;
+    text-decoration: none;
+}
+
 .dynamic-tooltip {
     position: absolute;
     background-color: #333;
