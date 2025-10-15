@@ -469,6 +469,11 @@ function initializeTooltips(container, tooltips) {
     const refs = container.querySelectorAll('.ref');
     console.log('Found refs:', refs.length); // Debug: Check how many .ref elements are found
     refs.forEach(ref => {
+        // Remove any existing event listeners to avoid duplicates
+        const newRef = ref.cloneNode(true);
+        ref.parentNode.replaceChild(newRef, ref);
+        ref = newRef;
+
         ref.addEventListener('mouseover', (e) => {
             const keyPhrase = ref.textContent.trim();
             if (tooltips[keyPhrase]) {
