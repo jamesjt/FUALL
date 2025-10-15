@@ -271,13 +271,7 @@ body {
     border-radius: 6px;
 }
 
-/* Tooltip styling */
-.ref {
-    border-bottom: 1px dotted #007bff;
-    cursor: pointer;
-    text-decoration: none;
-}
-
+/* Tooltip styling for dynamic creation */
 .dynamic-tooltip {
     position: absolute;
     background-color: #333;
@@ -287,4 +281,6 @@ body {
     z-index: 1000;
     display: none;
     pointer-events: none;
+    max-width: 200px;
+    word-wrap: break-word;
 }

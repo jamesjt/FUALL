@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Internal refs URL
     const refsSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=1749170252&single=true&output=csv';
 
+    let tooltips = {}; // Global tooltips object to store refs data
+
     // Fetch all data simultaneously
     Promise.all([
         fetchGoogleSheetData(articlesSheetUrl),
@@ -16,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ])
         .then(([articlesData, booksData, refsData]) => {
             // Process tooltips data
-            const tooltips = refsData.reduce((acc, row) => {
+            tooltips = refsData.reduce((acc, row) => {
                 if (row.Word && row.Tooltip) {
                     acc[row.Word.trim()] = row.Tooltip.trim();
                 }
@@ -74,8 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 booksList.innerHTML = '<li>No valid book/link pairs found</li>';
             }
 
-            // Add tooltips to any static .ref elements on page load
-            addTooltips(document, tooltips);
+            // Initialize hover tooltips for static and dynamic content
+            initializeTooltips(document);
         })
         .catch(error => {
             console.error('Error loading data:', error);
@@ -205,7 +207,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
             dataContent.classList.add('updated');
             setTimeout(() => dataContent.classList.remove('updated'), 1000);
             synchronizeRowHeights(contentDiv);
-            addTooltips(contentDiv.querySelector('.content-body'), tooltips); // Apply to entire content-body
+            initializeTooltips(contentDiv.querySelector('.content-body')); // Reinitialize tooltips
         });
 
         masterSelect.addEventListener('change', () => {
@@ -219,7 +221,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
                 setTimeout(() => dataContent.classList.remove('updated'), 1000);
             });
             synchronizeRowHeights(contentDiv);
-            addTooltips(contentDiv.querySelector('.content-body'), tooltips); // Apply to entire content-body
+            initializeTooltips(contentDiv.querySelector('.content-body')); // Reinitialize tooltips
         });
 
         dataRow.appendChild(columnSelect);
@@ -230,7 +232,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
     contentDiv.querySelector('.content-body').appendChild(dataContainer);
     updateContainerButtons(contentDiv, data, columns, defaultColumn);
     synchronizeRowHeights(contentDiv);
-    addTooltips(contentDiv.querySelector('.content-body'), tooltips); // Apply immediately after adding container
+    initializeTooltips(contentDiv.querySelector('.content-body')); // Initialize tooltips after adding container
 }
 
 // Function to load article data (HTML or CSV)
@@ -300,7 +302,7 @@ async function loadArticleData(link, articleName, tooltips) {
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + bodyContent.innerHTML + '</div>';
                 setTimeout(() => {
-                    addTooltips(contentBody, tooltips);
+                    initializeTooltips(contentBody);
                     console.log('Loaded content HTML:', contentBody.innerHTML); // Debug loaded content
                 }, 100);
             } else {
@@ -311,7 +313,7 @@ async function loadArticleData(link, articleName, tooltips) {
                 tabsDiv.innerHTML = ''; // Clear tabs for Google Docs
                 contentBody.innerHTML = '<div class="doc-content">' + fallbackDiv.innerHTML + '</div>';
                 setTimeout(() => {
-                    addTooltips(contentBody, tooltips);
+                    initializeTooltips(contentBody);
                     console.log('Loaded content HTML:', contentBody.innerHTML); // Debug loaded content
                 }, 100);
             }
@@ -361,7 +363,7 @@ async function loadArticleData(link, articleName, tooltips) {
                                     rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                                     tab.classList.add('active');
                                     rowContent.innerHTML = (row[col] || '').replace(/\n/g, '<br/>');
-                                    setTimeout(() => addTooltips(contentBody, tooltips), 100); // Apply to entire content-body
+                                    setTimeout(() => initializeTooltips(contentBody), 100); // Reinitialize tooltips
                                 });
                                 rowTabs.appendChild(tab);
                             });
@@ -369,7 +371,7 @@ async function loadArticleData(link, articleName, tooltips) {
                             // Set first tab as active
                             rowTabs.querySelector('.tab').classList.add('active');
                             rowContent.innerHTML = (row[columns[0]] || '').replace(/\n/g, '<br/>');
-                            setTimeout(() => addTooltips(contentBody, tooltips), 100); // Apply to entire content-body
+                            setTimeout(() => initializeTooltips(contentBody), 100); // Initialize tooltips
 
                             rowContainer.appendChild(rowTabs);
                         }
@@ -462,28 +464,29 @@ function fetchGoogleSheetData(url) {
         });
 }
 
-// Function to add tooltips to elements with class 'ref'
-function addTooltips(container, tooltips) {
+// Function to initialize tooltip hover events
+function initializeTooltips(container) {
     const refs = container.querySelectorAll('.ref');
     console.log('Found refs:', refs.length); // Debug: Check how many .ref elements are found
     refs.forEach(ref => {
-        const keyPhrase = ref.textContent.trim();
-        if (tooltips && tooltips[keyPhrase]) {
-            let tooltip = ref.querySelector('.tooltip');
-            if (!tooltip) {
-                tooltip = document.createElement('span');
-                tooltip.className = 'tooltip';
-                ref.appendChild(tooltip);
-                console.log(`Added tooltip for ${keyPhrase}`);
+        ref.addEventListener('mouseover', (e) => {
+            const keyPhrase = ref.textContent.trim();
+            if (tooltips[keyPhrase]) {
+                let tooltip = document.querySelector('.dynamic-tooltip');
+                if (!tooltip) {
+                    tooltip = document.createElement('div');
+                    tooltip.className = 'dynamic-tooltip';
+                    document.body.appendChild(tooltip);
+                }
+                tooltip.textContent = tooltips[keyPhrase];
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${e.pageX + 10}px`;
+                tooltip.style.top = `${e.pageY + 10}px`;
             }
-            tooltip.textContent = tooltips[keyPhrase];
-            console.log(`Set tooltip content for ${keyPhrase}: ${tooltips[keyPhrase]}`);
-        } else {
-            console.warn(`No tooltip found for key phrase: ${keyPhrase}`);
-            const existingTooltip = ref.querySelector('.tooltip');
-            if (existingTooltip) {
-                existingTooltip.remove();
-            }
-        }
+        });
+        ref.addEventListener('mouseout', () => {
+            const tooltip = document.querySelector('.dynamic-tooltip');
+            if (tooltip) tooltip.style.display = 'none';
+        });
     });
 }
