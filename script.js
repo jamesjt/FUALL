@@ -1,3 +1,5 @@
+let contentElements = {}; // Global object to store preloaded content
+
 document.addEventListener('DOMContentLoaded', () => {
     // Articles sheet URL
     const articlesSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=464648636&output=csv';
@@ -9,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let tooltips = {}; // Global tooltips object to store refs data
     let articlesData = [];
     let booksData = [];
-    let contentElements = {}; // Store content elements by title
 
     // Fetch all data simultaneously
     Promise.all([
@@ -41,10 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const article = row['Articles']?.trim();
                     const link = row['Link']?.trim();
                     if (article && link) {
-                        const docContent = document.createElement('div');
-                        docContent.className = 'doc-content';
-                        contentElements[article] = docContent;
-                        loadAndDisplayContent(link, 'article', article, docContent);
+                        contentElements[article] = document.createElement('div');
+                        contentElements[article].className = 'doc-content';
+                        loadAndDisplayContent(link, 'article', article, contentElements[article]);
                     }
                 });
             }
@@ -57,10 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const book = row['Book']?.trim();
                     const link = row['Link']?.trim();
                     if (book && link) {
-                        const docContent = document.createElement('div');
-                        docContent.className = 'doc-content';
-                        contentElements[book] = docContent;
-                        loadAndDisplayContent(link, 'book', book, docContent);
+                        contentElements[book] = document.createElement('div');
+                        contentElements[book].className = 'doc-content';
+                        loadAndDisplayContent(link, 'book', book, contentElements[book]);
                     }
                 });
             }
@@ -112,6 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Initialize hover tooltips for all preloaded content
             initializeTooltips(contentBody, tooltips);
+
+            // Add MutationObserver to reapply tooltips on DOM changes
+            const observer = new MutationObserver(() => {
+                console.log('DOM mutation detected, reinitializing tooltips');
+                initializeTooltips(contentBody, tooltips);
+            });
+            observer.observe(contentBody, { childList: true, subtree: true });
         })
         .catch(error => {
             console.error('Error loading data:', error);
@@ -129,6 +135,7 @@ function showContent(type, title) {
     } else {
         contentBody.innerHTML = `<h2>${type === 'article' ? 'Article' : 'Book'}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
     }
+    console.log('Showing content for:', title, 'DOM:', contentBody.innerHTML); // Debug DOM state
     initializeTooltips(contentBody, tooltips); // Reinitialize tooltips for the new content
 }
 
