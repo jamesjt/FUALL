@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Initialize hover tooltips for all content
+            // Initialize hover tooltips for all content after loading
             initializeTooltips(document, tooltips);
         })
         .catch(error => {
@@ -89,6 +89,7 @@ function showContent(type, title, link) {
     const contentBody = document.querySelector('.content-body');
     contentBody.innerHTML = `<h2>${type === 'article' ? 'Article' : 'Book'}: ${title}</h2><div class="doc-content"></div>`;
     loadAndDisplayContent(link, type, title);
+    initializeTooltips(contentBody, tooltips); // Reinitialize tooltips for the new content
 }
 
 // Function to load and display content
@@ -372,4 +373,37 @@ function initializeTooltips(container, tooltips) {
             }
         });
     });
+}
+
+// Function to fetch and parse CSV data from a Google Sheet
+function fetchGoogleSheetData(url) {
+    console.log('Fetching URL:', url);
+    return fetch(url)
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(csvText => {
+            console.log('CSV text:', csvText);
+            return new Promise((resolve, reject) => {
+                Papa.parse(csvText, {
+                    header: true,
+                    complete: function(results) {
+                        console.log('Parsed CSV:', results.data);
+                        resolve(results.data);
+                    },
+                    error: function(error) {
+                        console.error('Papa Parse error:', error);
+                        reject(error);
+                    }
+                });
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching Google Sheet:', error);
+            throw error;
+        });
 }
