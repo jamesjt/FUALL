@@ -198,6 +198,11 @@ body {
     font-size: 16px;
     line-height: 1.6;
     color: #333;
+    display: none; /* Hidden by default, shown on button click */
+}
+
+.doc-content.active {
+    display: block; /* Shown when active */
 }
 
 .doc-content a {

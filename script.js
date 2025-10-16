@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let tooltips = {}; // Global tooltips object to store refs data
     let articlesData = [];
     let booksData = [];
+    let contentElements = {}; // Store content elements by title
 
     // Fetch all data simultaneously
     Promise.all([
@@ -30,31 +31,36 @@ document.addEventListener('DOMContentLoaded', () => {
             articlesData = articles || [];
             booksData = books || [];
 
-            // Preload and display all article content
+            // Preload and store all content
             const contentBody = document.querySelector('.content-body');
             if (articlesData.length === 0) {
                 contentBody.innerHTML = '<p class="error">No articles data found.</p>';
                 console.warn('No data found in the Articles CSV');
             } else {
-                articlesData.forEach((row, index) => {
+                articlesData.forEach(row => {
                     const article = row['Articles']?.trim();
                     const link = row['Link']?.trim();
                     if (article && link) {
-                        loadAndDisplayContent(link, 'article', article, index === 0 ? contentBody : null);
+                        const docContent = document.createElement('div');
+                        docContent.className = 'doc-content';
+                        contentElements[article] = docContent;
+                        loadAndDisplayContent(link, 'article', article, docContent);
                     }
                 });
             }
 
-            // Preload and display all book content
             if (booksData.length === 0) {
                 contentBody.innerHTML += '<p class="error">No books data found.</p>';
                 console.warn('No data found in the Books CSV');
             } else {
-                booksData.forEach((row, index) => {
+                booksData.forEach(row => {
                     const book = row['Book']?.trim();
                     const link = row['Link']?.trim();
                     if (book && link) {
-                        loadAndDisplayContent(link, 'book', book, index === 0 ? contentBody : null);
+                        const docContent = document.createElement('div');
+                        docContent.className = 'doc-content';
+                        contentElements[book] = docContent;
+                        loadAndDisplayContent(link, 'book', book, docContent);
                     }
                 });
             }
@@ -64,13 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
             articlesList.innerHTML = '';
             articlesData.forEach(row => {
                 const article = row['Articles']?.trim();
-                const link = row['Link']?.trim();
-                if (article && link) {
+                if (article && contentElements[article]) {
                     const listItem = document.createElement('li');
                     const buttonElement = document.createElement('button');
                     buttonElement.textContent = article;
                     buttonElement.classList.add('book-button');
-                    buttonElement.addEventListener('click', () => showContent('article', article, link));
+                    buttonElement.addEventListener('click', () => showContent('article', article));
                     listItem.appendChild(buttonElement);
                     articlesList.appendChild(listItem);
                 }
@@ -84,19 +89,25 @@ document.addEventListener('DOMContentLoaded', () => {
             booksList.innerHTML = '';
             booksData.forEach(row => {
                 const book = row['Book']?.trim();
-                const link = row['Link']?.trim();
-                if (book && link) {
+                if (book && contentElements[book]) {
                     const listItem = document.createElement('li');
                     const buttonElement = document.createElement('button');
                     buttonElement.textContent = book;
                     buttonElement.classList.add('book-button');
-                    buttonElement.addEventListener('click', () => showContent('book', book, link));
+                    buttonElement.addEventListener('click', () => showContent('book', book));
                     listItem.appendChild(buttonElement);
                     booksList.appendChild(listItem);
                 }
             });
             if (booksList.children.length === 0) {
                 booksList.innerHTML = '<li>No valid book/link pairs found</li>';
+            }
+
+            // Show the first article or book if available
+            if (articlesData.length > 0) {
+                showContent('article', articlesData[0]['Articles']);
+            } else if (booksData.length > 0) {
+                showContent('book', booksData[0]['Book']);
             }
 
             // Initialize hover tooltips for all preloaded content
@@ -108,17 +119,28 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Function to show specific content (simplified toggle)
-function showContent(type, title, link) {
+function showContent(type, title) {
     const contentBody = document.querySelector('.content-body');
-    contentBody.innerHTML = `<h2>${type === 'article' ? 'Article' : 'Book'}: ${title}</h2><div class="doc-content"></div>`;
-    loadAndDisplayContent(link, type, title, contentBody);
+    contentBody.innerHTML = ''; // Clear previous content
+    const docContent = contentElements[title];
+    if (docContent) {
+        docContent.classList.add('active');
+        contentBody.appendChild(docContent);
+    } else {
+        contentBody.innerHTML = `<h2>${type === 'article' ? 'Article' : 'Book'}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
+    }
     initializeTooltips(contentBody, tooltips); // Reinitialize tooltips for the new content
 }
 
 // Function to load and display content
 async function loadAndDisplayContent(link, type, title, targetContentBody = null) {
     const contentBody = targetContentBody || document.querySelector('.content-body');
-    const docContent = contentBody.querySelector('.doc-content');
+    let docContent = contentBody.querySelector('.doc-content');
+    if (!docContent) {
+        docContent = document.createElement('div');
+        docContent.className = 'doc-content';
+        contentBody.appendChild(docContent);
+    }
 
     try {
         if (link.includes('document')) {
