@@ -30,54 +30,77 @@ document.addEventListener('DOMContentLoaded', () => {
             articlesData = articles || [];
             booksData = books || [];
 
-            // Populate Articles
-            const articlesList = document.querySelector('.articles-list');
-            articlesList.innerHTML = '';
+            // Preload and display all article content
+            const contentBody = document.querySelector('.content-body');
             if (articlesData.length === 0) {
-                articlesList.innerHTML = '<li>No data found in the Articles CSV</li>';
+                contentBody.innerHTML = '<p class="error">No articles data found.</p>';
                 console.warn('No data found in the Articles CSV');
             } else {
-                articlesData.forEach(row => {
+                articlesData.forEach((row, index) => {
                     const article = row['Articles']?.trim();
                     const link = row['Link']?.trim();
                     if (article && link) {
-                        const listItem = document.createElement('li');
-                        const buttonElement = document.createElement('button');
-                        buttonElement.textContent = article;
-                        buttonElement.classList.add('book-button');
-                        buttonElement.addEventListener('click', () => showContent('article', article, link));
-                        listItem.appendChild(buttonElement);
-                        articlesList.appendChild(listItem);
-                        loadAndDisplayContent(link, 'article', article);
+                        loadAndDisplayContent(link, 'article', article, index === 0 ? contentBody : null);
                     }
                 });
             }
 
-            // Populate Books
-            const booksList = document.querySelector('.books-list');
-            booksList.innerHTML = '';
+            // Preload and display all book content
             if (booksData.length === 0) {
-                booksList.innerHTML = '<li>No data found in the Books CSV</li>';
+                contentBody.innerHTML += '<p class="error">No books data found.</p>';
                 console.warn('No data found in the Books CSV');
             } else {
-                booksData.forEach(row => {
+                booksData.forEach((row, index) => {
                     const book = row['Book']?.trim();
                     const link = row['Link']?.trim();
                     if (book && link) {
-                        const listItem = document.createElement('li');
-                        const buttonElement = document.createElement('button');
-                        buttonElement.textContent = book;
-                        buttonElement.classList.add('book-button');
-                        buttonElement.addEventListener('click', () => showContent('book', book, link));
-                        listItem.appendChild(buttonElement);
-                        booksList.appendChild(listItem);
-                        loadAndDisplayContent(link, 'book', book);
+                        loadAndDisplayContent(link, 'book', book, index === 0 ? contentBody : null);
                     }
                 });
             }
 
-            // Initialize hover tooltips for all content after loading
-            initializeTooltips(document, tooltips);
+            // Populate Articles sidebar
+            const articlesList = document.querySelector('.articles-list');
+            articlesList.innerHTML = '';
+            articlesData.forEach(row => {
+                const article = row['Articles']?.trim();
+                const link = row['Link']?.trim();
+                if (article && link) {
+                    const listItem = document.createElement('li');
+                    const buttonElement = document.createElement('button');
+                    buttonElement.textContent = article;
+                    buttonElement.classList.add('book-button');
+                    buttonElement.addEventListener('click', () => showContent('article', article, link));
+                    listItem.appendChild(buttonElement);
+                    articlesList.appendChild(listItem);
+                }
+            });
+            if (articlesList.children.length === 0) {
+                articlesList.innerHTML = '<li>No valid article/link pairs found</li>';
+            }
+
+            // Populate Books sidebar
+            const booksList = document.querySelector('.books-list');
+            booksList.innerHTML = '';
+            booksData.forEach(row => {
+                const book = row['Book']?.trim();
+                const link = row['Link']?.trim();
+                if (book && link) {
+                    const listItem = document.createElement('li');
+                    const buttonElement = document.createElement('button');
+                    buttonElement.textContent = book;
+                    buttonElement.classList.add('book-button');
+                    buttonElement.addEventListener('click', () => showContent('book', book, link));
+                    listItem.appendChild(buttonElement);
+                    booksList.appendChild(listItem);
+                }
+            });
+            if (booksList.children.length === 0) {
+                booksList.innerHTML = '<li>No valid book/link pairs found</li>';
+            }
+
+            // Initialize hover tooltips for all preloaded content
+            initializeTooltips(contentBody, tooltips);
         })
         .catch(error => {
             console.error('Error loading data:', error);
@@ -88,13 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
 function showContent(type, title, link) {
     const contentBody = document.querySelector('.content-body');
     contentBody.innerHTML = `<h2>${type === 'article' ? 'Article' : 'Book'}: ${title}</h2><div class="doc-content"></div>`;
-    loadAndDisplayContent(link, type, title);
+    loadAndDisplayContent(link, type, title, contentBody);
     initializeTooltips(contentBody, tooltips); // Reinitialize tooltips for the new content
 }
 
 // Function to load and display content
-async function loadAndDisplayContent(link, type, title) {
-    const contentBody = document.querySelector('.content-body');
+async function loadAndDisplayContent(link, type, title, targetContentBody = null) {
+    const contentBody = targetContentBody || document.querySelector('.content-body');
     const docContent = contentBody.querySelector('.doc-content');
 
     try {
@@ -187,6 +210,7 @@ async function loadAndDisplayContent(link, type, title) {
                 }
             });
         }
+        console.log('Content rendered for:', title, 'HTML:', docContent.innerHTML); // Debug rendered content
     } catch (error) {
         console.error('Error loading content for ' + title + ':', error);
         docContent.innerHTML = '<p class="error">Failed to load data for ' + title + '. Please try again later.</p>';
@@ -347,7 +371,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
 // Function to initialize tooltip hover events
 function initializeTooltips(container, tooltips) {
     const refs = container.querySelectorAll('.ref');
-    console.log('Found refs:', refs.length); // Debug: Check how many .ref elements are found
+    console.log('Found refs in container:', container, 'Count:', refs.length); // Debug: Check container and number of .ref elements
     refs.forEach(ref => {
         ref.addEventListener('mouseover', (e) => {
             const keyPhrase = ref.textContent.trim();
