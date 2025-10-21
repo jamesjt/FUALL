@@ -320,8 +320,8 @@ function updateContainerButtons(contentDiv, data, columns, defaultColumn) {
     }
 }
 
-// Function to create a data container for CSV data (not used with preloading, kept for consistency)
-function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips) {
+// Function to create a data container for CSV data
+function createDataContainer(data, columns, defaultColumn, contentDiv) {
     const dataContainer = document.createElement('div');
     dataContainer.className = 'data-container';
 
@@ -369,7 +369,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
             dataContent.classList.add('updated');
             setTimeout(() => dataContent.classList.remove('updated'), 1000);
             synchronizeRowHeights(contentDiv);
-            initializeTooltips(contentDiv.querySelector('.content-body'), tooltips); // Reinitialize tooltips
+            initializeTooltips(contentDiv.querySelector('.content-body'), tooltips);
         });
 
         masterSelect.addEventListener('change', () => {
@@ -383,7 +383,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
                 setTimeout(() => dataContent.classList.remove('updated'), 1000);
             });
             synchronizeRowHeights(contentDiv);
-            initializeTooltips(contentDiv.querySelector('.content-body'), tooltips); // Reinitialize tooltips
+            initializeTooltips(contentDiv.querySelector('.content-body'), tooltips);
         });
 
         dataRow.appendChild(columnSelect);
@@ -394,14 +394,15 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
     contentDiv.querySelector('.content-body').appendChild(dataContainer);
     updateContainerButtons(contentDiv, data, columns, defaultColumn);
     synchronizeRowHeights(contentDiv);
-    initializeTooltips(contentDiv.querySelector('.content-body'), tooltips); // Initialize tooltips after adding container
+    initializeTooltips(contentDiv.querySelector('.content-body'), tooltips);
 }
 
-// Function to initialize tooltip hover events
+// Function to initialize tooltip hover events and click expansion
 function initializeTooltips(container, tooltips) {
     const refs = container.querySelectorAll('.ref');
-    console.log('Found refs in container:', container, 'Count:', refs.length); // Debug: Check container and number of .ref elements
+    console.log('Found refs:', refs.length); // Debug: Check how many .ref elements are found
     refs.forEach(ref => {
+        // Hover tooltip
         ref.addEventListener('mouseover', (e) => {
             const keyPhrase = ref.textContent.trim();
             if (tooltips[keyPhrase]) {
@@ -420,9 +421,22 @@ function initializeTooltips(container, tooltips) {
         });
         ref.addEventListener('mouseout', () => {
             const tooltip = document.querySelector('.dynamic-tooltip');
-            if (tooltip) {
-                tooltip.style.display = 'none';
-                console.log('Tooltip hidden');
+            if (tooltip) tooltip.style.display = 'none';
+        });
+
+        // Click to expand
+        ref.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent any default behavior
+            const keyPhrase = ref.textContent.trim();
+            if (tooltips[keyPhrase]) {
+                const docContent = ref.closest('.doc-content');
+                if (docContent) {
+                    const expansion = document.createElement('div');
+                    expansion.className = 'ref-expansion';
+                    expansion.textContent = `${keyPhrase}\n${tooltips[keyPhrase]}`;
+                    contentBody.insertAdjacentElement('afterend', expansion); // Place to the right of content-body
+                    console.log('Expansion created for:', keyPhrase);
+                }
             }
         });
     });
