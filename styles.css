@@ -198,11 +198,6 @@ body {
     font-size: 16px;
     line-height: 1.6;
     color: #333;
-    display: none; /* Hidden by default, shown on button click */
-}
-
-.doc-content.active {
-    display: block; /* Shown when active */
 }
 
 .doc-content a {
@@ -251,7 +246,16 @@ body {
     max-width: 650px;
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    gap: 20px;
+}
+
+.ref-info {
+    max-width: 300px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .row-container {
@@ -297,18 +301,4 @@ body {
     pointer-events: none;
     max-width: 200px;
     word-wrap: break-word;
-}
-
-/* Styling for the expanded ref content */
-.ref-expansion {
-    margin-left: 20px;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    line-height: 1.5;
-    color: #333;
-    max-width: 300px;
-    white-space: pre-wrap;
 }
