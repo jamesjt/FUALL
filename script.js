@@ -64,43 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Populate Articles sidebar
-            const articlesList = document.querySelector('.articles-list');
-            articlesList.innerHTML = '';
-            articlesData.forEach(row => {
-                const article = row['Articles']?.trim();
-                if (article && contentElements[article]) {
-                    const listItem = document.createElement('li');
-                    const buttonElement = document.createElement('button');
-                    buttonElement.textContent = article;
-                    buttonElement.classList.add('book-button');
-                    buttonElement.addEventListener('click', () => showContent('article', article));
-                    listItem.appendChild(buttonElement);
-                    articlesList.appendChild(listItem);
-                }
-            });
-            if (articlesList.children.length === 0) {
-                articlesList.innerHTML = '<li>No valid article/link pairs found</li>';
-            }
-
-            // Populate Books sidebar
-            const booksList = document.querySelector('.books-list');
-            booksList.innerHTML = '';
-            booksData.forEach(row => {
-                const book = row['Book']?.trim();
-                if (book && contentElements[book]) {
-                    const listItem = document.createElement('li');
-                    const buttonElement = document.createElement('button');
-                    buttonElement.textContent = book;
-                    buttonElement.classList.add('book-button');
-                    buttonElement.addEventListener('click', () => showContent('book', book));
-                    listItem.appendChild(buttonElement);
-                    booksList.appendChild(listItem);
-                }
-            });
-            if (booksList.children.length === 0) {
-                booksList.innerHTML = '<li>No valid book/link pairs found</li>';
-            }
+            // Populate sidebars
+            populateSidebarList('.articles-list', articlesData, 'Articles', 'article');
+            populateSidebarList('.books-list', booksData, 'Book', 'book');
 
             // Show the first article or book if available
             if (articlesData.length > 0) {
@@ -123,6 +89,27 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error loading data:', error);
         });
 });
+
+// Function to populate a sidebar list
+function populateSidebarList(listSelector, data, itemKey, type) {
+    const list = document.querySelector(listSelector);
+    list.innerHTML = '';
+    data.forEach(row => {
+        const item = row[itemKey]?.trim();
+        if (item && contentElements[item]) {
+            const listItem = document.createElement('li');
+            const buttonElement = document.createElement('button');
+            buttonElement.textContent = item;
+            buttonElement.classList.add('book-button');
+            buttonElement.addEventListener('click', () => showContent(type, item));
+            listItem.appendChild(buttonElement);
+            list.appendChild(listItem);
+        }
+    });
+    if (list.children.length === 0) {
+        list.innerHTML = `<li>No valid ${type}/link pairs found</li>`;
+    }
+}
 
 // Function to show specific content (simplified toggle)
 function showContent(type, title) {
