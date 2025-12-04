@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(([articles, books, refs]) => {
             // Process tooltips data
             tooltips = refs.reduce((acc, row) => {
-                if (row.Word && row.Tooltip) {
-                    acc[row.Word.trim()] = row.Tooltip.trim();
+                if (row.References && row.Data) {
+                    acc[row.References.trim()] = row.Data.trim();
                 }
                 return acc;
             }, {});
