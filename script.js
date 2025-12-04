@@ -112,8 +112,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add MutationObserver to reapply tooltips on DOM changes
             const observer = new MutationObserver(() => {
                 console.log('DOM mutation detected, reinitializing tooltips');
+                observer.disconnect(); // Prevent loop from own modifications
                 highlightReferences(contentBody, tooltips);
                 initializeTippy(contentBody);
+                observer.observe(contentBody, { childList: true, subtree: true }); // Re-observe
             });
             observer.observe(contentBody, { childList: true, subtree: true });
         })
@@ -406,7 +408,7 @@ function highlightReferences(container, tooltips) {
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
         const node = walker.currentNode;
-        if (node.parentElement.tagName === 'SCRIPT' || node.parentElement.tagName === 'STYLE') continue;
+        if (node.parentElement.tagName === 'SCRIPT' || node.parentElement.tagName === 'STYLE' || node.parentElement.classList.contains('ref')) continue;
         let text = node.nodeValue;
         let replaced = false;
         terms.forEach(term => {
