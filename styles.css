@@ -282,15 +282,15 @@ body {
     text-decoration: none;
 }
 
-.dynamic-tooltip {
-    position: absolute;
+.tippy-box[data-theme~='custom'] {
     background-color: #333;
     color: #fff;
     padding: 8px;
     border-radius: 4px;
-    z-index: 1000;
-    display: none;
-    pointer-events: none;
     max-width: 200px;
     word-wrap: break-word;
+}
+
+.tippy-box[data-theme~='custom'] .tippy-arrow {
+    color: #333;
 }

@@ -109,13 +109,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 showContent('book', booksData[0]['Book']);
             }
 
-            // Initialize hover tooltips for all preloaded content
-            initializeTooltips(contentBody, tooltips);
-
             // Add MutationObserver to reapply tooltips on DOM changes
             const observer = new MutationObserver(() => {
                 console.log('DOM mutation detected, reinitializing tooltips');
-                initializeTooltips(contentBody, tooltips);
+                highlightReferences(contentBody, tooltips);
+                initializeTippy(contentBody);
             });
             observer.observe(contentBody, { childList: true, subtree: true });
         })
@@ -136,7 +134,6 @@ function showContent(type, title) {
         contentBody.innerHTML = `<h2>${type === 'article' ? 'Article' : 'Book'}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
     }
     console.log('Showing content for:', title, 'DOM:', contentBody.innerHTML); // Debug DOM state
-    initializeTooltips(contentBody, tooltips); // Reinitialize tooltips for the new content
 }
 
 // Function to load and display content
@@ -229,7 +226,8 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                             rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                             tab.classList.add('active');
                             docContent.innerHTML = `<p>${(row[col] || '').replace(/\n/g, '<br/>')}</p>`;
-                            initializeTooltips(contentBody, tooltips); // Reinitialize tooltips on tab switch
+                            highlightReferences(docContent, tooltips);
+                            initializeTippy(docContent);
                         });
                         rowTabs.appendChild(tab);
                     });
@@ -240,6 +238,8 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
             });
         }
         console.log('Content rendered for:', title, 'HTML:', docContent.innerHTML); // Debug rendered content
+        highlightReferences(docContent, tooltips);
+        initializeTippy(docContent);
     } catch (error) {
         console.error('Error loading content for ' + title + ':', error);
         docContent.innerHTML = '<p class="error">Failed to load data for ' + title + '. Please try again later.</p>';
@@ -369,7 +369,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
             dataContent.classList.add('updated');
             setTimeout(() => dataContent.classList.remove('updated'), 1000);
             synchronizeRowHeights(contentDiv);
-            initializeTooltips(contentDiv.querySelector('.content-body'), tooltips); // Reinitialize tooltips
+            initializeTippy(contentDiv.querySelector('.content-body')); // Reinitialize tooltips
         });
 
         masterSelect.addEventListener('change', () => {
@@ -383,7 +383,7 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
                 setTimeout(() => dataContent.classList.remove('updated'), 1000);
             });
             synchronizeRowHeights(contentDiv);
-            initializeTooltips(contentDiv.querySelector('.content-body'), tooltips); // Reinitialize tooltips
+            initializeTippy(contentDiv.querySelector('.content-body')); // Reinitialize tooltips
         });
 
         dataRow.appendChild(columnSelect);
@@ -394,37 +394,55 @@ function createDataContainer(data, columns, defaultColumn, contentDiv, tooltips)
     contentDiv.querySelector('.content-body').appendChild(dataContainer);
     updateContainerButtons(contentDiv, data, columns, defaultColumn);
     synchronizeRowHeights(contentDiv);
-    initializeTooltips(contentDiv.querySelector('.content-body'), tooltips); // Initialize tooltips after adding container
+    initializeTippy(contentDiv.querySelector('.content-body')); // Initialize tooltips after adding container
 }
 
-// Function to initialize tooltip hover events
-function initializeTooltips(container, tooltips) {
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function highlightReferences(container, tooltips) {
+    const terms = Object.keys(tooltips).sort((a, b) => b.length - a.length);
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (node.parentElement.tagName === 'SCRIPT' || node.parentElement.tagName === 'STYLE') continue;
+        let text = node.nodeValue;
+        let replaced = false;
+        terms.forEach(term => {
+            const regex = new RegExp(`\\b${escapeRegExp(term)}\\b`, 'g');
+            if (regex.test(text)) {
+                text = text.replace(regex, '<span class="ref">$&</span>');
+                replaced = true;
+            }
+        });
+        if (replaced) {
+            const temp = document.createElement('div');
+            temp.innerHTML = text;
+            const fragment = document.createDocumentFragment();
+            while (temp.firstChild) {
+                fragment.appendChild(temp.firstChild);
+            }
+            node.parentNode.replaceChild(fragment, node);
+        }
+    }
+}
+
+function initializeTippy(container) {
     const refs = container.querySelectorAll('.ref');
     console.log('Found refs in container:', container, 'Count:', refs.length); // Debug: Check container and number of .ref elements
     refs.forEach(ref => {
-        ref.addEventListener('mouseover', (e) => {
-            const keyPhrase = ref.textContent.trim();
-            if (tooltips[keyPhrase]) {
-                let tooltip = document.querySelector('.dynamic-tooltip');
-                if (!tooltip) {
-                    tooltip = document.createElement('div');
-                    tooltip.className = 'dynamic-tooltip';
-                    document.body.appendChild(tooltip);
-                }
-                tooltip.textContent = tooltips[keyPhrase];
-                tooltip.style.display = 'block';
-                tooltip.style.left = `${e.pageX + 10}px`;
-                tooltip.style.top = `${e.pageY + 10}px`;
-                console.log('Tooltip shown for:', keyPhrase);
-            }
-        });
-        ref.addEventListener('mouseout', () => {
-            const tooltip = document.querySelector('.dynamic-tooltip');
-            if (tooltip) {
-                tooltip.style.display = 'none';
-                console.log('Tooltip hidden');
-            }
-        });
+        const keyPhrase = ref.textContent.trim();
+        if (tooltips[keyPhrase]) {
+            tippy(ref, {
+                content: tooltips[keyPhrase],
+                allowHTML: true,
+                theme: 'custom',
+                placement: 'top',
+                arrow: true
+            });
+            console.log('Tippy attached for:', keyPhrase);
+        }
     });
 }
 
