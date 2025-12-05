@@ -100,13 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Toggle wisdom map on button click
     document.getElementById('wisdom-map-btn').addEventListener('click', () => {
         const mapDiv = document.getElementById('wisdom-map');
-        const mainContent = document.querySelector('.main-content');
+        const contentDiv = document.querySelector('.content');
         if (mapDiv.style.display === 'block') {
             mapDiv.style.display = 'none';
-            mainContent.style.display = 'block';
+            contentDiv.style.display = 'flex';
         } else {
             mapDiv.style.display = 'block';
-            mainContent.style.display = 'none';
+            contentDiv.style.display = 'none';
             if (network) network.stabilize();
         }
     });
