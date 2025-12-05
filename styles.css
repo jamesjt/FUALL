@@ -75,7 +75,7 @@ body {
     text-align: left;
     border:none;
     background-color:#1e1e1e;
-    #e0e0e0
+    color: #e0e0e0;
 }
 
 .sidebar button:hover {
@@ -139,8 +139,9 @@ body {
 }
 
 .doc-content a {
-    color: var(--gold-accent);
+    color: #e0e0e0;
     text-decoration: underline;
+    text-decoration-color: var(--gold-accent);
 }
 
 .doc-content a:hover {
