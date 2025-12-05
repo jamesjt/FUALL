@@ -1,5 +1,6 @@
 let contentElements = {}; // Global object to store preloaded content
 let tooltips = {}; // Global tooltips object to store refs data
+let network = null; // vis.js network instance
 
 document.addEventListener('DOMContentLoaded', () => {
     // Articles sheet URL
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
             articlesData = articles || [];
             booksData = books || [];
 
-            // Preload and store all content
+            // Preload and store all content (extend for articles with Tag/Parent)
             const contentBody = document.querySelector('.content-body');
             if (articlesData.length === 0) {
                 contentBody.innerHTML = '<p class="error">No articles data found.</p>';
@@ -41,9 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 articlesData.forEach(row => {
                     const article = row['Articles']?.trim();
                     const link = row['Link']?.trim();
+                    const tag = row['Tag']?.trim();
+                    const parent = row['Parent']?.trim();
                     if (article && link) {
                         contentElements[article] = document.createElement('div');
                         contentElements[article].className = 'doc-content';
+                        contentElements[article].dataset.tag = tag || '';
+                        contentElements[article].dataset.parent = parent || '';
                         loadAndDisplayContent(link, 'article', article, contentElements[article]);
                     }
                 });
@@ -75,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 showContent('book', booksData[0]['Book']);
             }
 
+            // Build wisdom map from articlesData
+            buildWisdomMap(articlesData);
+
             // Add MutationObserver to reapply tooltips on DOM changes
             const observer = new MutationObserver(() => {
                 console.log('DOM mutation detected, reinitializing tooltips');
@@ -88,6 +96,25 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(error => {
             console.error('Error loading data:', error);
         });
+
+    // Toggle wisdom map on button click
+    document.getElementById('wisdom-map-btn').addEventListener('click', () => {
+        const mapDiv = document.getElementById('wisdom-map');
+        const mainContent = document.querySelector('.main-content');
+        if (mapDiv.style.display === 'block') {
+            mapDiv.style.display = 'none';
+            mainContent.style.display = 'block';
+        } else {
+            mapDiv.style.display = 'block';
+            mainContent.style.display = 'none';
+            if (network) network.stabilize();
+        }
+    });
+
+    // Popover close
+    document.getElementById('popover-close').addEventListener('click', () => {
+        document.getElementById('popover').style.display = 'none';
+    });
 });
 
 // Function to populate a sidebar list
@@ -109,6 +136,115 @@ function populateSidebarList(listSelector, data, itemKey, type) {
     if (list.children.length === 0) {
         list.innerHTML = `<li>No valid ${type}/link pairs found</li>`;
     }
+}
+
+// Function to build wisdom map
+function buildWisdomMap(articlesData) {
+    const container = document.getElementById('wisdom-map');
+    const nodes = new vis.DataSet();
+    const edges = new vis.DataSet();
+
+    // Group styles (made up colors)
+    const groups = {
+        'Wisdom': {color: '#007bff', shape: 'ellipse'},
+        'Reality': {color: '#28a745', shape: 'box'},
+        'Reason': {color: '#ffc107', shape: 'diamond'},
+        'Right': {color: '#dc3545', shape: 'circle'},
+        'Musings': {color: '#6f42c1', shape: 'star'}
+    };
+
+    // Add nodes and edges
+    articlesData.forEach(row => {
+        const article = row['Articles']?.trim();
+        const tag = row['Tag']?.trim();
+        const parent = row['Parent']?.trim();
+        if (article) {
+            nodes.add({
+                id: article,
+                label: article,
+                group: tag,
+                data: {parent: parent, content: contentElements[article] ? contentElements[article].innerHTML : 'Content not loaded'}
+            });
+            if (parent && parent !== 'Root' && parent !== 'Musing' && parent !== article) { // Avoid self-loops
+                edges.add({from: article, to: parent});
+            }
+        }
+    });
+
+    // Network options
+    const options = {
+        layout: {
+            hierarchical: {
+                enabled: true,
+                direction: 'UD', // Default top-down
+                sortMethod: 'directed',
+                nodeSpacing: 150,
+                levelSeparation: 150
+            }
+        },
+        physics: {enabled: false}, // Disable for hierarchical
+        groups: groups,
+        edges: {arrows: 'to'},
+        interaction: {hover: true}
+    };
+
+    network = new vis.Network(container, {nodes, edges}, options);
+
+    // Cluster Musings
+    network.cluster({
+        joinCondition: (nodeOptions) => nodeOptions.data.parent === 'Musing',
+        clusterNodeProperties: {id: 'musingsCluster', label: 'Musings Bucket', shape: 'database', color: '#6f42c1'}
+    });
+
+    // Simple zoom clustering (for scale)
+    network.on('zoom', (params) => {
+        if (params.scale < 0.5 && !network.getClusters().length) {
+            // Cluster loose nodes (simplified: cluster all non-root)
+            network.clusterByConnection('Foundations'); // Example, cluster around a root
+        } else if (params.scale >= 0.5) {
+            network.openCluster(network.getClusters()[0]); // Open if clustered
+        }
+    });
+
+    // Hover event
+    network.on('hoverNode', (params) => {
+        const preview = document.getElementById('hover-preview');
+        preview.innerHTML = network.body.nodes[params.node].options.data.content || 'No content';
+        preview.style.left = `${params.pointer.DOM.x + 10}px`;
+        preview.style.top = `${params.pointer.DOM.y + 10}px`;
+        preview.style.display = 'block';
+    });
+
+    network.on('blurNode', () => {
+        document.getElementById('hover-preview').style.display = 'none';
+    });
+
+    // Click event
+    network.on('click', (params) => {
+        if (params.nodes.length > 0) {
+            const popover = document.getElementById('popover');
+            const contentDiv = document.getElementById('popover-content');
+            contentDiv.innerHTML = network.body.nodes[params.nodes[0]].options.data.content || 'No content';
+            popover.style.display = 'block';
+        }
+    });
+
+    // Add layout buttons
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.className = 'layout-buttons';
+    ['UD', 'DU', 'LR'].forEach(dir => { // No RL button
+        const btn = document.createElement('button');
+        btn.textContent = dir === 'UD' ? 'Top-Down' : dir === 'DU' ? 'Bottom-Top' : 'Left-Right';
+        btn.addEventListener('click', () => {
+            buttonsDiv.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            network.setOptions({layout: {hierarchical: {direction: dir}}});
+            network.redraw();
+        });
+        if (dir === 'UD') btn.classList.add('active');
+        buttonsDiv.appendChild(btn);
+    });
+    document.body.appendChild(buttonsDiv);
 }
 
 // Function to show specific content (simplified toggle)
