@@ -73,9 +73,11 @@ body {
     width: 100%;
     text-align: left;
     border:none;
+    background-color:#1e1e1e;
 }
 
 .sidebar button.book-button:hover {
+    color: var(--gold-accent);
 }
 
 .main-content {
