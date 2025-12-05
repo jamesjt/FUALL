@@ -117,11 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('popover-close').addEventListener('click', () => {
         document.getElementById('popover').style.display = 'none';
     });
-
-    // Prevent scroll propagation in hover preview
-    document.getElementById('hover-preview').addEventListener('wheel', (e) => {
-        e.stopPropagation();
-    }, { passive: false });
 });
 
 // Function to populate a sidebar list
