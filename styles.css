@@ -2,8 +2,8 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     margin: 0;
     padding: 0;
-    color: #333;
-    background-color: #fff;
+    color: #e0e0e0;
+    background-color: #121212;
 }
 
 .nav-bar {
@@ -11,23 +11,24 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    background-color: #f4f4f4;
+    background-color: #1e1e1e;
     padding: 10px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #333;
     z-index: 1000;
 }
 
 .nav-bar button {
-    background-color: #007bff;
-    color: white;
+    background-color: #ffd700;
+    color: #121212;
     border: none;
     padding: 8px 12px;
     cursor: pointer;
     border-radius: 4px;
+    transition: background-color 0.3s ease;
 }
 
 .nav-bar button:hover {
-    background-color: #0056b3;
+    background-color: #d4af37;
 }
 
 .container {
@@ -38,14 +39,15 @@ body {
 
 .sidebar {
     width: 250px;
-    background-color: #f4f4f4;
+    background-color: #1e1e1e;
     padding: 20px;
-    border-right: 1px solid #ddd;
+    border-right: 1px solid #333;
 }
 
 .sidebar h2 {
     margin-top: 0;
     font-size: 1.5em;
+    color: #ccc;
 }
 
 .sidebar ul {
@@ -58,8 +60,8 @@ body {
 }
 
 .sidebar button.book-button {
-    background-color: #007bff;
-    color: white;
+    background-color: #ffd700;
+    color: #121212;
     border: none;
     padding: 8px 12px;
     font-size: 1.1em;
@@ -67,11 +69,11 @@ body {
     width: 100%;
     text-align: left;
     border-radius: 4px;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.3s ease;
 }
 
 .sidebar button.book-button:hover {
-    background-color: #0056b3;
+    background-color: #d4af37;
 }
 
 .main-content {
@@ -85,6 +87,7 @@ body {
 .main-content h1 {
     margin-top: 0;
     font-size: 1.8em;
+    color: #fff;
 }
 
 .content {
@@ -96,17 +99,17 @@ body {
 }
 
 .content p {
-    color: #333;
+    color: #e0e0e0;
 }
 
 .content p.error {
-    color: #d32f2f;
+    color: #ff4d4d;
     font-weight: 500;
     text-align: center;
 }
 
 .content p.loading {
-    color: #555;
+    color: #888;
     font-style: italic;
     text-align: center;
 }
@@ -116,7 +119,7 @@ body {
     padding: 15px;
     font-size: 16px;
     line-height: 1.6;
-    color: #333;
+    color: #e0e0e0;
 }
 
 .doc-content.active {
@@ -124,12 +127,12 @@ body {
 }
 
 .doc-content a {
-    color: #007bff;
+    color: #ffd700;
     text-decoration: underline;
 }
 
 .doc-content a:hover {
-    color: #0056b3;
+    color: #d4af37;
 }
 
 #banners {
@@ -144,24 +147,25 @@ body {
 }
 
 .tab {
-    background-color: #f4f4f4;
-    border: 1px solid #ddd;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
     padding: 8px;
     text-align: center;
     cursor: pointer;
     border-radius: 4px;
     font-size: 1em;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.3s ease;
+    color: #e0e0e0;
 }
 
 .tab.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
+    background-color: #ffd700;
+    color: #121212;
+    border-color: #ffd700;
 }
 
 .tab:hover {
-    background-color: #e0e0e0;
+    background-color: #2a2a2a;
 }
 
 .content-body {
@@ -188,38 +192,41 @@ body {
     padding: 8px;
     font-size: 16px;
     line-height: 1.5;
-    color: #333;
+    color: #e0e0e0;
     overflow-wrap: break-word;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #333;
     border-radius: 6px;
+    background-color: #1e1e1e;
 }
 
 /* Tooltip styling for dynamic creation */
 .ref {
-    border-bottom: 1px dotted #007bff; /* Restore dotted underline */
+    border-bottom: 1px dotted #ffd700; /* Restore dotted underline */
     cursor: pointer;
     text-decoration: none;
+    color: #ffd700;
 }
 
 .tippy-box[data-theme~='custom'] {
-    background-color: #333;
-    color: #fff;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
     padding: 8px;
     border-radius: 4px;
     max-width: 200px;
     word-wrap: break-word;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .tippy-box[data-theme~='custom'] .tippy-arrow {
-    color: #333;
+    color: #1e1e1e;
 }
 
 /* Wisdom Map styles */
 #wisdom-map {
     width: 100%;
     height: 600px;
-    border: 1px solid #ddd;
-    background-color: #fff;
+    border: 1px solid #333;
+    background-color: #121212;
     display: none; /* Hidden by default */
 }
 
@@ -233,26 +240,28 @@ body {
 }
 
 .layout-buttons button {
-    background-color: #f4f4f4;
-    border: 1px solid #ddd;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
     padding: 6px 10px;
     cursor: pointer;
     border-radius: 4px;
+    color: #e0e0e0;
+    transition: background-color 0.3s ease;
 }
 
 .layout-buttons button.active {
-    background-color: #007bff;
-    color: white;
+    background-color: #ffd700;
+    color: #121212;
 }
 
 .layout-buttons button:hover {
-    background-color: #e0e0e0;
+    background-color: #2a2a2a;
 }
 
 #hover-preview {
     position: absolute;
-    background-color: #fff;
-    border: 1px solid #ddd;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
     padding: 10px;
     max-width: 300px;
     max-height: 200px;
@@ -260,6 +269,8 @@ body {
     display: none;
     z-index: 999;
     pointer-events: none;
+    color: #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .popover {
@@ -267,31 +278,33 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #fff;
-    border: 1px solid #ddd;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
     padding: 20px;
     max-width: 80%;
     max-height: 80%;
     overflow: auto;
     z-index: 1001;
     display: none;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    color: #e0e0e0;
 }
 
 #popover-close {
     position: absolute;
     top: 10px;
     right: 10px;
-    background-color: #dc3545;
-    color: white;
+    background-color: #ff4d4d;
+    color: #fff;
     border: none;
     padding: 5px 10px;
     cursor: pointer;
     border-radius: 4px;
+    transition: background-color 0.3s ease;
 }
 
 #popover-close:hover {
-    background-color: #c82333;
+    background-color: #cc0000;
 }
 
 .hidden {
