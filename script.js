@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return acc;
             }, {});
-            console.log('Tooltips loaded:', tooltips);
 
             // Store articles and books data
             articlesData = articles || [];
@@ -38,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const contentBody = document.querySelector('.content-body');
             if (articlesData.length === 0) {
                 contentBody.innerHTML = '<p class="error">No articles data found.</p>';
-                console.warn('No data found in the Articles CSV');
             } else {
                 articlesData.forEach(row => {
                     const article = row['Articles']?.trim();
@@ -57,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (booksData.length === 0) {
                 contentBody.innerHTML += '<p class="error">No books data found.</p>';
-                console.warn('No data found in the Books CSV');
             } else {
                 booksData.forEach(row => {
                     const book = row['Book']?.trim();
@@ -83,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Add MutationObserver to reapply tooltips on DOM changes
             const observer = new MutationObserver(() => {
-                console.log('DOM mutation detected, reinitializing tooltips');
                 observer.disconnect(); // Prevent loop from own modifications
                 highlightReferences(contentBody, tooltips);
                 initializeTippy(contentBody);
@@ -92,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
             observer.observe(contentBody, { childList: true, subtree: true });
         })
         .catch(error => {
-            console.error('Error loading data:', error);
         });
 
     // Toggle wisdom map on button click
@@ -260,7 +255,6 @@ function showContent(type, title) {
     } else {
         contentBody.innerHTML = `<h2>${type === 'article' ? 'Article' : 'Book'}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
     }
-    console.log('Showing content for:', title, 'DOM:', contentBody.innerHTML); // Debug DOM state
 }
 
 // Function to load and display content
@@ -325,14 +319,12 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
             const data = await fetchGoogleSheetData(csvLink);
             if (!data || data.length === 0) {
                 docContent.innerHTML = '<p class="error">No data found for ' + title + '.</p>';
-                console.warn('No data found for:', title);
                 return;
             }
 
             const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
             if (columns.length === 0) {
                 docContent.innerHTML = '<p class="error">No columns with "D:" found for ' + title + '.</p>';
-                console.warn('No "D:" columns found for:', title);
                 return;
             }
 
@@ -364,11 +356,9 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                 }
             });
         }
-        console.log('Content rendered for:', title, 'HTML:', docContent.innerHTML); // Debug rendered content
         highlightReferences(docContent, tooltips);
         initializeTippy(docContent);
     } catch (error) {
-        console.error('Error loading content for ' + title + ':', error);
         docContent.innerHTML = '<p class="error">Failed to load data for ' + title + '. Please try again later.</p>';
     }
 }
@@ -406,7 +396,6 @@ function highlightReferences(container, tooltips) {
 
 function initializeTippy(container) {
     const refs = container.querySelectorAll('.ref');
-    console.log('Found refs in container:', container, 'Count:', refs.length); // Debug: Check container and number of .ref elements
     refs.forEach(ref => {
         const keyPhrase = ref.textContent.trim();
         if (tooltips[keyPhrase]) {
@@ -417,40 +406,33 @@ function initializeTippy(container) {
                 placement: 'top',
                 arrow: true
             });
-            console.log('Tippy attached for:', keyPhrase);
         }
     });
 }
 
 // Function to fetch and parse CSV data from a Google Sheet
 function fetchGoogleSheetData(url) {
-    console.log('Fetching URL:', url);
     return fetch(url)
         .then(response => {
-            console.log('Response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             return response.text();
         })
         .then(csvText => {
-            console.log('CSV text:', csvText);
             return new Promise((resolve, reject) => {
                 Papa.parse(csvText, {
                     header: true,
                     complete: function(results) {
-                        console.log('Parsed CSV:', results.data);
                         resolve(results.data);
                     },
                     error: function(error) {
-                        console.error('Papa Parse error:', error);
                         reject(error);
                     }
                 });
             });
         })
         .catch(error => {
-            console.error('Error fetching Google Sheet:', error);
             throw error;
         });
 }
