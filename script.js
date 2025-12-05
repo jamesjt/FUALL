@@ -4,28 +4,18 @@ let network = null; // vis.js network instance
 let mapInitialized = false; // Flag for lazy init
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Articles sheet URL
-    const articlesSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=464648636&output=csv';
-    // Books sheet URL
-    const booksSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
-    // Internal refs URL
+    // Unified content sheet URL (Articles sheet with Type column)
+    const unifiedSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=464648636&output=csv';
+    // Internal refs URL (separate)
     const refsSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=1749170252&single=true&output=csv';
-    // Breakdowns sheet URL
-    const breakdownsSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?output=csv';
 
-    let articlesData = [];
-    let booksData = [];
-    let breakdownsData = [];
-
-    // Fetch all data simultaneously
+    // Fetch unified content and refs
     Promise.all([
-        fetchGoogleSheetData(articlesSheetUrl),
-        fetchGoogleSheetData(booksSheetUrl),
-        fetchGoogleSheetData(refsSheetUrl),
-        fetchGoogleSheetData(breakdownsSheetUrl)
+        fetchGoogleSheetData(unifiedSheetUrl),
+        fetchGoogleSheetData(refsSheetUrl)
     ])
-        .then(([articles, books, refs, breakdowns]) => {
-            // Process tooltips data
+        .then(([unified, refs]) => {
+            // Process tooltips data (separate)
             tooltips = refs.reduce((acc, row) => {
                 if (row.References && row.Data) {
                     acc[row.References.trim()] = row.Data.trim();
@@ -33,71 +23,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 return acc;
             }, {});
 
-            // Store articles, books, and breakdowns data
-            articlesData = articles || [];
-            booksData = books || [];
-            breakdownsData = breakdowns || [];
+            // Store and filter unified data
+            const unifiedData = unified || [];
+            const articlesData = unifiedData.filter(row => row.Type?.trim() === 'article');
+            const booksData = unifiedData.filter(row => row.Type?.trim() === 'book');
+            const breakdownsData = unifiedData.filter(row => row.Type?.trim() === 'breakdown');
 
-            // Preload and store all content (extend for articles with Tag/Parent)
+            // Preload and store all content
             const contentBody = document.querySelector('.content-body');
-            if (articlesData.length === 0) {
-                contentBody.innerHTML = '<p class="error">No articles data found.</p>';
+            if (unifiedData.length === 0) {
+                contentBody.innerHTML = '<p class="error">No data found.</p>';
             } else {
-                articlesData.forEach(row => {
-                    const article = row['Articles']?.trim();
+                unifiedData.forEach(row => {
+                    const title = row['Title']?.trim();
                     const link = row['Link']?.trim();
-                    const tag = row['Tag']?.trim();
-                    const parent = row['Parent']?.trim();
-                    if (article && link) {
-                        contentElements[article] = document.createElement('div');
-                        contentElements[article].className = 'doc-content';
-                        contentElements[article].dataset.tag = tag || '';
-                        contentElements[article].dataset.parent = parent || '';
-                        loadAndDisplayContent(link, 'article', article, contentElements[article]);
-                    }
-                });
-            }
-
-            if (booksData.length === 0) {
-                contentBody.innerHTML += '<p class="error">No books data found.</p>';
-            } else {
-                booksData.forEach(row => {
-                    const book = row['Book']?.trim();
-                    const link = row['Link']?.trim();
-                    if (book && link) {
-                        contentElements[book] = document.createElement('div');
-                        contentElements[book].className = 'doc-content';
-                        loadAndDisplayContent(link, 'book', book, contentElements[book]);
-                    }
-                });
-            }
-
-            if (breakdownsData.length === 0) {
-                contentBody.innerHTML += '<p class="error">No breakdowns data found.</p>';
-            } else {
-                breakdownsData.forEach(row => {
-                    const breakdown = row['Breakdown']?.trim();
-                    const link = row['Link']?.trim();
-                    if (breakdown && link) {
-                        contentElements[breakdown] = document.createElement('div');
-                        contentElements[breakdown].className = 'doc-content';
-                        loadAndDisplayContent(link, 'breakdown', breakdown, contentElements[breakdown]);
+                    const type = row['Type']?.trim();
+                    const tag = row['Tag']?.trim(); // Optional, e.g., for articles
+                    const parent = row['Parent']?.trim(); // Optional, e.g., for articles
+                    if (title && link && type) {
+                        contentElements[title] = document.createElement('div');
+                        contentElements[title].className = 'doc-content';
+                        if (type === 'article') {
+                            contentElements[title].dataset.tag = tag || '';
+                            contentElements[title].dataset.parent = parent || '';
+                        }
+                        loadAndDisplayContent(link, type, title, contentElements[title]);
                     }
                 });
             }
 
             // Populate sidebars
-            populateSidebarList('.articles-list', articlesData, 'Articles', 'article');
-            populateSidebarList('.books-list', booksData, 'Book', 'book');
-            populateSidebarList('.breakdowns-list', breakdownsData, 'Breakdown', 'breakdown');
+            populateSidebarList('.articles-list', articlesData, 'Title', 'article');
+            populateSidebarList('.books-list', booksData, 'Title', 'book');
+            populateSidebarList('.breakdowns-list', breakdownsData, 'Title', 'breakdown');
 
-            // Show the first article, book, or breakdown if available
+            // Show the first item if available
             if (articlesData.length > 0) {
-                showContent('article', articlesData[0]['Articles']);
+                showContent('article', articlesData[0]['Title']);
             } else if (booksData.length > 0) {
-                showContent('book', booksData[0]['Book']);
+                showContent('book', booksData[0]['Title']);
             } else if (breakdownsData.length > 0) {
-                showContent('breakdown', breakdownsData[0]['Breakdown']);
+                showContent('breakdown', breakdownsData[0]['Title']);
             }
 
             // Add MutationObserver to reapply tooltips on DOM changes
@@ -123,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mapDiv.style.display = 'block';
             contentDiv.style.display = 'none';
             if (!mapInitialized) {
-                buildWisdomMap(articlesData);
+                buildWisdomMap(unifiedData.filter(row => row.Type?.trim() === 'article')); // Only articles for map
                 mapInitialized = true;
             }
             if (network) network.stabilize();
@@ -157,7 +123,7 @@ function populateSidebarList(listSelector, data, itemKey, type) {
     }
 }
 
-// Function to build wisdom map
+// Function to build wisdom map (using articles only)
 function buildWisdomMap(articlesData) {
     const container = document.getElementById('wisdom-map');
     const nodes = new vis.DataSet();
@@ -174,18 +140,18 @@ function buildWisdomMap(articlesData) {
 
     // Add nodes and edges
     articlesData.forEach(row => {
-        const article = row['Articles']?.trim();
+        const title = row['Title']?.trim();
         const tag = row['Tag']?.trim();
         const parent = row['Parent']?.trim();
-        if (article) {
+        if (title) {
             nodes.add({
-                id: article,
-                label: article,
+                id: title,
+                label: title,
                 group: tag,
-                data: {parent: parent, content: contentElements[article] ? contentElements[article].innerHTML : 'Content not loaded'}
+                data: {parent: parent, content: contentElements[title] ? contentElements[title].innerHTML : 'Content not loaded'}
             });
-            if (parent && parent !== 'Root' && parent !== 'Musing' && parent !== article) { // Avoid self-loops
-                edges.add({from: article, to: parent});
+            if (parent && parent !== 'Root' && parent !== 'Musing' && parent !== title) { // Avoid self-loops
+                edges.add({from: title, to: parent});
             }
         }
     });
@@ -284,7 +250,7 @@ function showContent(type, title) {
         docContent.classList.add('active');
         contentBody.appendChild(docContent);
     } else {
-        contentBody.innerHTML = `<h2>${type === 'article' ? 'Article' : type === 'book' ? 'Book' : 'Breakdown'}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
+        contentBody.innerHTML = `<h2>${type.charAt(0).toUpperCase() + type.slice(1)}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
     }
 }
 
@@ -333,7 +299,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                     if (children[0].tagName.toLowerCase() === 'div' || children[0].tagName.toLowerCase() === 'p') {
                         if (children[0].textContent.trim().length < 50) children[0].remove();
                     }
-                    if (children.length > 0 && (children[children.length - 1].tagName.toLowerCase() === 'div' || children[children.length - 1].tagName.toLowerCase() === 'p') ) {
+                    if (children.length > 0 && (children[children.length - 1].tagName.toLowerCase() === 'div' || children[children.length - 1].tagName.toLowerCase() === 'p')) {
                         if (children[children.length - 1].textContent.trim().length < 50) children[children.length - 1].remove();
                     }
                 }
