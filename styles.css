@@ -17,14 +17,14 @@ body {
     left: 0;
     width: 100%;
     background-color: #1e1e1e;
-    padding: 10px;
+    padding: 12px;
     border-bottom: 1px solid #333;
     z-index: 1000;
+    color: var(--gold-accent);
 }
 
 .nav-bar button {
     background-color: var(--gold-accent);
-    color: #121212;
     border: none;
     padding: 8px 12px;
     cursor: pointer;
@@ -67,7 +67,7 @@ body {
 .sidebar li {
 }
 
-.sidebar button.book-button {
+.sidebar button {
     font-size: 1.1em;
     cursor: pointer;
     width: 100%;
@@ -76,7 +76,7 @@ body {
     background-color:#1e1e1e;
 }
 
-.sidebar button.book-button:hover {
+.sidebar button:hover {
     color: var(--gold-accent);
 }
 
