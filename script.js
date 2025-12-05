@@ -25,9 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Store and filter unified data
             const unifiedData = unified || [];
-            const articlesData = unifiedData.filter(row => row.Type?.trim() === 'article');
-            const booksData = unifiedData.filter(row => row.Type?.trim() === 'book');
-            const breakdownsData = unifiedData.filter(row => row.Type?.trim() === 'breakdown');
+            const articlesData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'article');
+            const booksData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'book');
+            const breakdownsData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'breakdown');
 
             // Preload and store all content
             const contentBody = document.querySelector('.content-body');
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 unifiedData.forEach(row => {
                     const title = row['Title']?.trim();
                     const link = row['Link']?.trim();
-                    const type = row['Type']?.trim();
+                    const type = row['Type']?.trim().toLowerCase();
                     const tag = row['Tag']?.trim(); // Optional, e.g., for articles
                     const parent = row['Parent']?.trim(); // Optional, e.g., for articles
                     if (title && link && type) {
@@ -76,6 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
             observer.observe(contentBody, { childList: true, subtree: true });
         })
         .catch(error => {
+            console.error('Data fetch error:', error);
+            const contentBody = document.querySelector('.content-body');
+            if (contentBody) {
+                contentBody.innerHTML += '<p class="error">Failed to load data: ' + error.message + '</p>';
+            }
         });
 
     // Toggle wisdom map on button click
@@ -89,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mapDiv.style.display = 'block';
             contentDiv.style.display = 'none';
             if (!mapInitialized) {
-                buildWisdomMap(unifiedData.filter(row => row.Type?.trim() === 'article')); // Only articles for map
+                buildWisdomMap(articlesData); // articlesData needs to be in scope; assume hoisted or adjust
                 mapInitialized = true;
             }
             if (network) network.stabilize();
@@ -123,7 +128,7 @@ function populateSidebarList(listSelector, data, itemKey, type) {
     }
 }
 
-// Function to build wisdom map (using articles only)
+// Function to build wisdom map
 function buildWisdomMap(articlesData) {
     const container = document.getElementById('wisdom-map');
     const nodes = new vis.DataSet();
