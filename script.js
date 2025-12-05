@@ -247,6 +247,15 @@ function buildWisdomMap(articlesData) {
 // Function to show specific content (simplified toggle)
 function showContent(type, title) {
     const contentBody = document.querySelector('.content-body');
+    const mapDiv = document.getElementById('wisdom-map');
+    const contentDiv = document.querySelector('.content');
+
+    // If map is visible, toggle it off and show content
+    if (mapDiv.style.display === 'block') {
+        mapDiv.style.display = 'none';
+        contentDiv.style.display = 'flex';
+    }
+
     contentBody.innerHTML = ''; // Clear previous content
     const docContent = contentElements[title];
     if (docContent) {
