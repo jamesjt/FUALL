@@ -1,6 +1,7 @@
 let contentElements = {}; // Global object to store preloaded content
 let tooltips = {}; // Global tooltips object to store refs data
 let network = null; // vis.js network instance
+let mapInitialized = false; // Flag for lazy init
 
 document.addEventListener('DOMContentLoaded', () => {
     // Articles sheet URL
@@ -80,9 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 showContent('book', booksData[0]['Book']);
             }
 
-            // Build wisdom map from articlesData
-            buildWisdomMap(articlesData);
-
             // Add MutationObserver to reapply tooltips on DOM changes
             const observer = new MutationObserver(() => {
                 console.log('DOM mutation detected, reinitializing tooltips');
@@ -107,6 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             mapDiv.style.display = 'block';
             contentDiv.style.display = 'none';
+            if (!mapInitialized) {
+                buildWisdomMap(articlesData);
+                mapInitialized = true;
+            }
             if (network) network.stabilize();
         }
     });
