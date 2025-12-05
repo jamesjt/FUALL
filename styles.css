@@ -68,16 +68,14 @@ body {
 }
 
 .sidebar button.book-button {
-    background-color: #1e1e1e;
     font-size: 1.1em;
     cursor: pointer;
     width: 100%;
     text-align: left;
-    transition: background-color 0.3s ease;
+    border:none;
 }
 
 .sidebar button.book-button:hover {
-    background-color: #2a2a2a;
 }
 
 .main-content {
