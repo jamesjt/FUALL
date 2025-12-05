@@ -323,7 +323,7 @@ body {
 /* Wisdom Map styles */
 #wisdom-map {
     width: 100%;
-    height: auto;
+    height: 600px;
     border: 1px solid #ddd;
     background-color: #fff;
     display: none; /* Hidden by default */
