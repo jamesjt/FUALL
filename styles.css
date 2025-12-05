@@ -365,6 +365,7 @@ body {
     overflow: auto;
     display: none;
     z-index: 999;
+    pointer-events: none;
 }
 
 .popover {
