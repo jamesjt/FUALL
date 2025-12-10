@@ -1,4 +1,4 @@
-let contentElements = {}; // Global object to store preloaded content
+let contentElements = {}; // Global object to store preloaded parsed content {parsedData, type}
 let tooltips = {}; // Global tooltips object to store refs data
 let network = null; // vis.js network instance
 let mapInitialized = false; // Flag for lazy init
@@ -29,25 +29,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const booksData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'book');
             const breakdownsData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'breakdown');
 
-            // Preload and store all content
+            // Preload and store all content as parsed data
             const contentBody = document.querySelector('.content-body');
             if (unifiedData.length === 0) {
                 contentBody.innerHTML = '<p class="error">No data found.</p>';
             } else {
-                unifiedData.forEach(row => {
+                unifiedData.forEach(async (row) => {
                     const title = row['Title']?.trim();
                     const link = row['Link']?.trim();
                     const type = row['Type']?.trim().toLowerCase();
                     const tag = row['Tag']?.trim(); // Optional, e.g., for articles
                     const parent = row['Parent']?.trim(); // Optional, e.g., for articles
                     if (title && link && type) {
-                        contentElements[title] = document.createElement('div');
-                        contentElements[title].className = 'doc-content';
+                        const parsedData = await fetchAndParseContent(link, type);
+                        contentElements[title] = { parsedData, type };
                         if (type === 'article') {
-                            contentElements[title].dataset.tag = tag || '';
-                            contentElements[title].dataset.parent = parent || '';
+                            contentElements[title].tag = tag || '';
+                            contentElements[title].parent = parent || '';
                         }
-                        loadAndDisplayContent(link, type, title, contentElements[title]);
                     }
                 });
             }
@@ -153,7 +152,7 @@ function buildWisdomMap(articlesData) {
                 id: title,
                 label: title,
                 group: tag,
-                data: {parent: parent, content: contentElements[title] ? contentElements[title].innerHTML : 'Content not loaded'}
+                data: {parent: parent, content: contentElements[title] ? contentElements[title].parsedData : 'Content not loaded'} // Updated to use parsedData (string or array)
             });
             if (parent && parent !== 'Root' && parent !== 'Musing' && parent !== title) { // Avoid self-loops
                 edges.add({from: title, to: parent});
@@ -199,7 +198,8 @@ function buildWisdomMap(articlesData) {
     // Hover event
     network.on('hoverNode', (params) => {
         const preview = document.getElementById('hover-preview');
-        preview.innerHTML = network.body.nodes[params.node].options.data.content || 'No content';
+        const nodeData = network.body.nodes[params.node].options.data.content;
+        preview.innerHTML = typeof nodeData === 'string' ? nodeData : JSON.stringify(nodeData); // Handle string or array
         preview.style.left = `${params.pointer.DOM.x + 10}px`;
         preview.style.top = `${params.pointer.DOM.y + 10}px`;
         preview.style.display = 'block';
@@ -214,7 +214,8 @@ function buildWisdomMap(articlesData) {
         if (params.nodes.length > 0) {
             const popover = document.getElementById('popover');
             const contentDiv = document.getElementById('popover-content');
-            contentDiv.innerHTML = network.body.nodes[params.nodes[0]].options.data.content || 'No content';
+            const nodeData = network.body.nodes[params.nodes[0]].options.data.content;
+            contentDiv.innerHTML = typeof nodeData === 'string' ? nodeData : JSON.stringify(nodeData); // Handle string or array
             popover.style.display = 'block';
         }
     });
@@ -250,28 +251,35 @@ function showContent(type, title) {
     }
 
     contentBody.innerHTML = ''; // Clear previous content
-    const docContent = contentElements[title];
-    if (docContent) {
-        docContent.classList.add('active');
+    const { parsedData, type: storedType } = contentElements[title] || {};
+    if (parsedData && storedType) {
+        const docContent = document.createElement('div');
+        docContent.classList.add('doc-content', 'active');
+        renderParsedContent(parsedData, storedType, docContent);
         contentBody.appendChild(docContent);
     } else {
         contentBody.innerHTML = `<h2>${type.charAt(0).toUpperCase() + type.slice(1)}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
     }
 }
 
-// Function to load and display content
-async function loadAndDisplayContent(link, type, title, targetContentBody = null) {
-    const contentBody = targetContentBody || document.querySelector('.content-body');
-    let docContent = contentBody.querySelector('.doc-content');
-    if (!docContent) {
-        docContent = document.createElement('div');
-        docContent.className = 'doc-content';
-        contentBody.appendChild(docContent);
+// New function to fetch and parse content (pure, no DOM)
+async function fetchAndParseContent(link, type) {
+    let fetchLink = link;
+    if (link.includes('document')) {
+        // Extract document ID from URL and construct published URL
+        const match = link.match(/\/document\/d\/([^\/]+)/);
+        if (match && match[1]) {
+            const docId = match[1];
+            fetchLink = `https://docs.google.com/document/d/${docId}/pub`;
+        } else {
+            console.error('Invalid Google Doc link:', link);
+            return null;
+        }
     }
 
     try {
-        if (link.includes('document')) {
-            const response = await fetch(link);
+        if (fetchLink.includes('document')) {
+            const response = await fetch(fetchLink);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
@@ -308,61 +316,74 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                         if (children[children.length - 1].textContent.trim().length < 50) children[children.length - 1].remove();
                     }
                 }
-                docContent.innerHTML = bodyContent.innerHTML;
+                return bodyContent.innerHTML; // Return cleaned HTML string
             } else {
                 const fallbackDiv = document.createElement('div');
                 fallbackDiv.innerHTML = htmlText;
                 fallbackDiv.querySelectorAll('style').forEach(style => style.remove());
                 fallbackDiv.querySelectorAll('#banners').forEach(banner => banner.remove());
-                docContent.innerHTML = fallbackDiv.innerHTML;
+                return fallbackDiv.innerHTML; // Return cleaned HTML string
             }
-        } else if (link.includes('spreadsheets')) {
-            const csvLink = link.replace('/edit', '/pub?output=csv');
+        } else if (fetchLink.includes('spreadsheets')) {
+            const csvLink = fetchLink.replace('/edit', '/pub?output=csv');
             const data = await fetchGoogleSheetData(csvLink);
             if (!data || data.length === 0) {
-                docContent.innerHTML = '<p class="error">No data found for ' + title + '.</p>';
-                return;
+                return null; // Or throw error, but return null for handling
             }
-
-            const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
-            if (columns.length === 0) {
-                docContent.innerHTML = '<p class="error">No columns with "D:" found for ' + title + '.</p>';
-                return;
-            }
-
-            docContent.innerHTML = '';
-            data.forEach((row, rowIndex) => {
-                if (columns.length === 1) {
-                    docContent.innerHTML += `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
-                } else {
-                    const rowTabs = document.createElement('div');
-                    rowTabs.className = 'row-tabs';
-                    columns.forEach((col, colIndex) => {
-                        const tab = document.createElement('div');
-                        tab.className = 'tab';
-                        tab.textContent = colIndex + 1;
-                        tab.dataset.column = col;
-                        tab.dataset.rowIndex = rowIndex;
-                        tab.addEventListener('click', () => {
-                            rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                            tab.classList.add('active');
-                            docContent.innerHTML = `<p>${(row[col] || '').replace(/\n/g, '<br/>')}</p>`;
-                            highlightReferences(docContent, tooltips);
-                            initializeTippy(docContent);
-                        });
-                        rowTabs.appendChild(tab);
-                    });
-                    rowTabs.querySelector('.tab').classList.add('active');
-                    docContent.appendChild(rowTabs);
-                    docContent.innerHTML += `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
-                }
-            });
+            return data; // Return array of row objects for CSV
         }
-        highlightReferences(docContent, tooltips);
-        initializeTippy(docContent);
     } catch (error) {
-        docContent.innerHTML = '<p class="error">Failed to load data for ' + title + '. Please try again later.</p>';
+        return null; // Handle error by returning null
     }
+}
+
+// New function to render parsed content to DOM
+function renderParsedContent(parsedData, type, targetElement) {
+    if (!parsedData) {
+        targetElement.innerHTML = '<p class="error">Failed to load content.</p>';
+        return;
+    }
+
+    if (type === 'document' || typeof parsedData === 'string') { // HTML content
+        targetElement.innerHTML = parsedData;
+    } else if (type === 'spreadsheet' || Array.isArray(parsedData)) { // CSV data
+        const columns = Object.keys(parsedData[0] || {}).filter(key => key.startsWith('D:'));
+        if (columns.length === 0) {
+            targetElement.innerHTML = '<p class="error">No columns with "D:" found.</p>';
+            return;
+        }
+
+        targetElement.innerHTML = '';
+        parsedData.forEach((row, rowIndex) => {
+            if (columns.length === 1) {
+                targetElement.innerHTML += `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
+            } else {
+                const rowTabs = document.createElement('div');
+                rowTabs.className = 'row-tabs';
+                columns.forEach((col, colIndex) => {
+                    const tab = document.createElement('div');
+                    tab.className = 'tab';
+                    tab.textContent = colIndex + 1;
+                    tab.dataset.column = col;
+                    tab.dataset.rowIndex = rowIndex;
+                    tab.addEventListener('click', () => {
+                        rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        targetElement.innerHTML = `<p>${(row[col] || '').replace(/\n/g, '<br/>')}</p>`;
+                        highlightReferences(targetElement, tooltips);
+                        initializeTippy(targetElement);
+                    });
+                    rowTabs.appendChild(tab);
+                });
+                rowTabs.querySelector('.tab').classList.add('active');
+                targetElement.appendChild(rowTabs);
+                targetElement.innerHTML += `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
+            }
+        });
+    }
+
+    highlightReferences(targetElement, tooltips);
+    initializeTippy(targetElement);
 }
 
 function escapeRegExp(string) {
