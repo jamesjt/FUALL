@@ -335,26 +335,46 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                 if (columns.length === 1) {
                     docContent.innerHTML += `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
                 } else {
+                    const rowContainer = document.createElement('div');
+                    rowContainer.className = 'row-container';
+
                     const rowTabs = document.createElement('div');
                     rowTabs.className = 'row-tabs';
+
                     columns.forEach((col, colIndex) => {
                         const tab = document.createElement('div');
                         tab.className = 'tab';
                         tab.textContent = colIndex + 1;
+                        tab.title = col.replace('D:', '').trim(); // Tooltip without 'D:'
                         tab.dataset.column = col;
                         tab.dataset.rowIndex = rowIndex;
-                        tab.addEventListener('click', () => {
-                            rowTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                            tab.classList.add('active');
-                            docContent.innerHTML = `<p>${(row[col] || '').replace(/\n/g, '<br/>')}</p>`;
-                            highlightReferences(docContent, tooltips);
-                            initializeTippy(docContent);
+                        tab.addEventListener('click', (event) => {
+                            const currentTab = event.target;
+                            const tabs = currentTab.parentNode.querySelectorAll('.tab');
+                            tabs.forEach(t => t.classList.remove('active'));
+                            currentTab.classList.add('active');
+
+                            const container = currentTab.closest('.row-container');
+                            const rowContent = container.querySelector('.row-content');
+                            rowContent.innerHTML = `<p>${(row[col] || '').replace(/\n/g, '<br/>')}</p>`;
+                            highlightReferences(rowContent, tooltips);
+                            initializeTippy(rowContent);
                         });
                         rowTabs.appendChild(tab);
                     });
+
+                    rowContainer.appendChild(rowTabs);
+
+                    const rowContent = document.createElement('div');
+                    rowContent.className = 'row-content';
+                    rowContent.innerHTML = `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
+                    rowContainer.appendChild(rowContent);
+
+                    docContent.appendChild(rowContainer);
+
                     rowTabs.querySelector('.tab').classList.add('active');
-                    docContent.appendChild(rowTabs);
-                    docContent.innerHTML += `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
+                    highlightReferences(rowContent, tooltips);
+                    initializeTippy(rowContent);
                 }
             });
         }
