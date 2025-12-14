@@ -426,7 +426,8 @@ function initializeTippy(container) {
                 allowHTML: true,
                 theme: 'custom',
                 placement: 'top',
-                arrow: true
+                arrow: true,
+                interactive: true,
             });
         }
     });
