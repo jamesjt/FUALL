@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchGoogleSheetData(unifiedSheetUrl),
         fetchGoogleSheetData(refsSheetUrl)
     ])
-        .then(([unified, refs]) => {
+        .then(async ([unified, refs]) => {
             // Process tooltips data (separate)
             tooltips = refs.reduce((acc, row) => {
                 if (row.References && row.Data) {
@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (unifiedData.length === 0) {
                 contentBody.innerHTML = '<p class="error">No data found.</p>';
             } else {
+                const loadPromises = [];
                 unifiedData.forEach(row => {
                     const title = row['Title']?.trim();
                     const link = row['Link']?.trim();
@@ -47,9 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             contentElements[title].dataset.tag = tag || '';
                             contentElements[title].dataset.parent = parent || '';
                         }
-                        loadAndDisplayContent(link, type, title, contentElements[title]);
+                        loadPromises.push(loadAndDisplayContent(link, type, title, contentElements[title]));
                     }
                 });
+                await Promise.all(loadPromises);
             }
 
             // Populate sidebars
@@ -322,13 +324,7 @@ function showContent(type, title) {
 
 // Function to load and display content
 async function loadAndDisplayContent(link, type, title, targetContentBody = null) {
-    const contentBody = targetContentBody || document.querySelector('.content-body');
-    let docContent = contentBody.querySelector('.doc-content');
-    if (!docContent) {
-        docContent = document.createElement('div');
-        docContent.className = 'doc-content';
-        contentBody.appendChild(docContent);
-    }
+    const docContent = targetContentBody; // Directly use the target as doc-content
 
     try {
         if (link.includes('document')) {
@@ -382,8 +378,8 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
             const data = await fetchGoogleSheetData(csvLink);
             const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
             // Store data and columns on the element instead of building HTML
-            contentBody.data = data;
-            contentBody.columns = columns;
+            targetContentBody.data = data;
+            targetContentBody.columns = columns;
             return; // Defer rendering to showContent
         }
         highlightReferences(docContent, tooltips);
