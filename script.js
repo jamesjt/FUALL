@@ -328,7 +328,6 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
 
     try {
         if (link.includes('document')) {
-            link = link.replace('/edit', '/pubhtml');
             const response = await fetch(link);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
