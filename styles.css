@@ -139,9 +139,8 @@ body {
 }
 
 .doc-content a {
-    color: #e0e0e0;
-    text-decoration: underline;
-    text-decoration-color: var(--gold-accent);
+    color: var(--gold-accent);
+    text-decoration: none;
 }
 
 .doc-content a:hover {
