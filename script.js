@@ -242,6 +242,7 @@ function showContent(type, title) {
     const contentBody = document.querySelector('.content-body');
     const mapDiv = document.getElementById('wisdom-map');
     const contentDiv = document.querySelector('.content');
+    const tabsDiv = document.querySelector('.tabs');
 
     // If map is visible, toggle it off and show content
     if (mapDiv.style.display === 'block') {
@@ -250,12 +251,72 @@ function showContent(type, title) {
     }
 
     contentBody.innerHTML = ''; // Clear previous content
-    const docContent = contentElements[title];
-    if (docContent) {
-        docContent.classList.add('active');
-        contentBody.appendChild(docContent);
-    } else {
+    tabsDiv.innerHTML = ''; // Clear tabs by default
+
+    const elem = contentElements[title];
+    if (!elem) {
         contentBody.innerHTML = `<h2>${type.charAt(0).toUpperCase() + type.slice(1)}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
+        return;
+    }
+
+    if (type === 'breakdown') {
+        const data = elem.data;
+        const columns = elem.columns;
+        if (!data || data.length === 0) {
+            contentBody.innerHTML = '<p class="error">No data found for ' + title + '.</p>';
+            return;
+        }
+        if (columns.length === 0) {
+            contentBody.innerHTML = '<p class="error">No columns with "D:" found for ' + title + '.</p>';
+            return;
+        }
+
+        if (columns.length === 1) {
+            // Single column: directly display all rows
+            const col = columns[0];
+            data.forEach(row => {
+                const p = document.createElement('p');
+                p.innerHTML = (row[col] || '').replace(/\n/g, '<br/>');
+                contentBody.appendChild(p);
+            });
+            highlightReferences(contentBody, tooltips);
+            initializeTippy(contentBody);
+        } else {
+            // Multiple columns: populate global tabs
+            columns.forEach((col, colIndex) => {
+                const tab = document.createElement('div');
+                tab.className = 'tab';
+                tab.textContent = colIndex + 1;
+                tab.title = col.replace('D:', '').trim();
+                tab.dataset.column = col;
+                tab.addEventListener('click', (event) => {
+                    const currentTab = event.target;
+                    tabsDiv.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    currentTab.classList.add('active');
+
+                    contentBody.innerHTML = '';
+                    data.forEach(row => {
+                        const p = document.createElement('p');
+                        p.innerHTML = (row[col] || '').replace(/\n/g, '<br/>');
+                        contentBody.appendChild(p);
+                    });
+                    highlightReferences(contentBody, tooltips);
+                    initializeTippy(contentBody);
+                });
+                tabsDiv.appendChild(tab);
+            });
+
+            // Activate first tab
+            const firstTab = tabsDiv.querySelector('.tab');
+            if (firstTab) {
+                firstTab.classList.add('active');
+                firstTab.click();
+            }
+        }
+    } else {
+        // Non-breakdown: append preloaded content
+        elem.classList.add('active');
+        contentBody.appendChild(elem);
     }
 }
 
@@ -319,64 +380,11 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
         } else if (link.includes('spreadsheets')) {
             const csvLink = link.replace('/edit', '/pub?output=csv');
             const data = await fetchGoogleSheetData(csvLink);
-            if (!data || data.length === 0) {
-                docContent.innerHTML = '<p class="error">No data found for ' + title + '.</p>';
-                return;
-            }
-
             const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
-            if (columns.length === 0) {
-                docContent.innerHTML = '<p class="error">No columns with "D:" found for ' + title + '.</p>';
-                return;
-            }
-
-            docContent.innerHTML = '';
-            data.forEach((row, rowIndex) => {
-                if (columns.length === 1) {
-                    docContent.innerHTML += `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
-                } else {
-                    const rowContainer = document.createElement('div');
-                    rowContainer.className = 'row-container';
-
-                    const rowTabs = document.createElement('div');
-                    rowTabs.className = 'row-tabs';
-
-                    columns.forEach((col, colIndex) => {
-                        const tab = document.createElement('div');
-                        tab.className = 'tab';
-                        tab.textContent = colIndex + 1;
-                        tab.title = col.replace('D:', '').trim(); // Tooltip without 'D:'
-                        tab.dataset.column = col;
-                        tab.dataset.rowIndex = rowIndex;
-                        tab.addEventListener('click', (event) => {
-                            const currentTab = event.target;
-                            const tabs = currentTab.parentNode.querySelectorAll('.tab');
-                            tabs.forEach(t => t.classList.remove('active'));
-                            currentTab.classList.add('active');
-
-                            const container = currentTab.closest('.row-container');
-                            const rowContent = container.querySelector('.row-content');
-                            rowContent.innerHTML = `<p>${(row[col] || '').replace(/\n/g, '<br/>')}</p>`;
-                            highlightReferences(rowContent, tooltips);
-                            initializeTippy(rowContent);
-                        });
-                        rowTabs.appendChild(tab);
-                    });
-
-                    rowContainer.appendChild(rowTabs);
-
-                    const rowContent = document.createElement('div');
-                    rowContent.className = 'row-content';
-                    rowContent.innerHTML = `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
-                    rowContainer.appendChild(rowContent);
-
-                    docContent.appendChild(rowContainer);
-
-                    rowTabs.querySelector('.tab').classList.add('active');
-                    highlightReferences(rowContent, tooltips);
-                    initializeTippy(rowContent);
-                }
-            });
+            // Store data and columns on the element instead of building HTML
+            contentBody.data = data;
+            contentBody.columns = columns;
+            return; // Defer rendering to showContent
         }
         highlightReferences(docContent, tooltips);
         initializeTippy(docContent);
