@@ -48,6 +48,8 @@ body {
     background-color: #1e1e1e;
     padding: 20px;
     border-right: 1px solid #333;
+    overflow-y: auto;
+    max-height: calc(100vh - 50px);
 }
 
 .sidebarList{
@@ -337,7 +339,7 @@ h2 {
 }
 
 .chapter-button {
-    font-size: 1em;
+    font-size: 0.9em;
     cursor: pointer;
     width: 100%;
     text-align: left;
