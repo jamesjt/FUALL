@@ -344,6 +344,7 @@ body {
 .chapter-head {
     color: var(--gold-accent);
     margin-top: 20px;
+    scroll-margin-top: 60px;
 }
 
 .sub-list {
