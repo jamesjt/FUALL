@@ -411,18 +411,41 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                 if (columns.length === 1) {
                     const singleCol = columns[0];
                     if (row[singleCol] && row[singleCol].trim() !== '') {
-                        docContent.innerHTML += `<p>${(row[singleCol] || '').replace(/\n/g, '<br/>')}</p>`;
+                        const p = document.createElement('p');
+                        p.innerHTML = (row[singleCol] || '').replace(/\n/g, '<br/>');
+                        docContent.appendChild(p);
+                        highlightReferences(p, tooltips);
+                        initializeTippy(p);
                     }
                 } else {
-                    const rowContainer = document.createElement('div');
-                    rowContainer.className = 'row-container';
-                    rowContainer.id = `row-${rowIndex}`; // Add ID for deep linking
-
-                    const rowTabs = document.createElement('div');
-                    rowTabs.className = 'row-tabs';
-
-                    columns.forEach((col, colIndex) => {
+                    const nonEmptyCols = [];
+                    columns.forEach(col => {
                         if (row[col] && row[col].trim() !== '') {
+                            nonEmptyCols.push(col);
+                        }
+                    });
+
+                    if (nonEmptyCols.length === 0) return;
+
+                    if (nonEmptyCols.length === 1) {
+                        // Render as simple p without tabs
+                        const singleCol = nonEmptyCols[0];
+                        const p = document.createElement('p');
+                        p.innerHTML = (row[singleCol] || '').replace(/\n/g, '<br/>');
+                        docContent.appendChild(p);
+                        highlightReferences(p, tooltips);
+                        initializeTippy(p);
+                    } else {
+                        // Multi: render tabs/container
+                        const rowContainer = document.createElement('div');
+                        rowContainer.className = 'row-container';
+                        rowContainer.id = `row-${rowIndex}`; // Add ID for deep linking
+
+                        const rowTabs = document.createElement('div');
+                        rowTabs.className = 'row-tabs';
+
+                        nonEmptyCols.forEach((col, adjustedIndex) => {
+                            const colIndex = columns.indexOf(col); // Original index for textContent
                             const tab = document.createElement('div');
                             tab.className = 'tab';
                             tab.textContent = colIndex + 1;
@@ -451,17 +474,15 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                                 interactive: false,
                             });
                             rowTabs.appendChild(tab);
-                        }
-                    });
+                        });
 
-                    if (rowTabs.children.length > 0) {
                         rowContainer.appendChild(rowTabs);
 
                         const rowContent = document.createElement('div');
                         rowContent.className = 'row-content';
 
                         // Set initial content to the first non-empty column
-                        const initialCol = columns.find(col => row[col] && row[col].trim() !== '');
+                        const initialCol = nonEmptyCols[0];
                         if (initialCol) {
                             rowContent.innerHTML = `<p>${(row[initialCol] || '').replace(/\n/g, '<br/>')}</p>`;
                         }
