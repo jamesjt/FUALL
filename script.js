@@ -383,7 +383,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                             const tab = document.createElement('div');
                             tab.className = 'tab';
                             tab.textContent = colIndex + 1;
-                            tab.title = col.replace('D:', '').trim(); // Tooltip without 'D:'
+                            const tooltipContent = col.replace('D:', '').trim(); // Tooltip without 'D:'
                             tab.dataset.column = col;
                             tab.dataset.rowIndex = rowIndex;
                             tab.dataset.tabIndex = colIndex + 1; // Add for deep linking (1-based)
@@ -398,6 +398,14 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                                 rowContent.innerHTML = `<p>${(row[col] || '').replace(/\n/g, '<br/>')}</p>`;
                                 highlightReferences(rowContent, tooltips);
                                 initializeTippy(rowContent);
+                            });
+                            tippy(tab, {
+                                content: tooltipContent,
+                                allowHTML: false,
+                                theme: 'custom',
+                                placement: 'top',
+                                arrow: true,
+                                interactive: false,
                             });
                             rowTabs.appendChild(tab);
                         }
