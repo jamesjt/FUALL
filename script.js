@@ -129,6 +129,7 @@ function populateSidebarList(listSelector, data, itemKey, type) {
             const listItem = document.createElement('li');
             const buttonElement = document.createElement('button');
             buttonElement.textContent = item;
+            buttonElement.dataset.title = item; // For identifying active item
             buttonElement.classList.add('book-button');
             buttonElement.addEventListener('click', () => showContent(type, item));
             listItem.appendChild(buttonElement);
@@ -287,6 +288,38 @@ function showContent(type, title, deepParams = null) {
                 targetRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
+
+        // Add chapter sub-list to sidebar
+        const chapters = Array.from(docContent.querySelectorAll('h2')).map(h2 => ({
+            id: h2.id,
+            text: h2.textContent.trim()
+        }));
+        if (chapters.length > 0) {
+            // Find the active sidebar item
+            const activeButton = document.querySelector(`.sidebar button[data-title="${title}"]`);
+            if (activeButton) {
+                const listItem = activeButton.parentElement;
+                // Clear existing sub-list if any
+                const existingSubList = listItem.querySelector('.sub-list');
+                if (existingSubList) existingSubList.remove();
+                // Create new sub-list
+                const subList = document.createElement('ul');
+                subList.className = 'sub-list';
+                chapters.forEach(chapter => {
+                    const subItem = document.createElement('li');
+                    const chapterButton = document.createElement('button');
+                    chapterButton.className = 'chapter-button';
+                    chapterButton.textContent = chapter.text;
+                    chapterButton.addEventListener('click', () => {
+                        const heading = document.getElementById(chapter.id);
+                        if (heading) heading.scrollIntoView({ behavior: 'smooth' });
+                    });
+                    subItem.appendChild(chapterButton);
+                    subList.appendChild(subItem);
+                });
+                listItem.appendChild(subList);
+            }
+        }
     } else {
         contentBody.innerHTML = `<h2>${type.charAt(0).toUpperCase() + type.slice(1)}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
     }
@@ -369,19 +402,10 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                 const chapter = row['Chapter']?.trim() || null;
                 if (chapter && chapter !== currentChapter) {
                     const chapterHeading = document.createElement('h2');
+                    chapterHeading.id = `chapter-${chapter}`;
                     chapterHeading.textContent = `Chapter ${chapter}`;
                     docContent.appendChild(chapterHeading);
                     currentChapter = chapter;
-                }
-
-                // Optional: Add Thought/Index label
-                const thought = row['Thought']?.trim();
-                const index = row['Index']?.trim();
-                if (thought || index) {
-                    const label = document.createElement('span');
-                    label.className = 'thought-label'; // Add CSS for styling, e.g., italic/bold
-                    label.textContent = `${index ? `Index ${index}` : ''}${thought ? ` (Thought ${thought})` : ''}: `;
-                    docContent.appendChild(label);
                 }
 
                 if (columns.length === 1) {

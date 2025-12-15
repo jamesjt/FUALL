@@ -330,3 +330,22 @@ h2 {
     color: var(--gold-accent);
     margin-top: 20px;
 }
+
+.sub-list {
+    padding-left: 20px;
+    list-style: none;
+}
+
+.chapter-button {
+    font-size: 1em;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+.chapter-button:hover {
+    color: var(--gold-accent);
+}
