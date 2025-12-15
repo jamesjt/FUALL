@@ -364,7 +364,26 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
             }
 
             docContent.innerHTML = '';
+            let currentChapter = null;
             data.forEach((row, rowIndex) => {
+                const chapter = row['Chapter']?.trim() || null;
+                if (chapter && chapter !== currentChapter) {
+                    const chapterHeading = document.createElement('h2');
+                    chapterHeading.textContent = `Chapter ${chapter}`;
+                    docContent.appendChild(chapterHeading);
+                    currentChapter = chapter;
+                }
+
+                // Optional: Add Thought/Index label
+                const thought = row['Thought']?.trim();
+                const index = row['Index']?.trim();
+                if (thought || index) {
+                    const label = document.createElement('span');
+                    label.className = 'thought-label'; // Add CSS for styling, e.g., italic/bold
+                    label.textContent = `${index ? `Index ${index}` : ''}${thought ? ` (Thought ${thought})` : ''}: `;
+                    docContent.appendChild(label);
+                }
+
                 if (columns.length === 1) {
                     const singleCol = columns[0];
                     if (row[singleCol] && row[singleCol].trim() !== '') {
