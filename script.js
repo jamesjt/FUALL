@@ -411,11 +411,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                 if (columns.length === 1) {
                     const singleCol = columns[0];
                     if (row[singleCol] && row[singleCol].trim() !== '') {
-                        const p = document.createElement('p');
-                        p.innerHTML = (row[singleCol] || '').replace(/\n/g, '<br/>');
-                        docContent.appendChild(p);
-                        highlightReferences(p, tooltips);
-                        initializeTippy(p);
+                        docContent.innerHTML += `<p>${(row[singleCol] || '').replace(/\n/g, '<br/>')}</p>`;
                     }
                 } else {
                     const nonEmptyCols = [];
@@ -430,11 +426,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                     if (nonEmptyCols.length === 1) {
                         // Render as simple p without tabs
                         const singleCol = nonEmptyCols[0];
-                        const p = document.createElement('p');
-                        p.innerHTML = (row[singleCol] || '').replace(/\n/g, '<br/>');
-                        docContent.appendChild(p);
-                        highlightReferences(p, tooltips);
-                        initializeTippy(p);
+                        docContent.innerHTML += `<p>${(row[singleCol] || '').replace(/\n/g, '<br/>')}</p>`;
                     } else {
                         // Multi: render tabs/container
                         const rowContainer = document.createElement('div');

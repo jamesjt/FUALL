@@ -341,9 +341,10 @@ body {
     margin-top: 10px;
 }
 
-h2 {
+.chapter-head {
     color: var(--gold-accent);
     margin-top: 20px;
+    font-size: 1.5em;
 }
 
 .sub-list {
