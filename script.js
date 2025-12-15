@@ -333,7 +333,10 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
             docContent.innerHTML = '';
             data.forEach((row, rowIndex) => {
                 if (columns.length === 1) {
-                    docContent.innerHTML += `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
+                    const singleCol = columns[0];
+                    if (row[singleCol] && row[singleCol].trim() !== '') {
+                        docContent.innerHTML += `<p>${(row[singleCol] || '').replace(/\n/g, '<br/>')}</p>`;
+                    }
                 } else {
                     const rowContainer = document.createElement('div');
                     rowContainer.className = 'row-container';
@@ -342,39 +345,54 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                     rowTabs.className = 'row-tabs';
 
                     columns.forEach((col, colIndex) => {
-                        const tab = document.createElement('div');
-                        tab.className = 'tab';
-                        tab.textContent = colIndex + 1;
-                        tab.title = col.replace('D:', '').trim(); // Tooltip without 'D:'
-                        tab.dataset.column = col;
-                        tab.dataset.rowIndex = rowIndex;
-                        tab.addEventListener('click', (event) => {
-                            const currentTab = event.target;
-                            const tabs = currentTab.parentNode.querySelectorAll('.tab');
-                            tabs.forEach(t => t.classList.remove('active'));
-                            currentTab.classList.add('active');
+                        if (row[col] && row[col].trim() !== '') {
+                            const tab = document.createElement('div');
+                            tab.className = 'tab';
+                            tab.textContent = colIndex + 1;
+                            tab.title = col.replace('D:', '').trim(); // Tooltip without 'D:'
+                            tab.dataset.column = col;
+                            tab.dataset.rowIndex = rowIndex;
+                            tab.addEventListener('click', (event) => {
+                                const currentTab = event.target;
+                                const tabs = currentTab.parentNode.querySelectorAll('.tab');
+                                tabs.forEach(t => t.classList.remove('active'));
+                                currentTab.classList.add('active');
 
-                            const container = currentTab.closest('.row-container');
-                            const rowContent = container.querySelector('.row-content');
-                            rowContent.innerHTML = `<p>${(row[col] || '').replace(/\n/g, '<br/>')}</p>`;
-                            highlightReferences(rowContent, tooltips);
-                            initializeTippy(rowContent);
-                        });
-                        rowTabs.appendChild(tab);
+                                const container = currentTab.closest('.row-container');
+                                const rowContent = container.querySelector('.row-content');
+                                rowContent.innerHTML = `<p>${(row[col] || '').replace(/\n/g, '<br/>')}</p>`;
+                                highlightReferences(rowContent, tooltips);
+                                initializeTippy(rowContent);
+                            });
+                            rowTabs.appendChild(tab);
+                        }
                     });
 
-                    rowContainer.appendChild(rowTabs);
+                    if (rowTabs.children.length > 0) {
+                        rowContainer.appendChild(rowTabs);
 
-                    const rowContent = document.createElement('div');
-                    rowContent.className = 'row-content';
-                    rowContent.innerHTML = `<p>${(row[columns[0]] || '').replace(/\n/g, '<br/>')}</p>`;
-                    rowContainer.appendChild(rowContent);
+                        const rowContent = document.createElement('div');
+                        rowContent.className = 'row-content';
 
-                    docContent.appendChild(rowContainer);
+                        // Set initial content to the first non-empty column
+                        const initialCol = columns.find(col => row[col] && row[col].trim() !== '');
+                        if (initialCol) {
+                            rowContent.innerHTML = `<p>${(row[initialCol] || '').replace(/\n/g, '<br/>')}</p>`;
+                        }
 
-                    rowTabs.querySelector('.tab').classList.add('active');
-                    highlightReferences(rowContent, tooltips);
-                    initializeTippy(rowContent);
+                        rowContainer.appendChild(rowContent);
+
+                        docContent.appendChild(rowContainer);
+
+                        // Set first tab active
+                        const firstTab = rowTabs.querySelector('.tab');
+                        if (firstTab) {
+                            firstTab.classList.add('active');
+                        }
+
+                        highlightReferences(rowContent, tooltips);
+                        initializeTippy(rowContent);
+                    }
                 }
             });
         }
