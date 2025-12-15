@@ -41,15 +41,20 @@ body {
     display: flex;
     min-height: 100vh;
     padding-top: 50px; /* Offset for nav bar */
+    padding-left: 270px; /* Offset for fixed sidebar (250px width + 20px padding) */
 }
 
 .sidebar {
+    position: fixed;
+    top: 50px;
+    left: 0;
     width: 250px;
     background-color: #1e1e1e;
     padding: 20px;
     border-right: 1px solid #333;
     overflow-y: auto;
-    max-height: calc(100vh - 50px);
+    height: calc(100vh - 50px);
+    z-index: 999;
 }
 
 .sidebarList{
