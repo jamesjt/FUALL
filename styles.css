@@ -169,7 +169,7 @@ body {
 }
 
 .tab.active {
-    border-color: var(--gold-hover);
+    border-color: #7b591e;
 }
 
 .tab:hover {
