@@ -169,8 +169,6 @@ body {
 }
 
 .tab.active {
-    background-color: var(--gold-accent);
-    color: #121212;
     border-color: var(--gold-hover);
 }
 
@@ -189,7 +187,6 @@ body {
     flex-direction: row-reverse;
     align-items: flex-start;
     margin-bottom: 10px;
-    gap: 10px;
 }
 
 .row-tabs {
