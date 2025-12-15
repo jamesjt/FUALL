@@ -290,9 +290,9 @@ function showContent(type, title, deepParams = null) {
         }
 
         // Add chapter sub-list to sidebar
-        const chapters = Array.from(docContent.querySelectorAll('h2')).map(h2 => ({
-            id: h2.id,
-            text: h2.textContent.trim()
+        const chapters = Array.from(docContent.querySelectorAll('.chapter-head')).map(head => ({
+            id: head.id,
+            text: head.textContent.trim()
         }));
         if (chapters.length > 0) {
             // Find the active sidebar item
@@ -401,7 +401,8 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
             data.forEach((row, rowIndex) => {
                 const chapter = row['Chapter']?.trim() || null;
                 if (chapter && chapter !== currentChapter) {
-                    const chapterHeading = document.createElement('h2');
+                    const chapterHeading = document.createElement('div');
+                    chapterHeading.className = 'chapter-head';
                     chapterHeading.id = `chapter-${chapter}`;
                     chapterHeading.textContent = `Chapter ${chapter}`;
                     docContent.appendChild(chapterHeading);
@@ -411,7 +412,11 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                 if (columns.length === 1) {
                     const singleCol = columns[0];
                     if (row[singleCol] && row[singleCol].trim() !== '') {
-                        docContent.innerHTML += `<p>${(row[singleCol] || '').replace(/\n/g, '<br/>')}</p>`;
+                        const p = document.createElement('p');
+                        p.innerHTML = (row[singleCol] || '').replace(/\n/g, '<br/>');
+                        docContent.appendChild(p);
+                        highlightReferences(p, tooltips);
+                        initializeTippy(p);
                     }
                 } else {
                     const nonEmptyCols = [];
@@ -426,7 +431,11 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                     if (nonEmptyCols.length === 1) {
                         // Render as simple p without tabs
                         const singleCol = nonEmptyCols[0];
-                        docContent.innerHTML += `<p>${(row[singleCol] || '').replace(/\n/g, '<br/>')}</p>`;
+                        const p = document.createElement('p');
+                        p.innerHTML = (row[singleCol] || '').replace(/\n/g, '<br/>');
+                        docContent.appendChild(p);
+                        highlightReferences(p, tooltips);
+                        initializeTippy(p);
                     } else {
                         // Multi: render tabs/container
                         const rowContainer = document.createElement('div');
