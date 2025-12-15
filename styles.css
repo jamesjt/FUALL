@@ -167,7 +167,7 @@ body {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 0px 4px 4px 0px;
     font-size: 1em;
     transition: background-color 0.3s ease;
     color: #e0e0e0;
@@ -176,7 +176,7 @@ body {
 }
 
 .tab.active {
-    border-color: var(--gold-hover);
+    border-color: #7b591e;
 }
 
 .tab:hover {
@@ -339,7 +339,7 @@ h2 {
 }
 
 .sub-list {
-    padding-left: 20px;
+    margin-left: 20px;
     list-style: none;
 }
 
