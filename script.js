@@ -57,13 +57,21 @@ document.addEventListener('DOMContentLoaded', () => {
             populateSidebarList('.books-list', booksData, 'Title', 'book');
             populateSidebarList('.breakdowns-list', breakdownsData, 'Title', 'breakdown');
 
-            // Show the first item if available
-            if (articlesData.length > 0) {
-                showContent('article', articlesData[0]['Title']);
-            } else if (booksData.length > 0) {
-                showContent('book', booksData[0]['Title']);
-            } else if (breakdownsData.length > 0) {
-                showContent('breakdown', breakdownsData[0]['Title']);
+            // Handle deep link from URL params if present
+            const params = new URLSearchParams(window.location.search);
+            const deepType = params.get('type');
+            const deepContent = params.get('content');
+            if (deepType && deepContent && contentElements[deepContent]) {
+                showContent(deepType, deepContent, params); // Pass params for row/tab handling
+            } else {
+                // Show the first item if available (default behavior)
+                if (articlesData.length > 0) {
+                    showContent('article', articlesData[0]['Title']);
+                } else if (booksData.length > 0) {
+                    showContent('book', booksData[0]['Title']);
+                } else if (breakdownsData.length > 0) {
+                    showContent('breakdown', breakdownsData[0]['Title']);
+                }
             }
 
             // Add MutationObserver to reapply tooltips on DOM changes
@@ -237,8 +245,8 @@ function buildWisdomMap(articlesData) {
     document.body.appendChild(buttonsDiv);
 }
 
-// Function to show specific content (simplified toggle)
-function showContent(type, title) {
+// Function to show specific content (simplified toggle, now accepts optional params for deep linking)
+function showContent(type, title, deepParams = null) {
     const contentBody = document.querySelector('.content-body');
     const mapDiv = document.getElementById('wisdom-map');
     const contentDiv = document.querySelector('.content');
@@ -254,6 +262,27 @@ function showContent(type, title) {
     if (docContent) {
         docContent.classList.add('active');
         contentBody.appendChild(docContent);
+
+        // Handle deep link to row and tab if params provided (or fallback to URL params)
+        const params = deepParams || new URLSearchParams(window.location.search);
+        const rowIndex = parseInt(params.get('row'), 10) - 1; // 1-based to 0-based
+        const tabIndex = parseInt(params.get('tab'), 10); // 1-based
+        if (!isNaN(rowIndex)) {
+            const rowContainers = docContent.querySelectorAll('.row-container');
+            const targetRow = rowContainers[rowIndex];
+            if (targetRow) {
+                // Select tab if specified
+                if (!isNaN(tabIndex)) {
+                    const tabs = targetRow.querySelectorAll('.tab');
+                    const targetTab = Array.from(tabs).find(tab => parseInt(tab.textContent, 10) === tabIndex);
+                    if (targetTab) {
+                        targetTab.click(); // Simulate click to activate
+                    }
+                }
+                // Scroll to row
+                targetRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
     } else {
         contentBody.innerHTML = `<h2>${type.charAt(0).toUpperCase() + type.slice(1)}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
     }
@@ -340,6 +369,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                 } else {
                     const rowContainer = document.createElement('div');
                     rowContainer.className = 'row-container';
+                    rowContainer.id = `row-${rowIndex}`; // Add ID for deep linking
 
                     const rowTabs = document.createElement('div');
                     rowTabs.className = 'row-tabs';
@@ -352,6 +382,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                             tab.title = col.replace('D:', '').trim(); // Tooltip without 'D:'
                             tab.dataset.column = col;
                             tab.dataset.rowIndex = rowIndex;
+                            tab.dataset.tabIndex = colIndex + 1; // Add for deep linking (1-based)
                             tab.addEventListener('click', (event) => {
                                 const currentTab = event.target;
                                 const tabs = currentTab.parentNode.querySelectorAll('.tab');
