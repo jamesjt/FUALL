@@ -75,6 +75,14 @@ body {
 .sidebar li {
 }
 
+.chapter-button {
+    font-size: 0.7em;
+}
+
+.chapter-button:hover {
+    color: var(--gold-accent);
+}
+
 .sidebar button {
     font-size: 1.1em;
     cursor: pointer;
@@ -341,18 +349,4 @@ h2 {
 .sub-list {
     margin-left: 20px;
     list-style: none;
-}
-
-.chapter-button {
-    font-size: 0.9em;
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    border: none;
-    background-color: #1e1e1e;
-    color: #e0e0e0;
-}
-
-.chapter-button:hover {
-    color: var(--gold-accent);
 }
