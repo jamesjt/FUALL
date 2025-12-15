@@ -76,7 +76,7 @@ body {
 }
 
 .chapter-button {
-    font-size: 0.7em;
+    font-size: 0.9em !important;
 }
 
 .chapter-button:hover {
@@ -348,5 +348,5 @@ h2 {
 
 .sub-list {
     margin-left: 20px;
-    list-style: none;
+    margin-bottom:10px;
 }
