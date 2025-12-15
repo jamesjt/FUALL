@@ -2,6 +2,7 @@ let contentElements = {}; // Global object to store preloaded content
 let tooltips = {}; // Global tooltips object to store refs data
 let network = null; // vis.js network instance
 let mapInitialized = false; // Flag for lazy init
+let unifiedData, articlesData, booksData, breakdownsData;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Unified content sheet URL (Articles sheet with Type column)
@@ -24,10 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }, {});
 
             // Store and filter unified data
-            const unifiedData = unified || [];
-            const articlesData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'article');
-            const booksData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'book');
-            const breakdownsData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'breakdown');
+            unifiedData = unified || [];
+            articlesData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'article');
+            booksData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'book');
+            breakdownsData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'breakdown');
 
             // Preload and store all content
             const contentBody = document.querySelector('.content-body');
@@ -52,45 +53,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                return Promise.all(loadPromises);
-            }
-        })
-        .then(() => {
-            const contentBody = document.querySelector('.content-body');
-            // Handle deep link from URL params if present
-            const params = new URLSearchParams(window.location.search);
-            const deepType = params.get('type');
-            const deepContent = params.get('content');
-            if (deepType && deepContent && contentElements[deepContent]) {
-                showContent(deepType, deepContent, params); // Pass params for row/tab handling
-            } else {
-                // Show the first item if available (default behavior)
-                const unifiedData = []; // Note: unifiedData is out of scope here; assuming articlesData etc. are still available
-                const articlesData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'article'); // Re-filter if needed, but ideally hoist
-                const booksData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'book');
-                const breakdownsData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'breakdown');
-                if (articlesData.length > 0) {
-                    showContent('article', articlesData[0]['Title']);
-                } else if (booksData.length > 0) {
-                    showContent('book', booksData[0]['Title']);
-                } else if (breakdownsData.length > 0) {
-                    showContent('breakdown', breakdownsData[0]['Title']);
-                }
-            }
+                Promise.all(loadPromises).then(() => {
+                    // Handle deep link from URL params if present
+                    const params = new URLSearchParams(window.location.search);
+                    const deepType = params.get('type');
+                    const deepContent = params.get('content');
+                    if (deepType && deepContent && contentElements[deepContent]) {
+                        showContent(deepType, deepContent, params); // Pass params for row/tab handling
+                    } else {
+                        // Show the first item if available (default behavior)
+                        if (articlesData.length > 0) {
+                            showContent('article', articlesData[0]['Title']);
+                        } else if (booksData.length > 0) {
+                            showContent('book', booksData[0]['Title']);
+                        } else if (breakdownsData.length > 0) {
+                            showContent('breakdown', breakdownsData[0]['Title']);
+                        }
+                    }
 
-            // Populate sidebars (hoist articlesData etc. if needed)
-            populateSidebarList('.articles-list', articlesData, 'Title', 'article');
-            populateSidebarList('.books-list', booksData, 'Title', 'book');
-            populateSidebarList('.breakdowns-list', breakdownsData, 'Title', 'breakdown');
+                    // Populate sidebars
+                    populateSidebarList('.articles-list', articlesData, 'Title', 'article');
+                    populateSidebarList('.books-list', booksData, 'Title', 'book');
+                    populateSidebarList('.breakdowns-list', breakdownsData, 'Title', 'breakdown');
 
-            // Add MutationObserver to reapply tooltips on DOM changes
-            const observer = new MutationObserver(() => {
-                observer.disconnect(); // Prevent loop from own modifications
-                highlightReferences(contentBody, tooltips);
-                initializeTippy(contentBody);
-                observer.observe(contentBody, { childList: true, subtree: true }); // Re-observe
-            });
-            observer.observe(contentBody, { childList: true, subtree: true });
+                    // Add MutationObserver to reapply tooltips on DOM changes
+                    const observer = new MutationObserver(() => {
+                        observer.disconnect(); // Prevent loop from own modifications
+                        highlightReferences(contentBody, tooltips);
+                        initializeTippy(contentBody);
+                        observer.observe(contentBody, { childList: true, subtree: true }); // Re-observe
+                    });
+                    observer.observe(contentBody, { childList: true, subtree: true });
+                });
+            }
         })
         .catch(error => {
             console.error('Data fetch error:', error);
