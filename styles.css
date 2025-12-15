@@ -1,6 +1,7 @@
 :root {
     --gold-accent: #d29a38;
     --gold-hover: #b8862f;
+    --serif: "Source Serif 4", ui-serif, Georgia, "Times New Roman", serif;
 }
 
 body {
@@ -9,7 +10,10 @@ body {
     padding: 0;
     color: #c1c1c1;
     background-color: #121212;
+    font-family: var(--serif);
+    font-optical-sizing: auto; /* uses opsz axis when available */
 }
+
 
 .nav-bar {
     position: fixed;
