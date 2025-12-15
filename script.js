@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (unifiedData.length === 0) {
                 contentBody.innerHTML = '<p class="error">No data found.</p>';
             } else {
+                const loadPromises = [];
                 unifiedData.forEach(row => {
                     const title = row['Title']?.trim();
                     const link = row['Link']?.trim();
@@ -47,16 +48,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             contentElements[title].dataset.tag = tag || '';
                             contentElements[title].dataset.parent = parent || '';
                         }
-                        loadAndDisplayContent(link, type, title, contentElements[title]);
+                        loadPromises.push(loadAndDisplayContent(link, type, title, contentElements[title]));
                     }
                 });
+
+                return Promise.all(loadPromises);
             }
-
-            // Populate sidebars
-            populateSidebarList('.articles-list', articlesData, 'Title', 'article');
-            populateSidebarList('.books-list', booksData, 'Title', 'book');
-            populateSidebarList('.breakdowns-list', breakdownsData, 'Title', 'breakdown');
-
+        })
+        .then(() => {
+            const contentBody = document.querySelector('.content-body');
             // Handle deep link from URL params if present
             const params = new URLSearchParams(window.location.search);
             const deepType = params.get('type');
@@ -65,6 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 showContent(deepType, deepContent, params); // Pass params for row/tab handling
             } else {
                 // Show the first item if available (default behavior)
+                const unifiedData = []; // Note: unifiedData is out of scope here; assuming articlesData etc. are still available
+                const articlesData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'article'); // Re-filter if needed, but ideally hoist
+                const booksData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'book');
+                const breakdownsData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'breakdown');
                 if (articlesData.length > 0) {
                     showContent('article', articlesData[0]['Title']);
                 } else if (booksData.length > 0) {
@@ -73,6 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     showContent('breakdown', breakdownsData[0]['Title']);
                 }
             }
+
+            // Populate sidebars (hoist articlesData etc. if needed)
+            populateSidebarList('.articles-list', articlesData, 'Title', 'article');
+            populateSidebarList('.books-list', booksData, 'Title', 'book');
+            populateSidebarList('.breakdowns-list', breakdownsData, 'Title', 'breakdown');
 
             // Add MutationObserver to reapply tooltips on DOM changes
             const observer = new MutationObserver(() => {
