@@ -406,6 +406,24 @@ body {
     color: #888;
     text-transform: uppercase;
     margin-right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.map-popup-type:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--gold-accent);
+}
+
+.goto-arrow {
+    font-size: 12px;
 }
 
 .map-popup-close {
@@ -432,29 +450,6 @@ body {
 .map-popup-body .doc-content {
     max-width: 100%;
     padding: 0;
-}
-
-.map-popup-footer {
-    padding: 8px 12px;
-    border-top: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-}
-
-.map-popup-goto {
-    width: 100%;
-    padding: 8px;
-    background-color: var(--gold-glow);
-    border: 1px solid var(--gold-accent);
-    color: var(--gold-accent);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 14px;
-}
-
-.map-popup-goto:hover {
-    background-color: var(--gold-accent);
-    color: #121212;
 }
 
 /* ── Popover ── */

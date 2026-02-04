@@ -218,9 +218,15 @@ async function createMapPopup(nodeId, nodeData, clickX, clickY, container) {
     title.textContent = nodeId;
     header.appendChild(title);
 
-    const typeLabel = document.createElement('span');
+    const typeLabel = document.createElement('button');
     typeLabel.className = 'map-popup-type';
-    typeLabel.textContent = nodeData?.data?.type || 'content';
+    typeLabel.innerHTML = `${(nodeData?.data?.type || 'content').toUpperCase()} <span class="goto-arrow">→</span>`;
+    typeLabel.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent drag from starting
+        showContent(nodeData?.data?.type || 'article', nodeId);
+        document.getElementById('wisdom-map').style.display = 'none';
+        document.querySelector('.content').style.display = 'flex';
+    });
     header.appendChild(typeLabel);
 
     const closeBtn = document.createElement('button');
@@ -273,22 +279,6 @@ async function createMapPopup(nodeId, nodeData, clickX, clickY, container) {
 
     popup.appendChild(body);
 
-    // Footer
-    const footer = document.createElement('div');
-    footer.className = 'map-popup-footer';
-
-    const gotoBtn = document.createElement('button');
-    gotoBtn.className = 'map-popup-goto';
-    gotoBtn.textContent = 'Go to Content →';
-    gotoBtn.addEventListener('click', () => {
-        showContent(nodeData?.data?.type || 'article', nodeId);
-        document.getElementById('wisdom-map').style.display = 'none';
-        document.querySelector('.content').style.display = 'flex';
-    });
-    footer.appendChild(gotoBtn);
-
-    popup.appendChild(footer);
-
     // Add to container
     container.appendChild(popup);
 
@@ -314,7 +304,9 @@ function makePopupDraggable(popup, handle) {
     let offsetY = 0;
 
     handle.addEventListener('mousedown', (e) => {
-        if (e.target.classList.contains('map-popup-close')) return;
+        if (e.target.classList.contains('map-popup-close') ||
+            e.target.classList.contains('map-popup-type') ||
+            e.target.classList.contains('goto-arrow')) return;
         isDragging = true;
         offsetX = e.clientX - popup.offsetLeft;
         offsetY = e.clientY - popup.offsetTop;
