@@ -15,7 +15,17 @@ function createErrorP(message) {
     return p;
 }
 
+// Helper: safely render HTML content (CSV data with formatting) via DOMPurify
+function setSanitizedHTML(element, html) {
+    element.innerHTML = DOMPurify.sanitize(
+        (html || '').replace(/\n/g, '<br>'),
+        { ALLOWED_TAGS: ['b', 'i', 'strong', 'em', 'a', 'br', 'span', 'u', 'sub', 'sup'],
+          ALLOWED_ATTR: ['href', 'target', 'class'] }
+    );
+}
+
 let contentElements = {}; // Global object to store preloaded content
+let contentMeta = {}; // Metadata for lazy loading: { title: { link, type, loaded } }
 let tooltips = {}; // Global tooltips object to store refs data
 let network = null; // vis.js network instance
 let mapInitialized = false; // Flag for lazy init
@@ -47,65 +57,62 @@ document.addEventListener('DOMContentLoaded', () => {
             booksData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'book');
             breakdownsData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'breakdown');
 
-            // Preload and store all content
+            // Register content metadata for lazy loading (don't fetch yet)
             const contentBody = document.querySelector('.content-body');
             if (unifiedData.length === 0) {
                 contentBody.textContent = '';
                 contentBody.appendChild(createErrorP('No data found.'));
             } else {
-                const loadPromises = [];
                 unifiedData.forEach(row => {
                     const title = row['Title']?.trim();
                     const link = row['Link']?.trim();
                     const type = row['Type']?.trim().toLowerCase();
-                    const tag = row['Tag']?.trim(); // Optional, e.g., for articles
-                    const parent = row['Parent']?.trim(); // Optional, e.g., for articles
+                    const tag = row['Tag']?.trim();
+                    const parent = row['Parent']?.trim();
                     if (title && link && type) {
                         contentElements[title] = document.createElement('div');
                         contentElements[title].className = 'doc-content';
                         contentElements[title].dataset.tag = tag || '';
                         contentElements[title].dataset.parent = parent || '';
                         contentElements[title].dataset.type = type || '';
-                        loadPromises.push(loadAndDisplayContent(link, type, title, contentElements[title]));
+                        contentMeta[title] = { link, type, loaded: false };
                     }
                 });
 
-                Promise.all(loadPromises).then(() => {
-                    // Remove loading indicator
-                    const loadingEl = document.getElementById('loading-indicator');
-                    if (loadingEl) loadingEl.remove();
+                // Remove loading indicator immediately — sidebar is ready
+                const loadingEl = document.getElementById('loading-indicator');
+                if (loadingEl) loadingEl.remove();
 
-                    // Handle deep link from URL params if present
-                    const params = new URLSearchParams(window.location.search);
-                    const deepType = params.get('type');
-                    const deepContent = params.get('content');
-                    if (deepType && deepContent && contentElements[deepContent]) {
-                        showContent(deepType, deepContent, params); // Pass params for row/tab handling
-                    } else {
-                        // Show the first item if available (default behavior)
-                        if (articlesData.length > 0) {
-                            showContent('article', articlesData[0]['Title']);
-                        } else if (booksData.length > 0) {
-                            showContent('book', booksData[0]['Title']);
-                        } else if (breakdownsData.length > 0) {
-                            showContent('breakdown', breakdownsData[0]['Title']);
-                        }
+                // Populate sidebars right away
+                populateSidebarList('.articles-list', articlesData, 'Title', 'article');
+                populateSidebarList('.books-list', booksData, 'Title', 'book');
+                populateSidebarList('.breakdowns-list', breakdownsData, 'Title', 'breakdown');
+
+                // Handle deep link from URL params if present
+                const params = new URLSearchParams(window.location.search);
+                const deepType = params.get('type');
+                const deepContent = params.get('content');
+                if (deepType && deepContent && contentElements[deepContent]) {
+                    showContent(deepType, deepContent, params);
+                } else {
+                    // Show the first item if available (lazy load triggered inside showContent)
+                    if (articlesData.length > 0) {
+                        showContent('article', articlesData[0]['Title']);
+                    } else if (booksData.length > 0) {
+                        showContent('book', booksData[0]['Title']);
+                    } else if (breakdownsData.length > 0) {
+                        showContent('breakdown', breakdownsData[0]['Title']);
                     }
+                }
 
-                    // Populate sidebars
-                    populateSidebarList('.articles-list', articlesData, 'Title', 'article');
-                    populateSidebarList('.books-list', booksData, 'Title', 'book');
-                    populateSidebarList('.breakdowns-list', breakdownsData, 'Title', 'breakdown');
-
-                    // Add MutationObserver to reapply tooltips on DOM changes
-                    const observer = new MutationObserver(() => {
-                        observer.disconnect(); // Prevent loop from own modifications
-                        highlightReferences(contentBody, tooltips);
-                        initializeTippy(contentBody);
-                        observer.observe(contentBody, { childList: true, subtree: true }); // Re-observe
-                    });
+                // Add MutationObserver to reapply tooltips on DOM changes
+                const observer = new MutationObserver(() => {
+                    observer.disconnect();
+                    highlightReferences(contentBody, tooltips);
+                    initializeTippy(contentBody);
                     observer.observe(contentBody, { childList: true, subtree: true });
                 });
+                observer.observe(contentBody, { childList: true, subtree: true });
             }
         })
         .catch(error => {
@@ -180,6 +187,152 @@ function populateSidebarList(listSelector, data, itemKey, type) {
     }
 }
 
+// --- Map Popup System ---
+// Creates draggable, resizable popups on the wisdom map
+async function createMapPopup(nodeId, nodeData, clickX, clickY, container) {
+    // Check if popup already exists for this node
+    const existingPopup = document.getElementById(`map-popup-${CSS.escape(nodeId)}`);
+    if (existingPopup) {
+        // Bring to front and focus
+        existingPopup.style.zIndex = getNextPopupZ();
+        return;
+    }
+
+    // Ensure content is loaded
+    await ensureContentLoaded(nodeId);
+
+    // Create popup element
+    const popup = document.createElement('div');
+    popup.className = 'map-popup';
+    popup.id = `map-popup-${CSS.escape(nodeId)}`;
+    popup.style.left = `${Math.max(10, clickX - 175)}px`;
+    popup.style.top = `${Math.max(10, clickY - 150)}px`;
+    popup.style.zIndex = getNextPopupZ();
+
+    // Header (draggable)
+    const header = document.createElement('div');
+    header.className = 'map-popup-header';
+
+    const title = document.createElement('span');
+    title.className = 'map-popup-title';
+    title.textContent = nodeId;
+    header.appendChild(title);
+
+    const typeLabel = document.createElement('span');
+    typeLabel.className = 'map-popup-type';
+    typeLabel.textContent = nodeData?.data?.type || 'content';
+    header.appendChild(typeLabel);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'map-popup-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', () => popup.remove());
+    header.appendChild(closeBtn);
+
+    popup.appendChild(header);
+
+    // Body (content)
+    const body = document.createElement('div');
+    body.className = 'map-popup-body';
+
+    // Clone the content
+    const content = contentElements[nodeId];
+    if (content) {
+        const clonedContent = content.cloneNode(true);
+        clonedContent.classList.add('active');
+        body.appendChild(clonedContent);
+
+        // Re-wire tab click handlers for cloned content
+        clonedContent.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const container = this.closest('.row-container');
+                const rowContent = container.querySelector('.row-content');
+                const col = this.dataset.col;
+                const rowData = JSON.parse(this.dataset.row || '{}');
+
+                // Update active tab
+                container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // Update content
+                if (rowData[col]) {
+                    rowContent.innerHTML = '';
+                    const p = document.createElement('p');
+                    p.innerHTML = DOMPurify.sanitize(
+                        (rowData[col] || '').replace(/\n/g, '<br>'),
+                        { ALLOWED_TAGS: ['b', 'i', 'strong', 'em', 'a', 'br', 'span', 'u', 'sub', 'sup'],
+                          ALLOWED_ATTR: ['href', 'target', 'class'] }
+                    );
+                    rowContent.appendChild(p);
+                }
+            });
+        });
+    } else {
+        body.innerHTML = '<p class="loading">Loading content...</p>';
+    }
+
+    popup.appendChild(body);
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.className = 'map-popup-footer';
+
+    const gotoBtn = document.createElement('button');
+    gotoBtn.className = 'map-popup-goto';
+    gotoBtn.textContent = 'Go to Content →';
+    gotoBtn.addEventListener('click', () => {
+        showContent(nodeData?.data?.type || 'article', nodeId);
+        document.getElementById('wisdom-map').style.display = 'none';
+        document.querySelector('.content').style.display = 'flex';
+    });
+    footer.appendChild(gotoBtn);
+
+    popup.appendChild(footer);
+
+    // Add to container
+    container.appendChild(popup);
+
+    // Make draggable
+    makePopupDraggable(popup, header);
+
+    // Bring to front on click
+    popup.addEventListener('mousedown', () => {
+        popup.style.zIndex = getNextPopupZ();
+    });
+}
+
+// Z-index counter for popup stacking
+let popupZIndex = 100;
+function getNextPopupZ() {
+    return ++popupZIndex;
+}
+
+// Make popup draggable by its header
+function makePopupDraggable(popup, handle) {
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    handle.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('map-popup-close')) return;
+        isDragging = true;
+        offsetX = e.clientX - popup.offsetLeft;
+        offsetY = e.clientY - popup.offsetTop;
+        popup.style.zIndex = getNextPopupZ();
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        popup.style.left = `${e.clientX - offsetX}px`;
+        popup.style.top = `${e.clientY - offsetY}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+}
+
 // Function to build wisdom map with phi-shaped layout
 function buildWisdomMap(data) {
     const container = document.getElementById('wisdom-map');
@@ -187,14 +340,14 @@ function buildWisdomMap(data) {
     const nodes = new vis.DataSet();
     const edges = new vis.DataSet();
 
-    // Group styles — Wisdom is the stem (deep gold), branches are leaves
+    // Group styles — muted fills with darker borders (colors only, shapes set by content type)
     const groups = {
-        'Wisdom':  { color: { background: '#b8862f', border: '#93681e' }, shape: 'dot', size: 20, font: { color: '#e0e0e0', size: 12 } },
-        'Reality': { color: { background: '#d29a38', border: '#b8862f' }, shape: 'dot', size: 18, font: { color: '#e0e0e0', size: 12 } },
-        'Reason':  { color: { background: '#4a90d9', border: '#3570b0' }, shape: 'dot', size: 18, font: { color: '#e0e0e0', size: 12 } },
-        'Right':   { color: { background: '#c0392b', border: '#962d22' }, shape: 'dot', size: 18, font: { color: '#e0e0e0', size: 12 } },
-        'Musings': { color: { background: '#6f42c1', border: '#5a32a3' }, shape: 'star', size: 12, font: { color: '#e0e0e0', size: 10 } },
-        'Root':    { color: { background: '#b8862f', border: '#93681e' }, shape: 'diamond', size: 25, font: { color: '#e0e0e0', size: 14 } }
+        'Wisdom':  { color: { background: '#8a7a5a', border: '#5a4a3a' }, size: 20, font: { color: '#e0e0e0', size: 12 } },
+        'Reality': { color: { background: '#7a8a9a', border: '#4a5a6a' }, size: 18, font: { color: '#e0e0e0', size: 12 } },
+        'Reason':  { color: { background: '#c9a868', border: '#8a7040' }, size: 18, font: { color: '#e0e0e0', size: 12 } },
+        'Right':   { color: { background: '#b08080', border: '#806060' }, size: 18, font: { color: '#e0e0e0', size: 12 } },
+        'Musings': { color: { background: '#9080a0', border: '#605070' }, size: 12, font: { color: '#e0e0e0', size: 10 } },
+        'Root':    { color: { background: '#8a7a5a', border: '#5a4a3a' }, size: 25, font: { color: '#e0e0e0', size: 14 } }
     };
 
     // --- Classify nodes by Tag and Parent ---
@@ -247,10 +400,17 @@ function buildWisdomMap(data) {
     const rootCount = classified.Root.length || 1;
     classified.Root.forEach((entry, i) => {
         const angle = (2 * Math.PI * i) / rootCount - Math.PI / 2; // Start from top of circle
+        // Shape by content type
+        let shape = 'dot';
+        if (entry.type === 'article') shape = 'diamond';
+        else if (entry.type === 'book') shape = 'box';
+        else if (entry.type === 'breakdown') shape = 'triangle';
+
         nodes.add({
             id: entry.title,
             label: entry.title,
             group: 'Root',
+            shape: shape,
             x: centerX + circleRadius * Math.cos(angle),
             y: bottomY + circleRadius * Math.sin(angle),
             fixed: { x: true, y: true },
@@ -273,12 +433,16 @@ function buildWisdomMap(data) {
                 data: { parent: entry.parent, type: entry.type }
             };
 
-            // Visual differentiation by content type
-            if (entry.type === 'book') {
+            // Shape by content type: article=diamond, book=box, breakdown=triangle
+            if (entry.type === 'article') {
+                nodeConfig.shape = 'diamond';
+            } else if (entry.type === 'book') {
                 nodeConfig.shape = 'box';
                 nodeConfig.borderWidth = 2;
             } else if (entry.type === 'breakdown') {
                 nodeConfig.shape = 'triangle';
+            } else {
+                nodeConfig.shape = 'dot';
             }
 
             nodes.add(nodeConfig);
@@ -356,16 +520,13 @@ function buildWisdomMap(data) {
         document.getElementById('hover-preview').style.display = 'none';
     });
 
-    // --- Click event: open content in main area ---
+    // --- Click event: open popup on map ---
     network.on('click', (params) => {
         if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             const nodeData = nodes.get(nodeId);
             if (nodeData && nodeData.data) {
-                showContent(nodeData.data.type || 'article', nodeId);
-                // Switch from map view to content view
-                document.getElementById('wisdom-map').style.display = 'none';
-                document.querySelector('.content').style.display = 'flex';
+                createMapPopup(nodeId, nodeData, params.pointer.DOM.x, params.pointer.DOM.y, container);
             }
         }
     });
@@ -405,7 +566,18 @@ function buildWisdomMap(data) {
 }
 
 // Function to show specific content (simplified toggle, now accepts optional params for deep linking)
-function showContent(type, title, deepParams = null) {
+// Lazy-load content for a title if not yet fetched
+async function ensureContentLoaded(title) {
+    const meta = contentMeta[title];
+    if (!meta || meta.loaded) return;
+    meta.loaded = true;
+    const el = contentElements[title];
+    // Show inline spinner while loading
+    el.innerHTML = '<div class="inline-loading"><div class="spinner"></div><p>Loading...</p></div>';
+    await loadAndDisplayContent(meta.link, meta.type, title, el);
+}
+
+async function showContent(type, title, deepParams = null) {
     const contentBody = document.querySelector('.content-body');
     const mapDiv = document.getElementById('wisdom-map');
     const contentDiv = document.querySelector('.content');
@@ -426,6 +598,9 @@ function showContent(type, title, deepParams = null) {
         activeBtn.classList.add('active-item');
         activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+
+    // Lazy-load content if not yet fetched
+    await ensureContentLoaded(title);
 
     const docContent = contentElements[title];
     if (docContent) {
@@ -506,10 +681,10 @@ function showContent(type, title, deepParams = null) {
 
 // Handle browser back/forward navigation
 let isPopstateNavigation = false;
-window.addEventListener('popstate', (event) => {
+window.addEventListener('popstate', async (event) => {
     if (event.state && event.state.type && event.state.title) {
         isPopstateNavigation = true;
-        showContent(event.state.type, event.state.title);
+        await showContent(event.state.type, event.state.title);
         isPopstateNavigation = false;
     }
 });
@@ -517,6 +692,8 @@ window.addEventListener('popstate', (event) => {
 // Function to load and display content
 async function loadAndDisplayContent(link, type, title, targetContentBody = null) {
     const contentBody = targetContentBody || document.querySelector('.content-body');
+    // Clear any loading spinner or prior content
+    contentBody.innerHTML = '';
     let docContent = contentBody.querySelector('.doc-content');
     if (!docContent) {
         docContent = document.createElement('div');
@@ -602,7 +779,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                     const singleCol = columns[0];
                     if (row[singleCol] && row[singleCol].trim() !== '') {
                         const p = document.createElement('p');
-                        setTextWithBreaks(p, row[singleCol]);
+                        setSanitizedHTML(p, row[singleCol]);
                         docContent.appendChild(p);
                         highlightReferences(p, tooltips);
                         initializeTippy(p);
@@ -621,7 +798,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                         // Render as simple p without tabs
                         const singleCol = nonEmptyCols[0];
                         const p = document.createElement('p');
-                        setTextWithBreaks(p, row[singleCol]);
+                        setSanitizedHTML(p, row[singleCol]);
                         docContent.appendChild(p);
                         highlightReferences(p, tooltips);
                         initializeTippy(p);
@@ -651,9 +828,9 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
 
                                 const container = currentTab.closest('.row-container');
                                 const rowContent = container.querySelector('.row-content');
-                                rowContent.textContent = '';
+                                rowContent.innerHTML = '';
                                 const p = document.createElement('p');
-                                setTextWithBreaks(p, row[col]);
+                                setSanitizedHTML(p, row[col]);
                                 rowContent.appendChild(p);
                                 highlightReferences(rowContent, tooltips);
                                 initializeTippy(rowContent);
@@ -684,7 +861,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                         const initialCol = nonEmptyCols[0];
                         if (initialCol) {
                             const initP = document.createElement('p');
-                            setTextWithBreaks(initP, row[initialCol]);
+                            setSanitizedHTML(initP, row[initialCol]);
                             rowContent.appendChild(initP);
                         }
 
