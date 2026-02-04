@@ -1,3 +1,20 @@
+// Helper: safely set text content with newlines as <br> elements
+function setTextWithBreaks(element, text) {
+    element.textContent = '';
+    (text || '').split('\n').forEach((line, i) => {
+        if (i > 0) element.appendChild(document.createElement('br'));
+        element.appendChild(document.createTextNode(line));
+    });
+}
+
+// Helper: create an error paragraph safely (no innerHTML)
+function createErrorP(message) {
+    const p = document.createElement('p');
+    p.className = 'error';
+    p.textContent = message;
+    return p;
+}
+
 let contentElements = {}; // Global object to store preloaded content
 let tooltips = {}; // Global tooltips object to store refs data
 let network = null; // vis.js network instance
@@ -33,7 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Preload and store all content
             const contentBody = document.querySelector('.content-body');
             if (unifiedData.length === 0) {
-                contentBody.innerHTML = '<p class="error">No data found.</p>';
+                contentBody.textContent = '';
+                contentBody.appendChild(createErrorP('No data found.'));
             } else {
                 const loadPromises = [];
                 unifiedData.forEach(row => {
@@ -45,15 +63,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (title && link && type) {
                         contentElements[title] = document.createElement('div');
                         contentElements[title].className = 'doc-content';
-                        if (type === 'article') {
-                            contentElements[title].dataset.tag = tag || '';
-                            contentElements[title].dataset.parent = parent || '';
-                        }
+                        contentElements[title].dataset.tag = tag || '';
+                        contentElements[title].dataset.parent = parent || '';
+                        contentElements[title].dataset.type = type || '';
                         loadPromises.push(loadAndDisplayContent(link, type, title, contentElements[title]));
                     }
                 });
 
                 Promise.all(loadPromises).then(() => {
+                    // Remove loading indicator
+                    const loadingEl = document.getElementById('loading-indicator');
+                    if (loadingEl) loadingEl.remove();
+
                     // Handle deep link from URL params if present
                     const params = new URLSearchParams(window.location.search);
                     const deepType = params.get('type');
@@ -91,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Data fetch error:', error);
             const contentBody = document.querySelector('.content-body');
             if (contentBody) {
-                contentBody.innerHTML += '<p class="error">Failed to load data: ' + error.message + '</p>';
+                contentBody.appendChild(createErrorP('Failed to load data: ' + error.message));
             }
         });
 
@@ -106,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mapDiv.style.display = 'block';
             contentDiv.style.display = 'none';
             if (!mapInitialized) {
-                buildWisdomMap(articlesData); // articlesData needs to be in scope; assume hoisted or adjust
+                buildWisdomMap(unifiedData);
                 mapInitialized = true;
             }
             if (network) network.stabilize();
@@ -117,6 +138,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('popover-close').addEventListener('click', () => {
         document.getElementById('popover').style.display = 'none';
     });
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    if (sidebarToggle && sidebar) {
+        const closeSidebar = () => {
+            sidebar.classList.remove('open');
+            if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+        };
+        sidebarToggle.addEventListener('click', () => {
+            const isOpen = sidebar.classList.toggle('open');
+            if (sidebarOverlay) sidebarOverlay.classList.toggle('active', isOpen);
+        });
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+    }
 });
 
 // Function to populate a sidebar list
@@ -141,80 +180,175 @@ function populateSidebarList(listSelector, data, itemKey, type) {
     }
 }
 
-// Function to build wisdom map
-function buildWisdomMap(articlesData) {
+// Function to build wisdom map with phi-shaped layout
+function buildWisdomMap(data) {
     const container = document.getElementById('wisdom-map');
+    container.style.position = 'relative';
     const nodes = new vis.DataSet();
     const edges = new vis.DataSet();
 
-    // Group styles (made up colors)
+    // Group styles — Wisdom is the stem (deep gold), branches are leaves
     const groups = {
-        'Wisdom': {color: '#007bff', shape: 'ellipse'},
-        'Reality': {color: '#28a745', shape: 'box'},
-        'Reason': {color: '#ffc107', shape: 'diamond'},
-        'Right': {color: '#dc3545', shape: 'circle'},
-        'Musings': {color: '#6f42c1', shape: 'star'}
+        'Wisdom':  { color: { background: '#b8862f', border: '#93681e' }, shape: 'dot', size: 20, font: { color: '#e0e0e0', size: 12 } },
+        'Reality': { color: { background: '#d29a38', border: '#b8862f' }, shape: 'dot', size: 18, font: { color: '#e0e0e0', size: 12 } },
+        'Reason':  { color: { background: '#4a90d9', border: '#3570b0' }, shape: 'dot', size: 18, font: { color: '#e0e0e0', size: 12 } },
+        'Right':   { color: { background: '#c0392b', border: '#962d22' }, shape: 'dot', size: 18, font: { color: '#e0e0e0', size: 12 } },
+        'Musings': { color: { background: '#6f42c1', border: '#5a32a3' }, shape: 'star', size: 12, font: { color: '#e0e0e0', size: 10 } },
+        'Root':    { color: { background: '#b8862f', border: '#93681e' }, shape: 'diamond', size: 25, font: { color: '#e0e0e0', size: 14 } }
     };
 
-    // Add nodes and edges
-    articlesData.forEach(row => {
+    // --- Classify nodes by Tag and Parent ---
+    const classified = { Root: [], Wisdom: [], Reality: [], Reason: [], Right: [], Musings: [], Other: [] };
+
+    data.forEach(row => {
         const title = row['Title']?.trim();
         const tag = row['Tag']?.trim();
         const parent = row['Parent']?.trim();
-        if (title) {
-            nodes.add({
-                id: title,
-                label: title,
-                group: tag,
-                data: {parent: parent, content: contentElements[title] ? contentElements[title].innerHTML : 'Content not loaded'}
-            });
-            if (parent && parent !== 'Root' && parent !== 'Musing' && parent !== title) { // Avoid self-loops
-                edges.add({from: title, to: parent});
-            }
+        const type = row['Type']?.trim().toLowerCase();
+        if (!title) return;
+
+        const entry = { title, tag, parent, type, row };
+        if (parent === 'Root') {
+            classified.Root.push(entry);
+        } else if (parent === 'Musing' || tag === 'Musings') {
+            classified.Musings.push(entry);
+        } else if (tag === 'Wisdom') {
+            classified.Wisdom.push(entry);
+        } else if (tag === 'Reality') {
+            classified.Reality.push(entry);
+        } else if (tag === 'Reason') {
+            classified.Reason.push(entry);
+        } else if (tag === 'Right') {
+            classified.Right.push(entry);
+        } else {
+            classified.Other.push(entry);
         }
     });
 
-    // Network options
-    const options = {
-        layout: {
-            hierarchical: {
-                enabled: true,
-                direction: 'UD', // Default top-down
-                sortMethod: 'directed',
-                nodeSpacing: 150,
-                levelSeparation: 150
-            }
-        },
-        physics: {enabled: false}, // Disable for hierarchical
-        groups: groups,
-        edges: {arrows: 'to'},
-        interaction: {hover: true}
+    // --- Phi layout coordinates ---
+    // Bottom: root circle (phi loop). Stem: Wisdom rises upward. Three leaves branch from top.
+    const centerX = 0;
+    const bottomY = 500;       // Root circle center
+    const circleRadius = 120;  // Phi loop radius
+    const stemTopY = -100;     // Where Wisdom stem meets branching point
+    const branchSpread = 350;  // Horizontal spread of leaf branches
+
+    // Branch anchor positions (seeding locations for each group)
+    const branchAnchors = {
+        'Wisdom':   { x: centerX,                y: (bottomY + stemTopY) / 2 },  // Along the stem
+        'Reality':  { x: centerX - branchSpread,  y: stemTopY - 150 },            // Left leaf
+        'Reason':   { x: centerX,                 y: stemTopY - 250 },            // Center leaf (tallest)
+        'Right':    { x: centerX + branchSpread,   y: stemTopY - 150 },            // Right leaf
+        'Musings':  { x: centerX - branchSpread * 1.2, y: bottomY + 50 },         // Lower-left cluster
+        'Other':    { x: centerX + branchSpread * 0.5, y: bottomY + 100 }         // Fallback
     };
 
-    network = new vis.Network(container, {nodes, edges}, options);
-
-    // Cluster Musings
-    network.cluster({
-        joinCondition: (nodeOptions) => nodeOptions.data.parent === 'Musing',
-        clusterNodeProperties: {id: 'musingsCluster', label: 'Musings Bucket', shape: 'database', color: '#6f42c1'}
+    // --- Position root nodes in a circle at the bottom (phi loop) ---
+    const rootCount = classified.Root.length || 1;
+    classified.Root.forEach((entry, i) => {
+        const angle = (2 * Math.PI * i) / rootCount - Math.PI / 2; // Start from top of circle
+        nodes.add({
+            id: entry.title,
+            label: entry.title,
+            group: 'Root',
+            x: centerX + circleRadius * Math.cos(angle),
+            y: bottomY + circleRadius * Math.sin(angle),
+            fixed: { x: true, y: true },
+            data: { parent: entry.parent, type: entry.type }
+        });
     });
 
-    // Simple zoom clustering (for scale)
-    network.on('zoom', (params) => {
-        if (params.scale < 0.5 && !network.getClusters().length) {
-            // Cluster loose nodes (simplified: cluster all non-root)
-            network.clusterByConnection('Foundations'); // Example, cluster around a root
-        } else if (params.scale >= 0.5) {
-            network.openCluster(network.getClusters()[0]); // Open if clustered
-        }
+    // --- Add branch nodes seeded near their anchor positions ---
+    function addBranchNodes(entries, anchor, groupName) {
+        entries.forEach((entry, i) => {
+            // Spread nodes around anchor with deterministic offsets
+            const angle = (2 * Math.PI * i) / (entries.length || 1);
+            const spread = Math.min(entries.length * 15, 150);
+            const nodeConfig = {
+                id: entry.title,
+                label: entry.title,
+                group: entry.tag || groupName,
+                x: anchor.x + spread * Math.cos(angle),
+                y: anchor.y + spread * Math.sin(angle),
+                data: { parent: entry.parent, type: entry.type }
+            };
+
+            // Visual differentiation by content type
+            if (entry.type === 'book') {
+                nodeConfig.shape = 'box';
+                nodeConfig.borderWidth = 2;
+            } else if (entry.type === 'breakdown') {
+                nodeConfig.shape = 'triangle';
+            }
+
+            nodes.add(nodeConfig);
+
+            // Create edge to parent (skip Root, Musing, self-reference)
+            if (entry.parent && entry.parent !== 'Root' && entry.parent !== 'Musing' && entry.parent !== entry.title) {
+                edges.add({ from: entry.title, to: entry.parent });
+            }
+        });
+    }
+
+    addBranchNodes(classified.Wisdom, branchAnchors['Wisdom'], 'Wisdom');
+    addBranchNodes(classified.Reality, branchAnchors['Reality'], 'Reality');
+    addBranchNodes(classified.Reason, branchAnchors['Reason'], 'Reason');
+    addBranchNodes(classified.Right, branchAnchors['Right'], 'Right');
+    addBranchNodes(classified.Musings, branchAnchors['Musings'], 'Musings');
+    addBranchNodes(classified.Other, branchAnchors['Other'], 'Wisdom');
+
+    // --- Network options: physics-based settling then freeze ---
+    const options = {
+        layout: { hierarchical: { enabled: false } },
+        physics: {
+            enabled: true,
+            solver: 'barnesHut',
+            barnesHut: {
+                gravitationalConstant: -3000,
+                centralGravity: 0.1,
+                springLength: 120,
+                springConstant: 0.04,
+                damping: 0.09
+            },
+            stabilization: {
+                enabled: true,
+                iterations: 200,
+                updateInterval: 25
+            }
+        },
+        groups: groups,
+        edges: {
+            arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+            color: { color: '#555', highlight: '#d29a38' },
+            smooth: { type: 'cubicBezier', roundness: 0.4 }
+        },
+        interaction: { hover: true, zoomView: true, dragView: true }
+    };
+
+    network = new vis.Network(container, { nodes, edges }, options);
+
+    // Freeze physics after stabilization to prevent drift
+    network.on('stabilized', () => {
+        network.setOptions({ physics: { enabled: false } });
     });
 
-    // Hover event
+    // --- Hover event (safe: textContent only) ---
     network.on('hoverNode', (params) => {
+        const nodeData = nodes.get(params.node);
+        if (!nodeData) return;
         const preview = document.getElementById('hover-preview');
-        preview.innerHTML = network.body.nodes[params.node].options.data.content || 'No content';
-        preview.style.left = `${params.pointer.DOM.x + 10}px`;
-        preview.style.top = `${params.pointer.DOM.y + 10}px`;
+        preview.textContent = '';
+        const titleEl = document.createElement('strong');
+        titleEl.textContent = nodeData.label;
+        preview.appendChild(titleEl);
+        if (nodeData.group) {
+            const tagEl = document.createElement('span');
+            tagEl.textContent = ' — ' + nodeData.group;
+            tagEl.style.color = '#999';
+            preview.appendChild(tagEl);
+        }
+        preview.style.left = (params.pointer.DOM.x + 10) + 'px';
+        preview.style.top = (params.pointer.DOM.y + 10) + 'px';
         preview.style.display = 'block';
     });
 
@@ -222,32 +356,52 @@ function buildWisdomMap(articlesData) {
         document.getElementById('hover-preview').style.display = 'none';
     });
 
-    // Click event
+    // --- Click event: open content in main area ---
     network.on('click', (params) => {
         if (params.nodes.length > 0) {
-            const popover = document.getElementById('popover');
-            const contentDiv = document.getElementById('popover-content');
-            contentDiv.innerHTML = network.body.nodes[params.nodes[0]].options.data.content || 'No content';
-            popover.style.display = 'block';
+            const nodeId = params.nodes[0];
+            const nodeData = nodes.get(nodeId);
+            if (nodeData && nodeData.data) {
+                showContent(nodeData.data.type || 'article', nodeId);
+                // Switch from map view to content view
+                document.getElementById('wisdom-map').style.display = 'none';
+                document.querySelector('.content').style.display = 'flex';
+            }
         }
     });
 
-    // Add layout buttons
-    const buttonsDiv = document.createElement('div');
-    buttonsDiv.className = 'layout-buttons';
-    ['UD', 'DU', 'LR'].forEach(dir => { // No RL button
-        const btn = document.createElement('button');
-        btn.textContent = dir === 'UD' ? 'Top-Down' : dir === 'DU' ? 'Bottom-Top' : 'Left-Right';
-        btn.addEventListener('click', () => {
-            buttonsDiv.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            network.setOptions({layout: {hierarchical: {direction: dir}}});
-            network.redraw();
+    // --- Map controls (inside container, not document.body) ---
+    const controlsDiv = document.createElement('div');
+    controlsDiv.className = 'map-controls';
+
+    const resetBtn = document.createElement('button');
+    resetBtn.textContent = 'Reset View';
+    resetBtn.addEventListener('click', () => network.fit({ animation: true }));
+    controlsDiv.appendChild(resetBtn);
+
+    const labelsBtn = document.createElement('button');
+    labelsBtn.textContent = 'Toggle Labels';
+    let labelsVisible = true;
+    labelsBtn.addEventListener('click', () => {
+        labelsVisible = !labelsVisible;
+        const updates = [];
+        nodes.forEach(node => {
+            updates.push({ id: node.id, font: { size: labelsVisible ? 12 : 0 } });
         });
-        if (dir === 'UD') btn.classList.add('active');
-        buttonsDiv.appendChild(btn);
+        nodes.update(updates);
+        labelsBtn.classList.toggle('active', !labelsVisible);
     });
-    document.body.appendChild(buttonsDiv);
+    controlsDiv.appendChild(labelsBtn);
+
+    const physicsBtn = document.createElement('button');
+    physicsBtn.textContent = 'Reflow';
+    physicsBtn.addEventListener('click', () => {
+        network.setOptions({ physics: { enabled: true, stabilization: { iterations: 100 } } });
+        network.stabilize();
+    });
+    controlsDiv.appendChild(physicsBtn);
+
+    container.appendChild(controlsDiv);
 }
 
 // Function to show specific content (simplified toggle, now accepts optional params for deep linking)
@@ -263,6 +417,16 @@ function showContent(type, title, deepParams = null) {
     }
 
     contentBody.innerHTML = ''; // Clear previous content
+
+    // Update active sidebar item
+    document.querySelectorAll('.sidebar button.active-item').forEach(btn => btn.classList.remove('active-item'));
+    document.querySelectorAll('.sidebar .sub-list').forEach(sl => sl.remove());
+    const activeBtn = document.querySelector(`.sidebar button[data-title="${CSS.escape(title)}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active-item');
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
     const docContent = contentElements[title];
     if (docContent) {
         docContent.classList.add('active');
@@ -321,9 +485,34 @@ function showContent(type, title, deepParams = null) {
             }
         }
     } else {
-        contentBody.innerHTML = `<h2>${type.charAt(0).toUpperCase() + type.slice(1)}: ${title} (Content not loaded)</h2><div class="doc-content"></div>`;
+        const heading = document.createElement('h2');
+        heading.textContent = type.charAt(0).toUpperCase() + type.slice(1) + ': ' + title + ' (Content not loaded)';
+        contentBody.appendChild(heading);
+        const emptyDoc = document.createElement('div');
+        emptyDoc.className = 'doc-content';
+        contentBody.appendChild(emptyDoc);
+    }
+
+    // Update URL state for bookmarkability (skip during initial deep link load and popstate)
+    if (!deepParams && !isPopstateNavigation) {
+        const url = new URL(window.location);
+        url.searchParams.set('type', type);
+        url.searchParams.set('content', title);
+        url.searchParams.delete('row');
+        url.searchParams.delete('tab');
+        history.pushState({ type, title }, '', url);
     }
 }
+
+// Handle browser back/forward navigation
+let isPopstateNavigation = false;
+window.addEventListener('popstate', (event) => {
+    if (event.state && event.state.type && event.state.title) {
+        isPopstateNavigation = true;
+        showContent(event.state.type, event.state.title);
+        isPopstateNavigation = false;
+    }
+});
 
 // Function to load and display content
 async function loadAndDisplayContent(link, type, title, targetContentBody = null) {
@@ -347,52 +536,52 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
             const bodyContent = doc.querySelector('body');
 
             if (bodyContent) {
+                // Remove known Google Docs UI containers
                 const bannersDiv = bodyContent.querySelector('#banners');
                 if (bannersDiv) bannersDiv.remove();
-                const elements = bodyContent.querySelectorAll('p, div, span, footer, header');
-                elements.forEach(element => {
-                    const text = element.textContent.toLowerCase();
+                bodyContent.querySelectorAll('footer, header').forEach(el => el.remove());
+                bodyContent.querySelectorAll('[class*="docs-"], [id*="docs-"]').forEach(el => el.remove());
+
+                // Remove only exact-match Google UI strings (not broad substring matching)
+                bodyContent.querySelectorAll('div, p, span').forEach(el => {
+                    const text = el.textContent.toLowerCase().trim();
                     if (
-                        text.includes('published by google') ||
-                        text.includes(title.toLowerCase()) ||
-                        text.includes('google docs') ||
-                        text.includes('share') ||
-                        text.includes('document') ||
-                        element.className.includes('docs') ||
-                        element.tagName.toLowerCase() === 'footer' ||
-                        element.tagName.toLowerCase() === 'header'
+                        text === 'published by google sheets' ||
+                        text === 'published by google docs' ||
+                        text === 'published by google' ||
+                        (el.querySelector('a[href*="docs.google.com"]') && text.length < 100)
                     ) {
-                        element.remove();
+                        el.remove();
                     }
                 });
-                const children = Array.from(bodyContent.children);
-                if (children.length > 0) {
-                    if (children[0].tagName.toLowerCase() === 'div' || children[0].tagName.toLowerCase() === 'p') {
-                        if (children[0].textContent.trim().length < 50) children[0].remove();
-                    }
-                    if (children.length > 0 && (children[children.length - 1].tagName.toLowerCase() === 'div' || children[children.length - 1].tagName.toLowerCase() === 'p')) {
-                        if (children[children.length - 1].textContent.trim().length < 50) children[children.length - 1].remove();
-                    }
+
+                // Remove first child if it exactly matches the document title
+                const firstChild = bodyContent.firstElementChild;
+                if (firstChild && firstChild.textContent.trim().toLowerCase() === title.toLowerCase()) {
+                    firstChild.remove();
                 }
-                docContent.innerHTML = bodyContent.innerHTML;
+
+                docContent.innerHTML = DOMPurify.sanitize(bodyContent.innerHTML);
             } else {
                 const fallbackDiv = document.createElement('div');
-                fallbackDiv.innerHTML = htmlText;
+                fallbackDiv.innerHTML = DOMPurify.sanitize(htmlText);
                 fallbackDiv.querySelectorAll('style').forEach(style => style.remove());
                 fallbackDiv.querySelectorAll('#banners').forEach(banner => banner.remove());
-                docContent.innerHTML = fallbackDiv.innerHTML;
+                docContent.innerHTML = DOMPurify.sanitize(fallbackDiv.innerHTML);
             }
         } else if (link.includes('spreadsheets')) {
             const csvLink = link.replace('/edit', '/pub?output=csv');
             const data = await fetchGoogleSheetData(csvLink);
             if (!data || data.length === 0) {
-                docContent.innerHTML = '<p class="error">No data found for ' + title + '.</p>';
+                docContent.textContent = '';
+                docContent.appendChild(createErrorP('No data found for ' + title + '.'));
                 return;
             }
 
             const columns = Object.keys(data[0] || {}).filter(key => key.startsWith('D:'));
             if (columns.length === 0) {
-                docContent.innerHTML = '<p class="error">No columns with "D:" found for ' + title + '.</p>';
+                docContent.textContent = '';
+                docContent.appendChild(createErrorP('No columns with "D:" found for ' + title + '.'));
                 return;
             }
 
@@ -413,7 +602,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                     const singleCol = columns[0];
                     if (row[singleCol] && row[singleCol].trim() !== '') {
                         const p = document.createElement('p');
-                        p.innerHTML = (row[singleCol] || '').replace(/\n/g, '<br/>');
+                        setTextWithBreaks(p, row[singleCol]);
                         docContent.appendChild(p);
                         highlightReferences(p, tooltips);
                         initializeTippy(p);
@@ -432,7 +621,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                         // Render as simple p without tabs
                         const singleCol = nonEmptyCols[0];
                         const p = document.createElement('p');
-                        p.innerHTML = (row[singleCol] || '').replace(/\n/g, '<br/>');
+                        setTextWithBreaks(p, row[singleCol]);
                         docContent.appendChild(p);
                         highlightReferences(p, tooltips);
                         initializeTippy(p);
@@ -462,9 +651,18 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
 
                                 const container = currentTab.closest('.row-container');
                                 const rowContent = container.querySelector('.row-content');
-                                rowContent.innerHTML = `<p>${(row[col] || '').replace(/\n/g, '<br/>')}</p>`;
+                                rowContent.textContent = '';
+                                const p = document.createElement('p');
+                                setTextWithBreaks(p, row[col]);
+                                rowContent.appendChild(p);
                                 highlightReferences(rowContent, tooltips);
                                 initializeTippy(rowContent);
+
+                                // Update URL with row/tab for deep linking
+                                const url = new URL(window.location);
+                                url.searchParams.set('row', rowIndex + 1);
+                                url.searchParams.set('tab', colIndex + 1);
+                                history.replaceState(null, '', url);
                             });
                             tippy(tab, {
                                 content: tooltipContent,
@@ -485,7 +683,9 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                         // Set initial content to the first non-empty column
                         const initialCol = nonEmptyCols[0];
                         if (initialCol) {
-                            rowContent.innerHTML = `<p>${(row[initialCol] || '').replace(/\n/g, '<br/>')}</p>`;
+                            const initP = document.createElement('p');
+                            setTextWithBreaks(initP, row[initialCol]);
+                            rowContent.appendChild(initP);
                         }
 
                         rowContainer.appendChild(rowContent);
@@ -507,7 +707,8 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
         highlightReferences(docContent, tooltips);
         initializeTippy(docContent);
     } catch (error) {
-        docContent.innerHTML = '<p class="error">Failed to load data for ' + title + '. Please try again later.</p>';
+        docContent.textContent = '';
+        docContent.appendChild(createErrorP('Failed to load data for ' + title + '. Please try again later.'));
     }
 }
 
@@ -532,6 +733,7 @@ function highlightReferences(container, tooltips) {
         });
         if (replaced) {
             const temp = document.createElement('div');
+            // Safe: text originates from text node nodeValue, only <span class="ref"> wrappers injected via regex
             temp.innerHTML = text;
             const fragment = document.createDocumentFragment();
             while (temp.firstChild) {

@@ -101,6 +101,12 @@ body {
     color: var(--gold-accent);
 }
 
+.sidebar button.active-item {
+    color: var(--gold-accent);
+    border-left: 2px solid var(--gold-accent);
+    padding-left: 8px;
+}
+
 #wisdom-map-btn{
     border:1px solid var(--gold-accent);
     text-align: center;
@@ -251,37 +257,39 @@ body {
 /* Wisdom Map styles */
 #wisdom-map {
     width: 100%;
-    height: 600px;
+    height: calc(100vh - 70px);
     border: 1px solid #333;
     background-color: #121212;
     display: none; /* Hidden by default */
+    position: relative;
 }
 
-.layout-buttons {
+.map-controls {
     position: absolute;
-    top: 60px; /* Below nav */
-    right: 20px;
+    top: 10px;
+    right: 10px;
     display: flex;
-    gap: 10px;
-    z-index: 1000;
+    gap: 8px;
+    z-index: 10;
 }
 
-.layout-buttons button {
+.map-controls button {
     background-color: #1e1e1e;
     border: 1px solid #333;
     padding: 6px 10px;
     cursor: pointer;
     border-radius: 4px;
     color: #e0e0e0;
+    font-size: 12px;
     transition: background-color 0.3s ease;
 }
 
-.layout-buttons button.active {
+.map-controls button.active {
     background-color: var(--gold-accent);
     color: #121212;
 }
 
-.layout-buttons button:hover {
+.map-controls button:hover {
     background-color: #2a2a2a;
 }
 
@@ -334,6 +342,29 @@ body {
     background-color: #cc0000;
 }
 
+.loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #333;
+    border-top-color: var(--gold-accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 .hidden {
     display: none;
 }
@@ -354,4 +385,69 @@ body {
 .sub-list {
     margin-left: 20px;
     margin-bottom:10px;
+}
+
+/* Hamburger toggle — hidden on desktop */
+.sidebar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--gold-accent);
+    font-size: 1.5em;
+    cursor: pointer;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 4px 8px;
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* Responsive: mobile layout */
+@media (max-width: 768px) {
+    .sidebar-toggle {
+        display: block;
+    }
+
+    .nav-bar {
+        padding-left: 48px;
+    }
+
+    .sidebar {
+        left: -290px;
+        transition: left 0.3s ease;
+        z-index: 1001;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .container {
+        padding-left: 0;
+    }
+
+    .content-body {
+        max-width: 100%;
+    }
+
+    .doc-content {
+        max-width: 100%;
+        padding: 10px;
+    }
 }
