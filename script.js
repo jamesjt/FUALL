@@ -253,8 +253,8 @@ async function createMapPopup(nodeId, nodeData, clickX, clickY, container) {
             tab.addEventListener('click', function() {
                 const container = this.closest('.row-container');
                 const rowContent = container.querySelector('.row-content');
-                const col = this.dataset.col;
-                const rowData = JSON.parse(this.dataset.row || '{}');
+                const col = this.dataset.column; // Use 'column' not 'col'
+                const rowData = JSON.parse(this.dataset.rowData || '{}'); // Use 'rowData' not 'row'
 
                 // Update active tab
                 container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -813,6 +813,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                             tab.dataset.column = col;
                             tab.dataset.rowIndex = rowIndex;
                             tab.dataset.tabIndex = colIndex + 1; // Add for deep linking (1-based)
+                            tab.dataset.rowData = JSON.stringify(row); // Store row data for popup cloning
                             tab.addEventListener('click', (event) => {
                                 const currentTab = event.target;
                                 const tabs = currentTab.parentNode.querySelectorAll('.tab');
