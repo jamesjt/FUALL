@@ -334,12 +334,12 @@ function buildWisdomMap(data) {
 
     // Group styles — muted fills with darker borders (colors only, shapes set by content type)
     const groups = {
-        'Wisdom':  { color: { background: '#8a7a5a', border: '#5a4a3a' }, size: 20, font: { color: '#e0e0e0', size: 12 } },
-        'Reality': { color: { background: '#7a8a9a', border: '#4a5a6a' }, size: 18, font: { color: '#e0e0e0', size: 12 } },
-        'Reason':  { color: { background: '#c9a868', border: '#8a7040' }, size: 18, font: { color: '#e0e0e0', size: 12 } },
-        'Right':   { color: { background: '#b08080', border: '#806060' }, size: 18, font: { color: '#e0e0e0', size: 12 } },
-        'Musings': { color: { background: '#9080a0', border: '#605070' }, size: 12, font: { color: '#e0e0e0', size: 10 } },
-        'Root':    { color: { background: '#8a7a5a', border: '#5a4a3a' }, size: 25, font: { color: '#e0e0e0', size: 14 } }
+        'Wisdom':  { color: { background: 'rgba(212, 175, 55, 0.5)', border: '#d4af37' }, size: 20, font: { color: '#ffffff', size: 12, vadjust: 30 } },
+        'Reality': { color: { background: 'rgba(122, 138, 154, 0.5)', border: '#7a8a9a' }, size: 18, font: { color: '#ffffff', size: 12, vadjust: 28 } },
+        'Reason':  { color: { background: 'rgba(212, 175, 55, 0.5)', border: '#d4af37' }, size: 18, font: { color: '#ffffff', size: 12, vadjust: 28 } },
+        'Right':   { color: { background: 'rgba(176, 128, 128, 0.5)', border: '#b08080' }, size: 18, font: { color: '#ffffff', size: 12, vadjust: 28 } },
+        'Musings': { color: { background: 'rgba(144, 128, 160, 0.5)', border: '#9080a0' }, size: 12, font: { color: '#ffffff', size: 10, vadjust: 22 } },
+        'Root':    { color: { background: 'rgba(212, 175, 55, 0.5)', border: '#d4af37' }, size: 25, font: { color: '#ffffff', size: 14, vadjust: 35 } }
     };
 
     // --- Classify nodes by Tag and Parent ---
@@ -392,10 +392,10 @@ function buildWisdomMap(data) {
     const rootCount = classified.Root.length || 1;
     classified.Root.forEach((entry, i) => {
         const angle = (2 * Math.PI * i) / rootCount - Math.PI / 2; // Start from top of circle
-        // Shape by content type
+        // Shape by content type (square instead of box so labels appear below)
         let shape = 'dot';
         if (entry.type === 'article') shape = 'diamond';
-        else if (entry.type === 'book') shape = 'box';
+        else if (entry.type === 'book') shape = 'square';
         else if (entry.type === 'breakdown') shape = 'triangle';
 
         nodes.add({
@@ -425,11 +425,12 @@ function buildWisdomMap(data) {
                 data: { parent: entry.parent, type: entry.type }
             };
 
-            // Shape by content type: article=diamond, book=box, breakdown=triangle
+            // Shape by content type: article=diamond, book=square, breakdown=triangle
+            // Using square instead of box so labels appear below (box puts label inside)
             if (entry.type === 'article') {
                 nodeConfig.shape = 'diamond';
             } else if (entry.type === 'book') {
-                nodeConfig.shape = 'box';
+                nodeConfig.shape = 'square';
                 nodeConfig.borderWidth = 2;
             } else if (entry.type === 'breakdown') {
                 nodeConfig.shape = 'triangle';
@@ -439,9 +440,9 @@ function buildWisdomMap(data) {
 
             nodes.add(nodeConfig);
 
-            // Create edge to parent (skip Root, Musing, self-reference)
+            // Create edge from parent to child (arrow points to child)
             if (entry.parent && entry.parent !== 'Root' && entry.parent !== 'Musing' && entry.parent !== entry.title) {
-                edges.add({ from: entry.title, to: entry.parent });
+                edges.add({ from: entry.parent, to: entry.title });
             }
         });
     }
