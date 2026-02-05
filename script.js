@@ -370,108 +370,58 @@ function buildWisdomMap(data) {
         }
     });
 
-    // --- Phi layout coordinates ---
-    // Bottom: root circle (phi loop). Stem: Wisdom rises upward. Three leaves branch from top.
-    const centerX = 0;
-    const bottomY = 500;       // Root circle center
-    const circleRadius = 120;  // Phi loop radius
-    const stemTopY = -100;     // Where Wisdom stem meets branching point
-    const branchSpread = 350;  // Horizontal spread of leaf branches
-
-    // Branch anchor positions (seeding locations for each group)
-    const branchAnchors = {
-        'Wisdom':   { x: centerX,                y: (bottomY + stemTopY) / 2 },  // Along the stem
-        'Reality':  { x: centerX - branchSpread,  y: stemTopY - 150 },            // Left leaf
-        'Reason':   { x: centerX,                 y: stemTopY - 250 },            // Center leaf (tallest)
-        'Right':    { x: centerX + branchSpread,   y: stemTopY - 150 },            // Right leaf
-        'Musings':  { x: centerX - branchSpread * 1.2, y: bottomY + 50 },         // Lower-left cluster
-        'Other':    { x: centerX + branchSpread * 0.5, y: bottomY + 100 }         // Fallback
-    };
-
-    // --- Position root nodes in a circle at the bottom (phi loop) ---
-    const rootCount = classified.Root.length || 1;
-    classified.Root.forEach((entry, i) => {
-        const angle = (2 * Math.PI * i) / rootCount - Math.PI / 2; // Start from top of circle
-        // Shape by content type (square instead of box so labels appear below)
-        let shape = 'dot';
-        if (entry.type === 'article') shape = 'diamond';
-        else if (entry.type === 'book') shape = 'square';
-        else if (entry.type === 'breakdown') shape = 'triangle';
-
-        nodes.add({
-            id: entry.title,
-            label: entry.title,
-            group: 'Root',
-            shape: shape,
-            x: centerX + circleRadius * Math.cos(angle),
-            y: bottomY + circleRadius * Math.sin(angle),
-            fixed: { x: true, y: true },
-            data: { parent: entry.parent, type: entry.type }
-        });
-    });
-
-    // --- Add branch nodes seeded near their anchor positions ---
-    function addBranchNodes(entries, anchor, groupName) {
-        entries.forEach((entry, i) => {
-            // Spread nodes around anchor with deterministic offsets
-            const angle = (2 * Math.PI * i) / (entries.length || 1);
-            const spread = Math.min(entries.length * 15, 150);
-            const nodeConfig = {
-                id: entry.title,
-                label: entry.title,
-                group: entry.tag || groupName,
-                x: anchor.x + spread * Math.cos(angle),
-                y: anchor.y + spread * Math.sin(angle),
-                data: { parent: entry.parent, type: entry.type }
-            };
-
-            // Shape by content type: article=diamond, book=square, breakdown=triangle
-            // Using square instead of box so labels appear below (box puts label inside)
-            if (entry.type === 'article') {
-                nodeConfig.shape = 'diamond';
-            } else if (entry.type === 'book') {
-                nodeConfig.shape = 'square';
-                nodeConfig.borderWidth = 2;
-            } else if (entry.type === 'breakdown') {
-                nodeConfig.shape = 'triangle';
-            } else {
-                nodeConfig.shape = 'dot';
-            }
-
-            nodes.add(nodeConfig);
-
-            // Create edge from parent to child (arrow points to child)
-            if (entry.parent && entry.parent !== 'Root' && entry.parent !== 'Musing' && entry.parent !== entry.title) {
-                edges.add({ from: entry.parent, to: entry.title });
-            }
-        });
+    // --- Helper: get shape by content type ---
+    function getShape(type) {
+        if (type === 'article') return 'diamond';
+        if (type === 'book') return 'square';
+        if (type === 'breakdown') return 'triangle';
+        return 'dot';
     }
 
-    addBranchNodes(classified.Wisdom, branchAnchors['Wisdom'], 'Wisdom');
-    addBranchNodes(classified.Reality, branchAnchors['Reality'], 'Reality');
-    addBranchNodes(classified.Reason, branchAnchors['Reason'], 'Reason');
-    addBranchNodes(classified.Right, branchAnchors['Right'], 'Right');
-    addBranchNodes(classified.Musings, branchAnchors['Musings'], 'Musings');
-    addBranchNodes(classified.Other, branchAnchors['Other'], 'Wisdom');
+    // --- Add all nodes (hierarchical layout will position them) ---
+    function addNode(entry, groupName) {
+        const nodeConfig = {
+            id: entry.title,
+            label: entry.title,
+            group: entry.tag || groupName,
+            shape: getShape(entry.type),
+            data: { parent: entry.parent, type: entry.type }
+        };
+        if (entry.type === 'book') {
+            nodeConfig.borderWidth = 2;
+        }
+        nodes.add(nodeConfig);
 
-    // --- Network options: physics-based settling then freeze ---
+        // Create edge from parent to child (arrow points to child)
+        if (entry.parent && entry.parent !== 'Root' && entry.parent !== 'Musing' && entry.parent !== entry.title) {
+            edges.add({ from: entry.parent, to: entry.title });
+        }
+    }
+
+    // Add all classified nodes
+    classified.Root.forEach(entry => addNode(entry, 'Root'));
+    classified.Wisdom.forEach(entry => addNode(entry, 'Wisdom'));
+    classified.Reality.forEach(entry => addNode(entry, 'Reality'));
+    classified.Reason.forEach(entry => addNode(entry, 'Reason'));
+    classified.Right.forEach(entry => addNode(entry, 'Right'));
+    classified.Musings.forEach(entry => addNode(entry, 'Musings'));
+    classified.Other.forEach(entry => addNode(entry, 'Wisdom'));
+
+    // --- Network options: hierarchical layout (upward flow, no dragging) ---
     const options = {
-        layout: { hierarchical: { enabled: false } },
-        physics: {
-            enabled: true,
-            solver: 'barnesHut',
-            barnesHut: {
-                gravitationalConstant: -3000,
-                centralGravity: 0.1,
-                springLength: 120,
-                springConstant: 0.04,
-                damping: 0.09
-            },
-            stabilization: {
+        layout: {
+            hierarchical: {
                 enabled: true,
-                iterations: 200,
-                updateInterval: 25
+                direction: 'DU',           // Down-to-Up (root at bottom, leaves at top)
+                sortMethod: 'directed',    // Follow edge directions
+                levelSeparation: 120,      // Vertical spacing between levels
+                nodeSpacing: 180,          // Horizontal spacing between nodes
+                treeSpacing: 250,          // Spacing between disconnected trees
+                shakeTowards: 'roots'      // Minimize edge crossings toward roots
             }
+        },
+        physics: {
+            enabled: false  // Static layout, no physics
         },
         groups: groups,
         edges: {
@@ -479,15 +429,15 @@ function buildWisdomMap(data) {
             color: { color: '#555', highlight: '#d29a38' },
             smooth: { type: 'cubicBezier', roundness: 0.4 }
         },
-        interaction: { hover: true, zoomView: true, dragView: true }
+        interaction: {
+            hover: true,
+            zoomView: true,
+            dragView: true,
+            dragNodes: false  // Prevent node dragging
+        }
     };
 
     network = new vis.Network(container, { nodes, edges }, options);
-
-    // Freeze physics after stabilization to prevent drift
-    network.on('stabilized', () => {
-        network.setOptions({ physics: { enabled: false } });
-    });
 
     // --- Hover event (safe: textContent only) ---
     network.on('hoverNode', (params) => {
