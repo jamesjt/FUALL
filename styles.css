@@ -296,18 +296,52 @@ body {
     text-decoration: none;
 }
 
-.tippy-box[data-theme~='custom'] {
-    background-color: var(--surface);
-    color: #e0e0e0;
-    padding: 8px 12px;
-    border-radius: 6px;
-    max-width: 200px;
+/* Custom tooltip (replaces Tippy.js) */
+.custom-tooltip {
+    position: fixed;
+    display: none;
+    background-color: #333232;
+    color: #f0f0f0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(147, 104, 30, 0.4);
+    max-width: 320px;
+    max-height: 350px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     word-wrap: break-word;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(210, 154, 56, 0.15);
+    z-index: 9999;
+    pointer-events: auto;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
-.tippy-box[data-theme~='custom'] .tippy-arrow {
-    color: var(--surface);
+/* Custom scrollbar for tooltip */
+.custom-tooltip::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-tooltip::-webkit-scrollbar-track {
+    background: #000;
+    border-radius: 4px;
+}
+
+.custom-tooltip::-webkit-scrollbar-thumb {
+    background: var(--gold-accent);
+    border-radius: 4px;
+}
+
+.custom-tooltip::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-hover);
+}
+
+.custom-tooltip.visible {
+    display: block;
+}
+
+.custom-tooltip a {
+    color: var(--gold-accent);
 }
 
 /* ── Wisdom Map ── */
@@ -348,6 +382,69 @@ body {
 .map-controls button:hover {
     background-color: var(--surface-hover);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Map Filter Controls (top-left) ── */
+.map-filter-controls {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+    background-color: rgba(30, 30, 30, 0.9);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-medium);
+}
+
+.map-search-input {
+    background-color: var(--surface);
+    border: 1px solid var(--border-medium);
+    color: #e0e0e0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 180px;
+    transition: border-color 0.2s ease;
+}
+
+.map-search-input:focus {
+    outline: none;
+    border-color: var(--gold-accent);
+}
+
+.map-search-input::placeholder {
+    color: #666;
+}
+
+.map-tag-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.map-filter-btn {
+    background-color: transparent;
+    border: 1px solid var(--border-medium);
+    color: #999;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.map-filter-btn:hover {
+    border-color: var(--gold-accent);
+    color: var(--gold-accent);
+}
+
+.map-filter-btn.active {
+    background-color: var(--gold-glow);
+    border-color: var(--gold-accent);
+    color: var(--gold-accent);
 }
 
 #hover-preview {
@@ -508,6 +605,12 @@ body {
     margin-bottom: 12px;
 }
 
+.inline-loading .loading-phi {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 12px;
+}
+
 .inline-loading p {
     font-size: 14px;
     margin: 0;
@@ -530,6 +633,23 @@ body {
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin-bottom: 16px;
+}
+
+.loading-phi {
+    width: 20px;
+    height: 20px;
+    animation: phiGrow 1.5s ease-out infinite;
+}
+
+@keyframes phiGrow {
+    0% {
+        transform: scale(0.3);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 1;
+    }
 }
 
 @keyframes spin {

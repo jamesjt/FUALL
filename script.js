@@ -20,29 +20,41 @@ function setSanitizedHTML(element, html) {
     element.innerHTML = DOMPurify.sanitize(
         (html || '').replace(/\n/g, '<br>'),
         { ALLOWED_TAGS: ['b', 'i', 'strong', 'em', 'a', 'br', 'span', 'u', 'sub', 'sup'],
-          ALLOWED_ATTR: ['href', 'target', 'class'] }
+          ALLOWED_ATTR: ['href', 'target', 'class', 'rel'] }
     );
 }
+
+// Make all links open in new tab
+DOMPurify.addHook('afterSanitizeAttributes', function(node) {
+    if (node.tagName === 'A' && node.getAttribute('href')) {
+        node.setAttribute('target', '_blank');
+        node.setAttribute('rel', 'noopener noreferrer');
+    }
+});
 
 let contentElements = {}; // Global object to store preloaded content
 let contentMeta = {}; // Metadata for lazy loading: { title: { link, type, loaded } }
 let tooltips = {}; // Global tooltips object to store refs data
 let network = null; // vis.js network instance
 let mapInitialized = false; // Flag for lazy init
-let unifiedData, articlesData, booksData, breakdownsData;
+let unifiedData, articlesData, booksData, breakdownsData, phiShapeData;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Unified content sheet URL (Articles sheet with Type column)
     const unifiedSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=464648636&output=csv';
     // Internal refs URL (separate)
     const refsSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=1749170252&single=true&output=csv';
+    // Phi shape points URL — spreadsheet tab with Part, Order, X, Y columns
+    // defining the outline of each phi shape section (stem, left-loop, right-loop, etc.)
+    const phiShapeUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQO5WGpGvmUNEt4KdK6UFHq7Q9Q-L-p7pOho1u0afMoM0j-jpWdMGqD7VNm7Fp4e9ktcTZXFknLnfUL/pub?gid=849779106&single=true&output=csv';
 
-    // Fetch unified content and refs
+    // Fetch unified content, refs, and phi shape points
     Promise.all([
         fetchGoogleSheetData(unifiedSheetUrl),
-        fetchGoogleSheetData(refsSheetUrl)
+        fetchGoogleSheetData(refsSheetUrl),
+        fetchGoogleSheetData(phiShapeUrl).catch(() => [])  // Optional — don't fail if missing
     ])
-        .then(([unified, refs]) => {
+        .then(([unified, refs, phiShapePoints]) => {
             // Process tooltips data (separate)
             tooltips = refs.reduce((acc, row) => {
                 if (row.References && row.Data) {
@@ -53,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Store and filter unified data
             unifiedData = unified || [];
+            phiShapeData = phiShapePoints || [];
             articlesData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'article');
             booksData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'book');
             breakdownsData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'breakdown');
@@ -105,12 +118,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // Add MutationObserver to reapply tooltips on DOM changes
+                // Add MutationObserver to reapply tooltips on DOM changes (debounced)
+                let mutationTimeout = null;
                 const observer = new MutationObserver(() => {
-                    observer.disconnect();
-                    highlightReferences(contentBody, tooltips);
-                    initializeTippy(contentBody);
-                    observer.observe(contentBody, { childList: true, subtree: true });
+                    if (mutationTimeout) clearTimeout(mutationTimeout);
+                    mutationTimeout = setTimeout(() => {
+                        observer.disconnect();
+                        highlightReferences(contentBody, tooltips);
+                        initializeTooltips(contentBody);
+                        observer.observe(contentBody, { childList: true, subtree: true });
+                    }, 100);
                 });
                 observer.observe(contentBody, { childList: true, subtree: true });
             }
@@ -134,8 +151,11 @@ document.addEventListener('DOMContentLoaded', () => {
             mapDiv.style.display = 'block';
             contentDiv.style.display = 'none';
             if (!mapInitialized) {
-                buildWisdomMap(unifiedData);
-                mapInitialized = true;
+                // Wait for icon fonts to load before building map
+                document.fonts.ready.then(() => {
+                    buildWisdomMap(unifiedData, phiShapeData);
+                    mapInitialized = true;
+                });
             }
             if (network) network.stabilize();
         }
@@ -326,23 +346,79 @@ function makePopupDraggable(popup, handle) {
 }
 
 // Function to build wisdom map with phi-shaped layout
-function buildWisdomMap(data) {
+function buildWisdomMap(data, shapePoints) {
+    if (!data || !Array.isArray(data)) return;
     const container = document.getElementById('wisdom-map');
     container.style.position = 'relative';
     const nodes = new vis.DataSet();
     const edges = new vis.DataSet();
 
-    // Group styles — muted fills with darker borders (colors only, shapes set by content type)
+    // Hardcoded node positions from user layout
+    const hardcodedPositions = {
+        "Foundations": { x: 102, y: 227 },
+        "Nicomachaen Ethics": { x: 50, y: -90 },  // Moved right into Right leaf (Ethics topic)
+        "Metaphysics": { x: -2, y: -34 },
+        "Republic": { x: 119, y: 169 },
+        "Synposium": { x: 96, y: 99 },
+        "Phaedo": { x: -99, y: 103 },
+        "Apology": { x: -117, y: 200 },
+        "Physics": { x: -91, y: -145 },
+        "Civil Discourse: 3D's of Discourse": { x: -5, y: -170 },
+        "Critique of Pure Reason": { x: 3, y: -290 },
+        "The Organon": { x: 0, y: -130 },  // Moved up into center leaf (Logic topic)
+        "Rhetoric": { x: -5, y: -189 },
+        "Poetics": { x: -5, y: -236 },
+        "Power": { x: 67, y: -115 },
+        "Left and Right": { x: 107, y: -155 },
+        "On Liberty": { x: 127, y: -181 },
+        "Philosophy of Right": { x: 56, y: -162 },
+        "De Anima": { x: -63, y: -127 },
+        "Politics": { x: 181, y: -251 },
+        "Sneaky Candy": { x: -200, y: 220 },
+        "Test Breakdown": { x: 321, y: 154 }
+    };
+
+    // Group styles — small grey nodes with subtle borders
     const groups = {
-        'Wisdom':  { color: { background: 'rgba(212, 175, 55, 0.5)', border: '#d4af37' }, size: 20, font: { color: '#ffffff', size: 12, vadjust: 30 } },
-        'Reality': { color: { background: 'rgba(122, 138, 154, 0.5)', border: '#7a8a9a' }, size: 18, font: { color: '#ffffff', size: 12, vadjust: 28 } },
-        'Reason':  { color: { background: 'rgba(212, 175, 55, 0.5)', border: '#d4af37' }, size: 18, font: { color: '#ffffff', size: 12, vadjust: 28 } },
-        'Right':   { color: { background: 'rgba(176, 128, 128, 0.5)', border: '#b08080' }, size: 18, font: { color: '#ffffff', size: 12, vadjust: 28 } },
-        'Musings': { color: { background: 'rgba(144, 128, 160, 0.5)', border: '#9080a0' }, size: 12, font: { color: '#ffffff', size: 10, vadjust: 22 } },
-        'Root':    { color: { background: 'rgba(212, 175, 55, 0.5)', border: '#d4af37' }, size: 25, font: { color: '#ffffff', size: 14, vadjust: 35 } }
+        'Wisdom':  { color: { background: 'rgba(160, 160, 170, 0.5)', border: '#888890' }, size: 8, font: { color: '#ffffff', size: 6, vadjust: 1 } },
+        'Reality': { color: { background: 'rgba(140, 150, 165, 0.5)', border: '#7a8a9a' }, size: 8, font: { color: '#ffffff', size: 6, vadjust: 1 } },
+        'Reason':  { color: { background: 'rgba(160, 160, 170, 0.5)', border: '#888890' }, size: 8, font: { color: '#ffffff', size: 6, vadjust: 1 } },
+        'Right':   { color: { background: 'rgba(155, 145, 155, 0.5)', border: '#888890' }, size: 8, font: { color: '#ffffff', size: 6, vadjust: 1 } },
+        'Musings': { color: { background: 'rgba(140, 140, 150, 0.5)', border: '#808088' }, size: 6, font: { color: '#eeeeee', size: 5, vadjust: 0 } },
+        'Root':    { color: { background: 'rgba(170, 170, 180, 0.5)', border: '#999' }, size: 10, font: { color: '#ffffff', size: 7, vadjust: 2 } }
+    };
+
+    // --- Phi shape coordinates (matching widephi.png proportions) ---
+    // The phi image is roughly 500x600, centered at origin
+    const phi = {
+        // Image dimensions for background
+        width: 500,
+        height: 600,
+        // Loop (bottom) - the circular part of phi
+        loop: {
+            centerX: 0,
+            centerY: 220,
+            radius: 80
+        },
+        // Stem - vertical line from loop to branch point
+        stem: {
+            x: 0,
+            bottomY: 140,    // Just above loop top
+            topY: -100       // Branch point where leaves start
+        },
+        // Leaves - curved paths for Reality (left), Reason (center), Right (right)
+        leaves: {
+            // Left leaf curves outward and up
+            reality: { tipX: -200, tipY: -280, ctrlX: -140, ctrlY: -180 },
+            // Center leaf goes straight up
+            reason:  { tipX: 0, tipY: -320, ctrlX: 0, ctrlY: -210 },
+            // Right leaf curves outward and up
+            right:   { tipX: 200, tipY: -280, ctrlX: 140, ctrlY: -180 }
+        }
     };
 
     // --- Classify nodes by Tag and Parent ---
+    // Also extract manual X/Y coordinates if provided in spreadsheet
     const classified = { Root: [], Wisdom: [], Reality: [], Reason: [], Right: [], Musings: [], Other: [] };
 
     data.forEach(row => {
@@ -352,7 +428,12 @@ function buildWisdomMap(data) {
         const type = row['Type']?.trim().toLowerCase();
         if (!title) return;
 
-        const entry = { title, tag, parent, type, row };
+        // Read manual X/Y coordinates (if columns exist and have values)
+        const manualX = row['X'] !== undefined && row['X'] !== '' ? parseFloat(row['X']) : null;
+        const manualY = row['Y'] !== undefined && row['Y'] !== '' ? parseFloat(row['Y']) : null;
+        const hasManualPos = manualX !== null && manualY !== null && !isNaN(manualX) && !isNaN(manualY);
+
+        const entry = { title, tag, parent, type, row, manualX, manualY, hasManualPos };
         if (parent === 'Root') {
             classified.Root.push(entry);
         } else if (parent === 'Musing' || tag === 'Musings') {
@@ -370,74 +451,442 @@ function buildWisdomMap(data) {
         }
     });
 
-    // --- Helper: get shape by content type ---
-    function getShape(type) {
-        if (type === 'article') return 'diamond';
-        if (type === 'book') return 'square';
-        if (type === 'breakdown') return 'triangle';
-        return 'dot';
+    // --- Helper: get shape/icon by content type ---
+    // Uses Font Awesome 4 icons via vis.js icon shape
+    function getNodeAppearance(type) {
+        if (type === 'article') return { shape: 'icon', icon: { face: 'FontAwesome', code: '\uf15c', size: 10, color: '#ffffff' } };
+        if (type === 'book')    return { shape: 'icon', icon: { face: 'FontAwesome', code: '\uf02d', size: 10, color: '#ffffff' } };
+        if (type === 'breakdown') return { shape: 'icon', icon: { face: 'FontAwesome', code: '\uf0e8', size: 10, color: '#ffffff' } };
+        return { shape: 'dot' };
     }
 
-    // --- Add all nodes (hierarchical layout will position them) ---
-    function addNode(entry, groupName) {
-        const nodeConfig = {
-            id: entry.title,
-            label: entry.title,
-            group: entry.tag || groupName,
-            shape: getShape(entry.type),
-            data: { parent: entry.parent, type: entry.type }
-        };
-        if (entry.type === 'book') {
-            nodeConfig.borderWidth = 2;
-        }
-        nodes.add(nodeConfig);
-
-        // Create edge from parent to child (arrow points to child)
+    // --- Helper: add edge from parent to child ---
+    function addEdge(entry) {
         if (entry.parent && entry.parent !== 'Root' && entry.parent !== 'Musing' && entry.parent !== entry.title) {
             edges.add({ from: entry.parent, to: entry.title });
         }
     }
 
-    // Add all classified nodes
-    classified.Root.forEach(entry => addNode(entry, 'Root'));
-    classified.Wisdom.forEach(entry => addNode(entry, 'Wisdom'));
-    classified.Reality.forEach(entry => addNode(entry, 'Reality'));
-    classified.Reason.forEach(entry => addNode(entry, 'Reason'));
-    classified.Right.forEach(entry => addNode(entry, 'Right'));
-    classified.Musings.forEach(entry => addNode(entry, 'Musings'));
-    classified.Other.forEach(entry => addNode(entry, 'Wisdom'));
+    // --- Helper: quadratic bezier point at t ---
+    function bezierPoint(t, p0, p1, p2) {
+        const mt = 1 - t;
+        return {
+            x: mt * mt * p0.x + 2 * mt * t * p1.x + t * t * p2.x,
+            y: mt * mt * p0.y + 2 * mt * t * p1.y + t * t * p2.y
+        };
+    }
 
-    // --- Network options: hierarchical layout (upward flow, no dragging) ---
+    // --- Helper: create node with manual or auto position ---
+    function addNodeWithPosition(entry, groupName, autoX, autoY) {
+        // Priority: hardcoded > manual spreadsheet > auto
+        const hardcoded = hardcodedPositions[entry.title];
+        const x = hardcoded ? hardcoded.x : (entry.hasManualPos ? entry.manualX : autoX);
+        const y = hardcoded ? hardcoded.y : (entry.hasManualPos ? entry.manualY : autoY);
+        const appearance = getNodeAppearance(entry.type);
+        const nodeData = {
+            id: entry.title,
+            label: entry.title,
+            group: groupName,
+            shape: appearance.shape,
+            x: x,
+            y: y,
+            fixed: { x: true, y: true },
+            data: { parent: entry.parent, type: entry.type }
+        };
+        if (appearance.icon) nodeData.icon = appearance.icon;
+        if (appearance.image) nodeData.image = appearance.image;
+        if (appearance.size) nodeData.size = appearance.size;
+        nodes.add(nodeData);
+        addEdge(entry);
+        return { x, y };  // Return position for leaf curve calculations
+    }
+
+    // Track node positions for dynamic leaf curves
+    const nodePositions = { Reality: [], Reason: [], Right: [], Wisdom: [], Root: [] };
+
+    // --- 1. Root nodes positioned in the phi loop area (bottom) ---
+    const rootCount = classified.Root.length;
+    classified.Root.forEach((entry, i) => {
+        // Spread horizontally across the loop center, vertically at loop center
+        const spread = rootCount > 1 ? (i - (rootCount - 1) / 2) * 60 : 0;
+        const autoX = phi.loop.centerX + spread;
+        const autoY = phi.loop.centerY;
+        const pos = addNodeWithPosition(entry, 'Root', autoX, autoY);
+        nodePositions.Root.push(pos);
+    });
+
+    // --- Parse phi shape points from spreadsheet (if available) ---
+    // Expected columns: Part, Order, X, Y, Width (optional)
+    const shapeParts = {};
+    if (shapePoints && shapePoints.length > 0) {
+        shapePoints.forEach(row => {
+            const part = row['Part']?.trim();
+            const order = parseFloat(row['Order']);
+            const x = parseFloat(row['X']);
+            const y = parseFloat(row['Y']);
+            const width = row['Width'] !== undefined && row['Width'] !== '' ? parseFloat(row['Width']) : null;
+            if (part && !isNaN(order) && !isNaN(x) && !isNaN(y)) {
+                if (!shapeParts[part]) shapeParts[part] = [];
+                shapeParts[part].push({ order, x, y, width });
+            }
+        });
+        // Sort each part's points by order
+        Object.values(shapeParts).forEach(pts => pts.sort((a, b) => a.order - b.order));
+    }
+    const hasShapeData = Object.keys(shapeParts).length > 0;
+
+    // --- 2. Wisdom nodes along ribbon centerline ---
+    const wisdomCount = classified.Wisdom.length;
+
+    // Get centerline points from shape data (if available)
+    const seedPts = shapeParts['seed'] || [];
+
+    if (seedPts.length >= 2 && wisdomCount > 0) {
+        // Calculate cumulative distances along centerline
+        const distances = [0];
+        for (let i = 1; i < seedPts.length; i++) {
+            const dx = seedPts[i].x - seedPts[i-1].x;
+            const dy = seedPts[i].y - seedPts[i-1].y;
+            distances.push(distances[i-1] + Math.sqrt(dx*dx + dy*dy));
+        }
+        const totalLength = distances[distances.length - 1];
+
+        // Distribute Wisdom nodes evenly along path
+        classified.Wisdom.forEach((entry, i) => {
+            // Target distance along path (evenly spaced)
+            const targetDist = (i / (wisdomCount - 1 || 1)) * totalLength;
+
+            // Find which segment this falls on
+            let segIdx = 0;
+            while (segIdx < distances.length - 1 && distances[segIdx + 1] < targetDist) {
+                segIdx++;
+            }
+
+            // Interpolate within segment
+            const segStart = distances[segIdx];
+            const segEnd = distances[segIdx + 1] || segStart;
+            const segLen = segEnd - segStart;
+            const t = segLen > 0 ? (targetDist - segStart) / segLen : 0;
+
+            const p0 = seedPts[segIdx];
+            const p1 = seedPts[segIdx + 1] || p0;
+            const autoX = p0.x + t * (p1.x - p0.x);
+            const autoY = p0.y + t * (p1.y - p0.y);
+
+            const pos = addNodeWithPosition(entry, 'Wisdom', autoX, autoY);
+            nodePositions.Wisdom.push(pos);
+        });
+    } else {
+        // Fallback: center of loop if no shape data
+        classified.Wisdom.forEach((entry) => {
+            const pos = addNodeWithPosition(entry, 'Wisdom', phi.loop.centerX, phi.loop.centerY);
+            nodePositions.Wisdom.push(pos);
+        });
+    }
+
+    // --- 3. Reality nodes along left leaf curve ---
+    const realityCount = classified.Reality.length;
+    const realityStart = { x: phi.stem.x - 20, y: phi.stem.topY };
+    const realityCtrl = { x: phi.leaves.reality.ctrlX, y: phi.leaves.reality.ctrlY };
+    const realityTip = { x: phi.leaves.reality.tipX, y: phi.leaves.reality.tipY };
+    classified.Reality.forEach((entry, i) => {
+        const t = (i + 1) / (realityCount + 1);  // Spread along curve
+        const autoPos = bezierPoint(t, realityStart, realityCtrl, realityTip);
+        const pos = addNodeWithPosition(entry, 'Reality', autoPos.x, autoPos.y);
+        nodePositions.Reality.push(pos);
+    });
+
+    // --- 4. Reason nodes along center leaf (straight up) ---
+    const reasonCount = classified.Reason.length;
+    const reasonStart = { x: phi.stem.x, y: phi.stem.topY };
+    const reasonCtrl = { x: phi.leaves.reason.ctrlX, y: phi.leaves.reason.ctrlY };
+    const reasonTip = { x: phi.leaves.reason.tipX, y: phi.leaves.reason.tipY };
+    classified.Reason.forEach((entry, i) => {
+        const t = (i + 1) / (reasonCount + 1);
+        const autoPos = bezierPoint(t, reasonStart, reasonCtrl, reasonTip);
+        const pos = addNodeWithPosition(entry, 'Reason', autoPos.x, autoPos.y);
+        nodePositions.Reason.push(pos);
+    });
+
+    // --- 5. Right nodes along right leaf curve ---
+    const rightCount = classified.Right.length;
+    const rightStart = { x: phi.stem.x + 20, y: phi.stem.topY };
+    const rightCtrl = { x: phi.leaves.right.ctrlX, y: phi.leaves.right.ctrlY };
+    const rightTip = { x: phi.leaves.right.tipX, y: phi.leaves.right.tipY };
+    classified.Right.forEach((entry, i) => {
+        const t = (i + 1) / (rightCount + 1);
+        const autoPos = bezierPoint(t, rightStart, rightCtrl, rightTip);
+        const pos = addNodeWithPosition(entry, 'Right', autoPos.x, autoPos.y);
+        nodePositions.Right.push(pos);
+    });
+
+    // --- 6. Musings nodes positioned off to the side ---
+    classified.Musings.forEach((entry, i) => {
+        const autoX = -200 + (i % 3) * 50;
+        const autoY = 220 + Math.floor(i / 3) * 50;
+        addNodeWithPosition(entry, 'Musings', autoX, autoY);
+    });
+
+    // --- 7. Other nodes along stem extension ---
+    classified.Other.forEach((entry, i) => {
+        const autoX = 30 + (i % 2) * 40;
+        const autoY = phi.stem.bottomY + 20 + Math.floor(i / 2) * 40;
+        addNodeWithPosition(entry, 'Wisdom', autoX, autoY);
+    });
+
+    // --- Network options: no physics, all fixed positions ---
     const options = {
         layout: {
-            hierarchical: {
-                enabled: true,
-                direction: 'DU',           // Down-to-Up (root at bottom, leaves at top)
-                sortMethod: 'directed',    // Follow edge directions
-                levelSeparation: 120,      // Vertical spacing between levels
-                nodeSpacing: 180,          // Horizontal spacing between nodes
-                treeSpacing: 250,          // Spacing between disconnected trees
-                shakeTowards: 'roots'      // Minimize edge crossings toward roots
-            }
+            hierarchical: { enabled: false }
         },
         physics: {
-            enabled: false  // Static layout, no physics
+            enabled: false  // All nodes are fixed, no physics needed
         },
         groups: groups,
         edges: {
-            arrows: { to: { enabled: true, scaleFactor: 0.5 } },
-            color: { color: '#555', highlight: '#d29a38' },
-            smooth: { type: 'cubicBezier', roundness: 0.4 }
+            arrows: { to: { enabled: true, scaleFactor: 0.3 } },  // Smaller arrows
+            color: { color: 'rgba(180, 160, 120, 0.4)', highlight: '#d29a38' },  // Elegant warm gold
+            width: 1,  // Thinner edges
+            smooth: { type: 'continuous', roundness: 0.2 }  // Gentler curves
         },
         interaction: {
             hover: true,
             zoomView: true,
             dragView: true,
-            dragNodes: false  // Prevent node dragging
+            dragNodes: false  // Positions are hardcoded; use Edit Nodes button to enable dragging
         }
     };
 
     network = new vis.Network(container, { nodes, edges }, options);
+
+    // Force redraw after short delay to ensure icon fonts are rendered
+    setTimeout(() => { if (network) network.redraw(); }, 500);
+
+    // --- Helper: calculate bounding box with padding for a set of positions ---
+    function getLeafBounds(positions, padding = 30) {
+        if (positions.length === 0) return null;
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        positions.forEach(p => {
+            minX = Math.min(minX, p.x);
+            maxX = Math.max(maxX, p.x);
+            minY = Math.min(minY, p.y);
+            maxY = Math.max(maxY, p.y);
+        });
+        return {
+            minX: minX - padding,
+            maxX: maxX + padding,
+            minY: minY - padding,
+            maxY: maxY + padding,
+            centerX: (minX + maxX) / 2,
+            centerY: (minY + maxY) / 2
+        };
+    }
+
+    // --- Draw phi shape on canvas ---
+    network.on('beforeDrawing', (ctx) => {
+        ctx.save();
+
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        if (hasShapeData) {
+            // ==========================================================
+            // SPREADSHEET-DRIVEN: Draw each part as a filled ribbon
+            // Points define the centerline, Width defines ribbon thickness
+            // Code computes outer/inner edges, traces them as a filled polygon
+            // ==========================================================
+
+            Object.keys(shapeParts).forEach(partName => {
+                const pts = shapeParts[partName];
+                if (pts.length < 2) return;
+
+                const defaultW = 38;
+                const getW = (i) => (pts[i].width !== null && !isNaN(pts[i].width)) ? pts[i].width : defaultW;
+
+                // Compute perpendicular normal at each point
+                const leftEdge = [];
+                const rightEdge = [];
+
+                for (let i = 0; i < pts.length; i++) {
+                    let dx, dy;
+                    if (i === 0) {
+                        dx = pts[1].x - pts[0].x;
+                        dy = pts[1].y - pts[0].y;
+                    } else if (i === pts.length - 1) {
+                        dx = pts[i].x - pts[i - 1].x;
+                        dy = pts[i].y - pts[i - 1].y;
+                    } else {
+                        dx = pts[i + 1].x - pts[i - 1].x;
+                        dy = pts[i + 1].y - pts[i - 1].y;
+                    }
+
+                    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const nx = -dy / len;
+                    const ny = dx / len;
+                    const halfW = getW(i) / 2;
+
+                    leftEdge.push({ x: pts[i].x + nx * halfW, y: pts[i].y + ny * halfW });
+                    rightEdge.push({ x: pts[i].x - nx * halfW, y: pts[i].y - ny * halfW });
+                }
+
+                // Build closed polygon: left edge forward, right edge backward
+                ctx.beginPath();
+                ctx.moveTo(leftEdge[0].x, leftEdge[0].y);
+
+                // Smooth curve along left edge (forward)
+                if (leftEdge.length > 2) {
+                    for (let i = 1; i < leftEdge.length - 1; i++) {
+                        const midX = (leftEdge[i].x + leftEdge[i + 1].x) / 2;
+                        const midY = (leftEdge[i].y + leftEdge[i + 1].y) / 2;
+                        ctx.quadraticCurveTo(leftEdge[i].x, leftEdge[i].y, midX, midY);
+                    }
+                }
+                ctx.lineTo(leftEdge[leftEdge.length - 1].x, leftEdge[leftEdge.length - 1].y);
+
+                // Connect to right edge at the end
+                ctx.lineTo(rightEdge[rightEdge.length - 1].x, rightEdge[rightEdge.length - 1].y);
+
+                // Smooth curve along right edge (backward)
+                if (rightEdge.length > 2) {
+                    for (let i = rightEdge.length - 2; i > 0; i--) {
+                        const midX = (rightEdge[i].x + rightEdge[i - 1].x) / 2;
+                        const midY = (rightEdge[i].y + rightEdge[i - 1].y) / 2;
+                        ctx.quadraticCurveTo(rightEdge[i].x, rightEdge[i].y, midX, midY);
+                    }
+                }
+                ctx.lineTo(rightEdge[0].x, rightEdge[0].y);
+
+                ctx.closePath();
+
+                // Fill at 50% opacity
+                ctx.fillStyle = 'rgba(212, 175, 55, 0.5)';
+                ctx.fill();
+
+                // Border at same color
+                ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            // Draw three filled leaf shapes at their respective node locations
+            // Leaves are almond/eye shaped - wide in middle, pointed at both ends
+            ctx.fillStyle = 'rgba(212, 175, 55, 0.5)';
+            ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
+            ctx.lineWidth = 2;
+
+            // Helper to draw a filled leaf shape with customizable width
+            function drawLeaf(startX, startY, tipX, tipY, width) {
+                const dx = tipX - startX;
+                const dy = tipY - startY;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                const nx = -dy / len; // perpendicular
+                const ny = dx / len;
+                const midX = (startX + tipX) / 2;
+                const midY = (startY + tipY) / 2;
+                const bulge = width / 2;
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY); // base point
+                // Left curve to tip
+                ctx.quadraticCurveTo(midX + nx * bulge, midY + ny * bulge, tipX, tipY);
+                // Right curve back to base
+                ctx.quadraticCurveTo(midX - nx * bulge, midY - ny * bulge, startX, startY);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // Left leaf - starts at y=-34 (Metaphysics area), angles toward Reality nodes
+            // Reality nodes: Physics (-91, -145), De Anima (-63, -127)
+            drawLeaf(0, -34, -130, -170, 70);
+
+            // Right leaf - starts at y=-87 (Nicomachaen Ethics area), angles toward Right nodes
+            // Right nodes: Power (67, -115), Left and Right (107, -155), On Liberty (127, -181)
+            drawLeaf(0, -87, 160, -200, 70);
+
+            // Center leaf - starts at y=-90 (just above stem end at -100), points straight up
+            // Reason nodes: Rhetoric (-5, -189), Poetics (-5, -236), Critique (3, -290)
+            drawLeaf(0, -90, 0, -320, 70);
+
+        } else {
+            // ==========================================================
+            // FALLBACK: Programmatic phi shape (when no spreadsheet tab)
+            // ==========================================================
+            const loopCX = phi.loop.centerX;
+            const loopCY = phi.loop.centerY;
+            const loopR = phi.loop.radius;
+
+            // Get dynamic leaf bounds
+            const realityBounds = getLeafBounds(nodePositions.Reality, 40);
+            const reasonBounds = getLeafBounds(nodePositions.Reason, 30);
+            const rightBounds = getLeafBounds(nodePositions.Right, 40);
+
+            // Stem
+            ctx.beginPath();
+            ctx.moveTo(loopCX, loopCY - loopR * 0.4);
+            ctx.lineTo(loopCX, phi.stem.topY);
+            ctx.stroke();
+
+            // Left leaf
+            if (realityBounds) {
+                ctx.beginPath();
+                ctx.moveTo(loopCX, phi.stem.topY);
+                ctx.quadraticCurveTo(
+                    realityBounds.minX - 10, realityBounds.centerY + 10,
+                    realityBounds.centerX, realityBounds.minY - 15
+                );
+                ctx.stroke();
+            }
+
+            // Center leaf
+            if (reasonBounds) {
+                ctx.beginPath();
+                ctx.moveTo(loopCX, phi.stem.topY);
+                ctx.quadraticCurveTo(
+                    loopCX, reasonBounds.centerY,
+                    reasonBounds.centerX, reasonBounds.minY - 25
+                );
+                ctx.stroke();
+            }
+
+            // Right leaf
+            if (rightBounds) {
+                ctx.beginPath();
+                ctx.moveTo(loopCX, phi.stem.topY);
+                ctx.quadraticCurveTo(
+                    rightBounds.maxX + 10, rightBounds.centerY + 10,
+                    rightBounds.centerX, rightBounds.minY - 15
+                );
+                ctx.stroke();
+            }
+
+            // Left loop
+            const loopW = loopR * 1.3;
+            const loopH = loopR * 1.2;
+            const crossSpread = loopR * 0.45;
+
+            ctx.beginPath();
+            ctx.moveTo(loopCX, loopCY - loopR * 0.4);
+            ctx.bezierCurveTo(
+                loopCX - loopW * 1.8, loopCY - loopR * 0.4,
+                loopCX - loopW * 1.8, loopCY + loopH * 1.8,
+                loopCX + crossSpread, loopCY + loopH * 1.4
+            );
+            ctx.stroke();
+
+            // Right loop
+            ctx.beginPath();
+            ctx.moveTo(loopCX, loopCY - loopR * 0.4);
+            ctx.bezierCurveTo(
+                loopCX + loopW * 1.8, loopCY - loopR * 0.4,
+                loopCX + loopW * 1.8, loopCY + loopH * 1.8,
+                loopCX - crossSpread, loopCY + loopH * 1.4
+            );
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    });
 
     // --- Hover event (safe: textContent only) ---
     network.on('hoverNode', (params) => {
@@ -454,8 +903,9 @@ function buildWisdomMap(data) {
             tagEl.style.color = '#999';
             preview.appendChild(tagEl);
         }
-        preview.style.left = (params.pointer.DOM.x + 10) + 'px';
-        preview.style.top = (params.pointer.DOM.y + 10) + 'px';
+        const containerRect = container.getBoundingClientRect();
+        preview.style.left = (containerRect.left + params.pointer.DOM.x + 15) + 'px';
+        preview.style.top = (containerRect.top + params.pointer.DOM.y + 15) + 'px';
         preview.style.display = 'block';
     });
 
@@ -505,7 +955,266 @@ function buildWisdomMap(data) {
     });
     controlsDiv.appendChild(physicsBtn);
 
+    // Edit Nodes toggle - enables/disables dragging
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit Nodes';
+    let editMode = false;
+    editBtn.addEventListener('click', () => {
+        editMode = !editMode;
+        // Enable dragNodes interaction
+        network.setOptions({ interaction: { dragNodes: editMode } });
+
+        if (editMode) {
+            // Get current positions and update nodes to allow dragging while keeping position
+            const positions = network.getPositions();
+            const updates = [];
+            nodes.forEach(node => {
+                const pos = positions[node.id];
+                if (pos) {
+                    updates.push({
+                        id: node.id,
+                        x: pos.x,
+                        y: pos.y,
+                        fixed: false  // Allow dragging
+                    });
+                }
+            });
+            nodes.update(updates);
+        } else {
+            // Lock nodes in their current positions
+            const positions = network.getPositions();
+            const updates = [];
+            nodes.forEach(node => {
+                const pos = positions[node.id];
+                if (pos) {
+                    updates.push({
+                        id: node.id,
+                        x: pos.x,
+                        y: pos.y,
+                        fixed: { x: true, y: true }  // Lock in place
+                    });
+                }
+            });
+            nodes.update(updates);
+        }
+
+        editBtn.classList.toggle('active', editMode);
+        editBtn.textContent = editMode ? 'Edit Nodes (ON)' : 'Edit Nodes';
+    });
+    controlsDiv.appendChild(editBtn);
+
+    // Export Positions - outputs JSON of all node positions
+    const exportBtn = document.createElement('button');
+    exportBtn.textContent = 'Export Positions';
+    exportBtn.addEventListener('click', () => {
+        const positions = network.getPositions();
+        const exportData = [];
+        nodes.forEach(node => {
+            const pos = positions[node.id];
+            if (pos) {
+                exportData.push({
+                    Title: node.id,
+                    X: Math.round(pos.x),
+                    Y: Math.round(pos.y)
+                });
+            }
+        });
+        // Format as table for easy copying
+        let output = 'Title\tX\tY\n';
+        exportData.forEach(row => {
+            output += `${row.Title}\t${row.X}\t${row.Y}\n`;
+        });
+        console.log('=== EXPORTED NODE POSITIONS ===');
+        console.log(output);
+        console.log('=== JSON FORMAT ===');
+        console.log(JSON.stringify(exportData, null, 2));
+        alert('Node positions exported to browser console (F12 to view).\n\nCopy the tab-separated table or JSON from there.');
+    });
+    controlsDiv.appendChild(exportBtn);
+
     container.appendChild(controlsDiv);
+
+    // --- Search/Filter Controls (top-left) ---
+    const filterDiv = document.createElement('div');
+    filterDiv.className = 'map-filter-controls';
+
+    // Search input
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Search nodes...';
+    searchInput.className = 'map-search-input';
+    filterDiv.appendChild(searchInput);
+
+    // Tag filter buttons
+    const tagFilters = document.createElement('div');
+    tagFilters.className = 'map-tag-filters';
+
+    const tags = ['All', 'Reality', 'Reason', 'Right', 'Root', 'Wisdom'];
+    const activeFilters = new Set(['All']);
+
+    tags.forEach(tag => {
+        const btn = document.createElement('button');
+        btn.textContent = tag;
+        btn.className = 'map-filter-btn' + (tag === 'All' ? ' active' : '');
+        btn.dataset.tag = tag;
+        tagFilters.appendChild(btn);
+    });
+    filterDiv.appendChild(tagFilters);
+    container.appendChild(filterDiv);
+
+    // Store original node appearance for restoration
+    const originalNodeAppearance = {};
+    nodes.forEach(node => {
+        originalNodeAppearance[node.id] = {
+            icon: node.icon ? { ...node.icon } : null,
+            color: node.color,
+            font: node.font ? { ...node.font } : null
+        };
+    });
+
+    // Helper: dim a node (non-matching)
+    function dimNode(nodeId) {
+        const node = nodes.get(nodeId);
+        if (!node) return;
+        const update = { id: nodeId };
+        if (node.icon) {
+            update.icon = { ...node.icon, color: 'rgba(80, 80, 80, 0.3)' };
+        } else {
+            update.color = { background: 'rgba(80, 80, 80, 0.3)', border: '#444' };
+        }
+        update.font = { color: 'rgba(100, 100, 100, 0.4)', size: 8 };
+        nodes.update(update);
+    }
+
+    // Helper: restore a node to original appearance
+    function restoreNode(nodeId) {
+        const original = originalNodeAppearance[nodeId];
+        if (!original) return;
+        const update = { id: nodeId };
+        if (original.icon) {
+            update.icon = { ...original.icon };
+        }
+        if (original.color) {
+            update.color = original.color;
+        }
+        if (original.font) {
+            update.font = { ...original.font };
+        }
+        nodes.update(update);
+    }
+
+    // Helper: emphasize a node (click-to-focus)
+    function emphasizeNode(nodeId) {
+        const node = nodes.get(nodeId);
+        if (!node) return;
+        const update = { id: nodeId };
+        if (node.icon) {
+            update.icon = { ...node.icon, color: '#d29a38' };
+        } else {
+            update.color = { background: '#d29a38', border: '#fff' };
+        }
+        update.font = { color: '#fff', size: 12 };
+        nodes.update(update);
+    }
+
+    // Track focused node for click-to-focus
+    let focusedNodeId = null;
+
+    // Apply search + tag filters
+    function applyFilters() {
+        const searchText = searchInput.value.toLowerCase().trim();
+        const showAll = activeFilters.has('All');
+
+        nodes.forEach(node => {
+            const matchesSearch = !searchText || node.label.toLowerCase().includes(searchText);
+            const matchesTag = showAll || activeFilters.has(node.group);
+
+            if (matchesSearch && matchesTag) {
+                restoreNode(node.id);
+            } else {
+                dimNode(node.id);
+            }
+        });
+
+        // Clear focus when filtering
+        focusedNodeId = null;
+    }
+
+    // Search input handler
+    searchInput.addEventListener('input', applyFilters);
+
+    // Tag button click handlers
+    tagFilters.querySelectorAll('.map-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tag = btn.dataset.tag;
+
+            if (tag === 'All') {
+                // Reset all filters
+                activeFilters.clear();
+                activeFilters.add('All');
+                tagFilters.querySelectorAll('.map-filter-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.tag === 'All');
+                });
+            } else {
+                // Toggle this tag
+                activeFilters.delete('All');
+                tagFilters.querySelector('[data-tag="All"]').classList.remove('active');
+
+                if (activeFilters.has(tag)) {
+                    activeFilters.delete(tag);
+                    btn.classList.remove('active');
+                } else {
+                    activeFilters.add(tag);
+                    btn.classList.add('active');
+                }
+
+                // If no tags selected, default to All
+                if (activeFilters.size === 0) {
+                    activeFilters.add('All');
+                    tagFilters.querySelector('[data-tag="All"]').classList.add('active');
+                }
+            }
+
+            applyFilters();
+        });
+    });
+
+    // Click-to-focus: clicking a node highlights it and its connections
+    network.on('click', (params) => {
+        if (params.nodes.length > 0) {
+            const clickedId = params.nodes[0];
+
+            // Toggle focus
+            if (focusedNodeId === clickedId) {
+                // Unfocus - restore to filter state
+                focusedNodeId = null;
+                applyFilters();
+            } else {
+                // Focus on this node and connections
+                focusedNodeId = clickedId;
+                const connectedNodes = network.getConnectedNodes(clickedId);
+                const relevantNodes = new Set([clickedId, ...connectedNodes]);
+
+                nodes.forEach(node => {
+                    if (relevantNodes.has(node.id)) {
+                        if (node.id === clickedId) {
+                            emphasizeNode(node.id);
+                        } else {
+                            restoreNode(node.id);
+                        }
+                    } else {
+                        dimNode(node.id);
+                    }
+                });
+            }
+        } else {
+            // Clicked empty space - clear focus, restore filter state
+            if (focusedNodeId) {
+                focusedNodeId = null;
+                applyFilters();
+            }
+        }
+    });
 }
 
 // Function to show specific content (simplified toggle, now accepts optional params for deep linking)
@@ -515,8 +1224,8 @@ async function ensureContentLoaded(title) {
     if (!meta || meta.loaded) return;
     meta.loaded = true;
     const el = contentElements[title];
-    // Show inline spinner while loading
-    el.innerHTML = '<div class="inline-loading"><div class="spinner"></div><p>Loading...</p></div>';
+    // Show inline phi image while loading
+    el.innerHTML = '<div class="inline-loading"><img src="images/phi.png" class="loading-phi" alt="Loading"></div>';
     await loadAndDisplayContent(meta.link, meta.type, title, el);
 }
 
@@ -721,11 +1430,22 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                 if (columns.length === 1) {
                     const singleCol = columns[0];
                     if (row[singleCol] && row[singleCol].trim() !== '') {
+                        // Wrap in row-container for consistent section styling
+                        const rowContainer = document.createElement('div');
+                        rowContainer.className = 'row-container';
+                        rowContainer.id = `row-${rowIndex}`;
+
+                        const rowContent = document.createElement('div');
+                        rowContent.className = 'row-content active';
+
                         const p = document.createElement('p');
                         setSanitizedHTML(p, row[singleCol]);
-                        docContent.appendChild(p);
-                        highlightReferences(p, tooltips);
-                        initializeTippy(p);
+                        rowContent.appendChild(p);
+                        highlightReferences(rowContent, tooltips);
+                        initializeTooltips(rowContent);
+
+                        rowContainer.appendChild(rowContent);
+                        docContent.appendChild(rowContainer);
                     }
                 } else {
                     const nonEmptyCols = [];
@@ -738,13 +1458,23 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                     if (nonEmptyCols.length === 0) return;
 
                     if (nonEmptyCols.length === 1) {
-                        // Render as simple p without tabs
+                        // Wrap in row-container for consistent section styling (no tabs needed)
                         const singleCol = nonEmptyCols[0];
+                        const rowContainer = document.createElement('div');
+                        rowContainer.className = 'row-container';
+                        rowContainer.id = `row-${rowIndex}`;
+
+                        const rowContent = document.createElement('div');
+                        rowContent.className = 'row-content active';
+
                         const p = document.createElement('p');
                         setSanitizedHTML(p, row[singleCol]);
-                        docContent.appendChild(p);
-                        highlightReferences(p, tooltips);
-                        initializeTippy(p);
+                        rowContent.appendChild(p);
+                        highlightReferences(rowContent, tooltips);
+                        initializeTooltips(rowContent);
+
+                        rowContainer.appendChild(rowContent);
+                        docContent.appendChild(rowContainer);
                     } else {
                         // Multi: render tabs/container
                         const rowContainer = document.createElement('div');
@@ -777,7 +1507,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                                 setSanitizedHTML(p, row[col]);
                                 rowContent.appendChild(p);
                                 highlightReferences(rowContent, tooltips);
-                                initializeTippy(rowContent);
+                                initializeTooltips(rowContent);
 
                                 // Update URL with row/tab for deep linking
                                 const url = new URL(window.location);
@@ -785,14 +1515,8 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                                 url.searchParams.set('tab', colIndex + 1);
                                 history.replaceState(null, '', url);
                             });
-                            tippy(tab, {
-                                content: tooltipContent,
-                                allowHTML: false,
-                                theme: 'custom',
-                                placement: 'top',
-                                arrow: true,
-                                interactive: false,
-                            });
+                            // Simple title attribute for tab tooltip
+                            tab.title = tooltipContent;
                             rowTabs.appendChild(tab);
                         });
 
@@ -820,13 +1544,13 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                         }
 
                         highlightReferences(rowContent, tooltips);
-                        initializeTippy(rowContent);
+                        initializeTooltips(rowContent);
                     }
                 }
             });
         }
         highlightReferences(docContent, tooltips);
-        initializeTippy(docContent);
+        initializeTooltips(docContent);
     } catch (error) {
         docContent.textContent = '';
         docContent.appendChild(createErrorP('Failed to load data for ' + title + '. Please try again later.'));
@@ -865,19 +1589,77 @@ function highlightReferences(container, tooltips) {
     }
 }
 
-function initializeTippy(container) {
+// Custom tooltip element and state
+const customTooltip = document.getElementById('custom-tooltip');
+let tooltipTimeout = null;
+
+function showTooltip(refElement, content) {
+    // Clear any pending hide
+    if (tooltipTimeout) {
+        clearTimeout(tooltipTimeout);
+        tooltipTimeout = null;
+    }
+
+    // Sanitize and set content
+    customTooltip.innerHTML = DOMPurify.sanitize(content, {
+        ALLOWED_TAGS: ['b', 'i', 'strong', 'em', 'a', 'br', 'span', 'u', 'sub', 'sup'],
+        ALLOWED_ATTR: ['href', 'target', 'class', 'rel']
+    });
+
+    // Position tooltip above the element
+    const rect = refElement.getBoundingClientRect();
+    customTooltip.style.left = rect.left + 'px';
+    customTooltip.style.top = (rect.top - 10) + 'px';
+    customTooltip.style.transform = 'translateY(-100%)';
+    customTooltip.classList.add('visible');
+
+    // Adjust if tooltip goes off screen (check after making visible)
+    requestAnimationFrame(() => {
+        const tooltipRect = customTooltip.getBoundingClientRect();
+        if (tooltipRect.top < 0) {
+            // Show below instead
+            customTooltip.style.top = (rect.bottom + 10) + 'px';
+            customTooltip.style.transform = 'translateY(0)';
+        }
+        if (tooltipRect.right > window.innerWidth) {
+            customTooltip.style.left = (window.innerWidth - tooltipRect.width - 10) + 'px';
+        }
+        if (tooltipRect.left < 0) {
+            customTooltip.style.left = '10px';
+        }
+    });
+}
+
+function hideTooltip() {
+    tooltipTimeout = setTimeout(() => {
+        customTooltip.classList.remove('visible');
+    }, 150); // Small delay to allow moving to tooltip for clicking links
+}
+
+// Allow hovering over tooltip content (for clicking links)
+if (customTooltip) {
+    customTooltip.addEventListener('mouseenter', () => {
+        if (tooltipTimeout) {
+            clearTimeout(tooltipTimeout);
+            tooltipTimeout = null;
+        }
+    });
+    customTooltip.addEventListener('mouseleave', hideTooltip);
+}
+
+function initializeTooltips(container) {
     const refs = container.querySelectorAll('.ref');
     refs.forEach(ref => {
+        // Skip if already initialized
+        if (ref.dataset.tooltipInit) return;
+        ref.dataset.tooltipInit = 'true';
+
         const keyPhrase = ref.textContent.trim();
         if (tooltips[keyPhrase]) {
-            tippy(ref, {
-                content: tooltips[keyPhrase],
-                allowHTML: true,
-                theme: 'custom',
-                placement: 'top',
-                arrow: true,
-                interactive: true,
+            ref.addEventListener('mouseenter', () => {
+                showTooltip(ref, tooltips[keyPhrase]);
             });
+            ref.addEventListener('mouseleave', hideTooltip);
         }
     });
 }

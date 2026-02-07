@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx http-server *)",
+      "Bash(npm *)",
+      "Bash(git *)",
+      "Bash(dir:*)",
+      "Bash(tasklist:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Read",
+      "Edit",
+      "WebFetch(domain:docs.google.com)",
+      "WebFetch(domain:doc-0g-44-sheets.googleusercontent.com)"
+    ]
+  },
+  "defaultMode": "acceptEdits"
+}
