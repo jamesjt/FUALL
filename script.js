@@ -183,7 +183,45 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebarOverlay.addEventListener('click', closeSidebar);
         }
     }
+
+    // Font switcher
+    const fontSwitcher = document.querySelector('.font-switcher');
+    if (fontSwitcher) {
+        // Load saved preference
+        const savedFont = localStorage.getItem('preferredFont') || 'serif';
+        applyFont(savedFont);
+
+        // Update active button
+        fontSwitcher.querySelectorAll('.font-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.font === savedFont);
+        });
+
+        // Handle clicks
+        fontSwitcher.addEventListener('click', (e) => {
+            const btn = e.target.closest('.font-btn');
+            if (!btn) return;
+
+            const font = btn.dataset.font;
+            applyFont(font);
+            localStorage.setItem('preferredFont', font);
+
+            // Update active state
+            fontSwitcher.querySelectorAll('.font-btn').forEach(b => {
+                b.classList.toggle('active', b === btn);
+            });
+        });
+    }
 });
+
+// Apply font class to body
+function applyFont(fontKey) {
+    // Remove all font classes
+    document.body.classList.remove('font-inter', 'font-open-sans', 'font-lato');
+    // Add new font class (serif is default, no class needed)
+    if (fontKey !== 'serif') {
+        document.body.classList.add('font-' + fontKey);
+    }
+}
 
 // Function to populate a sidebar list
 function populateSidebarList(listSelector, data, itemKey, type) {

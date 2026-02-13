@@ -8,6 +8,10 @@
     --border-subtle: rgba(255, 255, 255, 0.06);
     --border-medium: rgba(255, 255, 255, 0.1);
     --serif: "Source Serif 4", ui-serif, Georgia, "Times New Roman", serif;
+    --font-serif: "Source Serif 4", ui-serif, Georgia, "Times New Roman", serif;
+    --font-inter: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-open-sans: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-lato: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 body {
@@ -15,9 +19,13 @@ body {
     padding: 0;
     color: #c1c1c1;
     background-color: #121212;
-    font-family: var(--serif);
+    font-family: var(--font-serif);
     font-optical-sizing: auto;
 }
+
+body.font-inter { font-family: var(--font-inter); }
+body.font-open-sans { font-family: var(--font-open-sans); }
+body.font-lato { font-family: var(--font-lato); }
 
 /* ── Nav bar ── */
 .nav-bar {
@@ -51,6 +59,45 @@ body {
     background-color: var(--gold-hover);
     box-shadow: 0 2px 8px var(--gold-glow-strong);
 }
+
+/* Font switcher */
+.font-switcher {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 4px;
+}
+
+.font-btn {
+    background-color: transparent;
+    border: 1px solid var(--border-medium);
+    color: #888;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.font-btn:hover {
+    border-color: var(--gold-accent);
+    color: var(--gold-accent);
+    background-color: transparent;
+}
+
+.font-btn.active {
+    background-color: var(--gold-glow);
+    border-color: var(--gold-accent);
+    color: var(--gold-accent);
+}
+
+/* Apply font to each button for preview */
+.font-btn[data-font="serif"] { font-family: var(--font-serif); }
+.font-btn[data-font="inter"] { font-family: var(--font-inter); }
+.font-btn[data-font="open-sans"] { font-family: var(--font-open-sans); }
+.font-btn[data-font="lato"] { font-family: var(--font-lato); }
 
 /* ── Layout ── */
 .container {
@@ -176,7 +223,7 @@ body {
 }
 
 .content p {
-    color: #e0e0e0;
+    color: #f0f0f0;
 }
 
 .content p.error {
@@ -194,9 +241,9 @@ body {
 .doc-content {
     max-width: 650px;
     padding: 16px;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.6;
-    color: #e0e0e0;
+    color: #f0f0f0;
 }
 
 .doc-content.active {
@@ -277,16 +324,20 @@ body {
 .row-content {
     flex-grow: 1;
     padding: 16px 10px;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.75;
-    color: #e8e8e8;
+    color: #f0f0f0;
     overflow-wrap: break-word;
     border-left: 1px solid rgba(147, 104, 30, 0.4);
     border-right: 1px solid rgba(147, 104, 30, 0.4);
 }
 
 .row-content p {
-    margin: 0;
+    margin: 0 0 12px 0;
+}
+
+.row-content p:last-child {
+    margin-bottom: 0;
 }
 
 /* ── Tooltip styling ── */
