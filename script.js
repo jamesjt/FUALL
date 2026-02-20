@@ -184,6 +184,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Version dropdown for books
+    document.getElementById('version-select').addEventListener('change', (e) => {
+        switchAllTabs(parseInt(e.target.value, 10));
+    });
+
     // Font switcher
     const fontSwitcher = document.querySelector('.font-switcher');
     if (fontSwitcher) {
@@ -1255,6 +1260,58 @@ function buildWisdomMap(data, shapePoints) {
     });
 }
 
+// Switch all row tabs in the current book to a specific tab index (1-based)
+function switchAllTabs(tabIndex) {
+    const contentBody = document.querySelector('.content-body');
+    const rowContainers = contentBody.querySelectorAll('.row-container');
+    rowContainers.forEach(container => {
+        const tabs = container.querySelectorAll('.row-tabs .tab');
+        if (tabs.length === 0) return;
+        const targetTab = Array.from(tabs).find(t => t.dataset.tabIndex === String(tabIndex));
+        if (targetTab && !targetTab.classList.contains('active')) {
+            targetTab.click();
+        }
+    });
+}
+
+// Update navbar to show/hide book info
+function updateNavbarBookInfo(type, title, docContent) {
+    const bookInfo = document.getElementById('book-info');
+    const bookTitleEl = document.getElementById('book-title');
+    const versionSelect = document.getElementById('version-select');
+
+    if (type === 'book' && docContent) {
+        // Extract D: columns from the first row's tabs
+        const firstRowTabs = docContent.querySelectorAll('.row-container .row-tabs .tab');
+        const columns = [];
+        const seen = new Set();
+        firstRowTabs.forEach(tab => {
+            const idx = tab.dataset.tabIndex;
+            if (idx && !seen.has(idx)) {
+                seen.add(idx);
+                columns.push({ index: idx, name: tab.title || idx });
+            }
+        });
+
+        if (columns.length > 1) {
+            bookTitleEl.textContent = title;
+            versionSelect.innerHTML = '';
+            columns.forEach(col => {
+                const option = document.createElement('option');
+                option.value = col.index;
+                option.textContent = col.index + ': ' + col.name;
+                versionSelect.appendChild(option);
+            });
+            versionSelect.value = columns[0].index;
+            bookInfo.classList.add('active');
+        } else {
+            bookInfo.classList.remove('active');
+        }
+    } else {
+        bookInfo.classList.remove('active');
+    }
+}
+
 // Function to show specific content (simplified toggle, now accepts optional params for deep linking)
 // Lazy-load content for a title if not yet fetched
 async function ensureContentLoaded(title) {
@@ -1357,6 +1414,9 @@ async function showContent(type, title, deepParams = null) {
         emptyDoc.className = 'doc-content';
         contentBody.appendChild(emptyDoc);
     }
+
+    // Update navbar with book info or restore site title
+    updateNavbarBookInfo(type, title, contentElements[title]);
 
     // Update URL state for bookmarkability (skip during initial deep link load and popstate)
     if (!deepParams && !isPopstateNavigation) {
