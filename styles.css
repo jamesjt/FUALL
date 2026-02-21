@@ -60,31 +60,74 @@ body.font-lato { font-family: var(--font-lato); }
     box-shadow: 0 2px 8px var(--gold-glow-strong);
 }
 
-/* Book info bar (hidden by default, shown below title) */
-.book-info {
-    display: none;
+/* ── Book toolbar (sticky controls in content area) ── */
+.book-toolbar {
+    position: sticky;
+    top: 48px;
+    z-index: 10;
+    background: #121212;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.toolbar-controls {
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    font-size: 0.8em;
-    font-weight: 400;
-    letter-spacing: 0;
-}
-
-.book-info.active {
-    display: flex;
+    padding: 4px 8px;
 }
 
 .book-title {
-    max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     font-weight: 600;
+    color: var(--gold-accent);
+    font-size: 0.85em;
+}
+
+.toolbar-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.column-btn {
+    background-color: #2a2a2a;
+    color: #999;
+    border: 1px solid var(--border-medium);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    line-height: 1;
+    padding: 0;
+}
+
+.column-btn:hover {
+    border-color: var(--gold-accent);
     color: var(--gold-accent);
 }
 
-.version-select {
+/* ── Column headers (version selectors per column) ── */
+.column-headers {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 4px 0 0 0;
+}
+
+.column-header {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 8px;
+}
+
+.column-select {
     background-color: #2a2a2a;
     color: #e0e0e0;
     border: 1px solid var(--border-medium);
@@ -96,13 +139,71 @@ body.font-lato { font-family: var(--font-lato); }
     font-family: inherit;
 }
 
-.version-select:hover {
+.column-select:hover {
     border-color: var(--gold-accent);
 }
 
-.version-select:focus {
+.column-select:focus {
     outline: none;
     border-color: var(--gold-accent);
+}
+
+/* ── Row groups (multi-column height sync) ── */
+.row-group {
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.row-group > .row-container {
+    flex: 0 1 650px;
+}
+
+.row-group > .row-container + .row-container {
+    border-left: 1px solid var(--border-subtle);
+}
+
+/* ── Per-row notes (inside row-group) ── */
+.row-notes {
+    display: none;
+    flex: 0 1 650px;
+    padding: 16px 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #aaa;
+    border-left: 1px solid var(--border-subtle);
+}
+
+.row-group.show-row-notes > .row-notes {
+    display: block;
+}
+
+/* Per-row notes checkbox (above tabs) */
+.row-notes-toggle {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    color: #666;
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 4px;
+}
+
+.row-notes-toggle input[type="checkbox"] {
+    accent-color: var(--gold-accent);
+    cursor: pointer;
+    width: 12px;
+    height: 12px;
+}
+
+.row-notes .note-index {
+    font-weight: 600;
+    color: var(--gold-accent);
+    margin-right: 6px;
+    font-size: 12px;
 }
 
 /* Font switcher */
@@ -291,6 +392,10 @@ body.font-lato { font-family: var(--font-lato); }
     color: #f0f0f0;
 }
 
+.doc-content:has(.row-group) {
+    max-width: none;
+}
+
 .doc-content.active {
     display: block;
     animation: fadeIn 0.2s ease;
@@ -344,16 +449,17 @@ body.font-lato { font-family: var(--font-lato); }
     max-width: 650px;
 }
 
+.content-body:has(.row-group) {
+    max-width: none;
+}
+
 .row-container {
     display: flex;
     flex-direction: row-reverse;
     align-items: flex-start;
-    margin-bottom: 20px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-subtle);
 }
 
-.chapter-head+.row-container {
+.chapter-head+.row-group {
     border-top: none;
     padding-top: 0;
 }
@@ -840,13 +946,8 @@ body.font-lato { font-family: var(--font-lato); }
         padding-left: 48px;
     }
 
-    .book-title {
-        max-width: 140px;
-        font-size: 0.85em;
-    }
-
-    .version-select {
-        font-size: 11px;
+    .toolbar-buttons {
+        display: none;
     }
 
     .sidebar {

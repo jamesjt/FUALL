@@ -35,6 +35,9 @@ DOMPurify.addHook('afterSanitizeAttributes', function(node) {
 let contentElements = {}; // Global object to store preloaded content
 let contentMeta = {}; // Metadata for lazy loading: { title: { link, type, loaded } }
 let tooltips = {}; // Global tooltips object to store refs data
+let currentBookRows = [];    // raw CSV row objects for current book
+let currentBookColumns = []; // D: column names
+let activeColumnCount = 1;   // number of visible content columns
 let network = null; // vis.js network instance
 let mapInitialized = false; // Flag for lazy init
 let unifiedData, articlesData, booksData, breakdownsData, phiShapeData;
@@ -183,11 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebarOverlay.addEventListener('click', closeSidebar);
         }
     }
-
-    // Version dropdown for books
-    document.getElementById('version-select').addEventListener('change', (e) => {
-        switchAllTabs(parseInt(e.target.value, 10));
-    });
 
     // Font switcher
     const fontSwitcher = document.querySelector('.font-switcher');
@@ -1260,11 +1258,150 @@ function buildWisdomMap(data, shapePoints) {
     });
 }
 
-// Switch all row tabs in the current book to a specific tab index (1-based)
-function switchAllTabs(tabIndex) {
+// Create a per-row notes checkbox toggle
+function createRowNotesToggle() {
+    const label = document.createElement('label');
+    label.className = 'row-notes-toggle';
+    label.title = 'Show notes';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.addEventListener('change', () => {
+        const rowGroup = label.closest('.row-group');
+        if (rowGroup) rowGroup.classList.toggle('show-row-notes', checkbox.checked);
+    });
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(' N'));
+    return label;
+}
+
+// Create a single row-container for a given column index
+function createRowContainer(rowData, allColumns, colIndex, defaultTab, dataRowIndex) {
+    const nonEmptyCols = allColumns.filter(col => rowData[col] && rowData[col].trim() !== '');
+    if (nonEmptyCols.length === 0) return null;
+
+    const rowContainer = document.createElement('div');
+    rowContainer.className = 'row-container';
+    rowContainer.dataset.col = colIndex;
+
+    const hasNotes = colIndex === 0 && rowData['Notes']?.trim() && rowData['Index']?.trim();
+
+    if (nonEmptyCols.length === 1) {
+        if (hasNotes) {
+            const rowTabs = document.createElement('div');
+            rowTabs.className = 'row-tabs';
+            rowTabs.appendChild(createRowNotesToggle());
+            rowContainer.appendChild(rowTabs);
+        }
+        const rowContent = document.createElement('div');
+        rowContent.className = 'row-content active';
+        const p = document.createElement('p');
+        setSanitizedHTML(p, rowData[nonEmptyCols[0]]);
+        rowContent.appendChild(p);
+        rowContainer.appendChild(rowContent);
+        highlightReferences(rowContent, tooltips);
+        initializeTooltips(rowContent);
+    } else {
+        const rowTabs = document.createElement('div');
+        rowTabs.className = 'row-tabs';
+        if (hasNotes) {
+            rowTabs.appendChild(createRowNotesToggle());
+        }
+        let activeCol = null;
+
+        nonEmptyCols.forEach(col => {
+            const origColIdx = allColumns.indexOf(col);
+            const tabIdx = origColIdx + 1;
+            const tab = document.createElement('div');
+            tab.className = 'tab';
+            tab.textContent = tabIdx;
+            tab.dataset.column = col;
+            tab.dataset.tabIndex = tabIdx;
+            tab.dataset.rowData = JSON.stringify(rowData);
+            tab.title = col.replace('D:', '').trim();
+
+            if (tabIdx === defaultTab) {
+                tab.classList.add('active');
+                activeCol = col;
+            }
+
+            tab.addEventListener('click', (event) => {
+                const currentTab = event.target;
+                const tabs = currentTab.parentNode.querySelectorAll('.tab');
+                tabs.forEach(t => t.classList.remove('active'));
+                currentTab.classList.add('active');
+
+                const container = currentTab.closest('.row-container');
+                const rowContent = container.querySelector('.row-content');
+                rowContent.innerHTML = '';
+                const p = document.createElement('p');
+                setSanitizedHTML(p, rowData[col]);
+                rowContent.appendChild(p);
+                highlightReferences(rowContent, tooltips);
+                initializeTooltips(rowContent);
+
+                const url = new URL(window.location);
+                url.searchParams.set('row', dataRowIndex + 1);
+                url.searchParams.set('tab', tabIdx);
+                history.replaceState(null, '', url);
+            });
+
+            rowTabs.appendChild(tab);
+        });
+
+        rowContainer.appendChild(rowTabs);
+
+        const rowContent = document.createElement('div');
+        rowContent.className = 'row-content';
+        const initialCol = activeCol || nonEmptyCols[0];
+        const initP = document.createElement('p');
+        setSanitizedHTML(initP, rowData[initialCol]);
+        rowContent.appendChild(initP);
+
+        if (!activeCol) {
+            const firstTab = rowTabs.querySelector('.tab');
+            if (firstTab) firstTab.classList.add('active');
+        }
+
+        rowContainer.appendChild(rowContent);
+        highlightReferences(rowContent, tooltips);
+        initializeTooltips(rowContent);
+    }
+
+    return rowContainer;
+}
+
+// Create a column header with version dropdown
+function createColumnHeader(colIndex, columns) {
+    const header = document.createElement('div');
+    header.className = 'column-header';
+    header.dataset.col = colIndex;
+
+    const select = document.createElement('select');
+    select.className = 'column-select';
+    select.setAttribute('aria-label', 'Column ' + (colIndex + 1) + ' version');
+
+    columns.forEach((col, i) => {
+        const option = document.createElement('option');
+        option.value = i + 1;
+        option.textContent = (i + 1) + ': ' + col.replace('D:', '').trim();
+        select.appendChild(option);
+    });
+
+    select.value = Math.min(colIndex + 1, columns.length);
+
+    select.addEventListener('change', () => {
+        switchColumnTabs(colIndex, parseInt(select.value, 10));
+    });
+
+    header.appendChild(select);
+    return header;
+}
+
+// Switch all tabs in a specific column
+function switchColumnTabs(colIndex, tabIndex) {
     const contentBody = document.querySelector('.content-body');
-    const rowContainers = contentBody.querySelectorAll('.row-container');
-    rowContainers.forEach(container => {
+    const containers = contentBody.querySelectorAll('.row-container[data-col="' + colIndex + '"]');
+    containers.forEach(container => {
         const tabs = container.querySelectorAll('.row-tabs .tab');
         if (tabs.length === 0) return;
         const targetTab = Array.from(tabs).find(t => t.dataset.tabIndex === String(tabIndex));
@@ -1274,42 +1411,88 @@ function switchAllTabs(tabIndex) {
     });
 }
 
-// Update navbar to show/hide book info
-function updateNavbarBookInfo(type, title, docContent) {
-    const bookInfo = document.getElementById('book-info');
-    const bookTitleEl = document.getElementById('book-title');
-    const versionSelect = document.getElementById('version-select');
+// Add a comparison column
+function addColumn() {
+    if (currentBookColumns.length <= 1) return;
 
-    if (type === 'book' && docContent) {
-        // Extract D: columns from the first row's tabs
-        const firstRowTabs = docContent.querySelectorAll('.row-container .row-tabs .tab');
-        const columns = [];
-        const seen = new Set();
-        firstRowTabs.forEach(tab => {
-            const idx = tab.dataset.tabIndex;
-            if (idx && !seen.has(idx)) {
-                seen.add(idx);
-                columns.push({ index: idx, name: tab.title || idx });
-            }
-        });
+    activeColumnCount++;
+    const defaultTab = ((activeColumnCount - 1) % currentBookColumns.length) + 1;
 
-        if (columns.length > 1) {
-            bookTitleEl.textContent = title;
-            versionSelect.innerHTML = '';
-            columns.forEach(col => {
-                const option = document.createElement('option');
-                option.value = col.index;
-                option.textContent = col.index + ': ' + col.name;
-                versionSelect.appendChild(option);
-            });
-            versionSelect.value = columns[0].index;
-            bookInfo.classList.add('active');
-        } else {
-            bookInfo.classList.remove('active');
-        }
-    } else {
-        bookInfo.classList.remove('active');
+    const columnHeaders = document.querySelector('.content-body .column-headers');
+    if (columnHeaders) {
+        const header = createColumnHeader(activeColumnCount - 1, currentBookColumns);
+        columnHeaders.appendChild(header);
     }
+
+    document.querySelectorAll('.content-body .row-group').forEach(rowGroup => {
+        const dataIndex = parseInt(rowGroup.dataset.dataIndex, 10);
+        const row = currentBookRows[dataIndex];
+        if (!row) return;
+
+        const rowContainer = createRowContainer(row, currentBookColumns, activeColumnCount - 1, defaultTab, dataIndex);
+        if (rowContainer) {
+            const notesDiv = rowGroup.querySelector('.row-notes');
+            if (notesDiv) {
+                rowGroup.insertBefore(rowContainer, notesDiv);
+            } else {
+                rowGroup.appendChild(rowContainer);
+            }
+        }
+    });
+
+
+    document.getElementById('remove-column-btn').style.display = '';
+}
+
+// Remove the last comparison column
+function removeColumn() {
+    if (activeColumnCount <= 1) return;
+
+    const lastCol = activeColumnCount - 1;
+
+    const columnHeaders = document.querySelector('.content-body .column-headers');
+    if (columnHeaders) {
+        const lastHeader = columnHeaders.querySelector('.column-header[data-col="' + lastCol + '"]');
+        if (lastHeader) lastHeader.remove();
+    }
+
+    document.querySelectorAll('.content-body .row-container[data-col="' + lastCol + '"]').forEach(c => c.remove());
+
+    activeColumnCount--;
+
+
+    if (activeColumnCount <= 1) {
+        document.getElementById('remove-column-btn').style.display = 'none';
+    }
+}
+
+// Reset all added columns back to 1
+function resetColumns() {
+    for (let i = activeColumnCount - 1; i > 0; i--) {
+        document.querySelectorAll('.content-body .row-container[data-col="' + i + '"]').forEach(c => c.remove());
+    }
+    const columnHeaders = document.querySelector('.content-body .column-headers');
+    if (columnHeaders) {
+        const headers = columnHeaders.querySelectorAll('.column-header');
+        headers.forEach((h, i) => { if (i > 0) h.remove(); });
+        const firstSelect = columnHeaders.querySelector('.column-select');
+        if (firstSelect) firstSelect.value = '1';
+    }
+    activeColumnCount = 1;
+
+    const removeBtn = document.getElementById('remove-column-btn');
+    if (removeBtn) removeBtn.style.display = 'none';
+}
+
+
+// Reset book toolbar state when switching content
+function resetBookToolbarState() {
+    const contentBody = document.querySelector('.content-body');
+    // Reset per-row notes toggles
+    contentBody.querySelectorAll('.row-group.show-row-notes').forEach(rg => rg.classList.remove('show-row-notes'));
+    contentBody.querySelectorAll('.row-notes-toggle input').forEach(cb => cb.checked = false);
+    const removeBtn = document.getElementById('remove-column-btn');
+    if (removeBtn) removeBtn.style.display = 'none';
 }
 
 // Function to show specific content (simplified toggle, now accepts optional params for deep linking)
@@ -1335,6 +1518,28 @@ async function showContent(type, title, deepParams = null) {
         contentDiv.style.display = 'flex';
     }
 
+    // Reset previous content's per-row notes state before switching
+    contentBody.querySelectorAll('.row-group.show-row-notes').forEach(rg => rg.classList.remove('show-row-notes'));
+    contentBody.querySelectorAll('.row-notes-toggle input').forEach(cb => cb.checked = false);
+
+    // Clean up previous content's extra columns before switching
+    if (activeColumnCount > 1) {
+        const prevDoc = contentBody.querySelector('.doc-content');
+        if (prevDoc) {
+            for (let i = activeColumnCount - 1; i > 0; i--) {
+                prevDoc.querySelectorAll('.row-container[data-col="' + i + '"]').forEach(c => c.remove());
+            }
+            const prevHeaders = prevDoc.querySelector('.column-headers');
+            if (prevHeaders) {
+                prevHeaders.querySelectorAll('.column-header').forEach((h, idx) => {
+                    if (idx > 0) h.remove();
+                });
+                const firstSelect = prevHeaders.querySelector('.column-select');
+                if (firstSelect) firstSelect.value = '1';
+            }
+        }
+        activeColumnCount = 1;
+    }
     contentBody.innerHTML = ''; // Clear previous content
 
     // Update active sidebar item
@@ -1359,18 +1564,19 @@ async function showContent(type, title, deepParams = null) {
         const rowIndex = parseInt(params.get('row'), 10) - 1; // 1-based to 0-based
         const tabIndex = parseInt(params.get('tab'), 10); // 1-based
         if (!isNaN(rowIndex)) {
-            const rowContainers = docContent.querySelectorAll('.row-container');
-            const targetRow = rowContainers[rowIndex];
+            const targetRow = docContent.querySelector('#row-' + rowIndex);
             if (targetRow) {
-                // Select tab if specified
+                // Select tab if specified (in the first column)
                 if (!isNaN(tabIndex)) {
-                    const tabs = targetRow.querySelectorAll('.tab');
-                    const targetTab = Array.from(tabs).find(tab => parseInt(tab.textContent, 10) === tabIndex);
-                    if (targetTab) {
-                        targetTab.click(); // Simulate click to activate
+                    const firstCol = targetRow.querySelector('.row-container[data-col="0"]');
+                    if (firstCol) {
+                        const tabs = firstCol.querySelectorAll('.tab');
+                        const targetTab = Array.from(tabs).find(tab => parseInt(tab.textContent, 10) === tabIndex);
+                        if (targetTab) {
+                            targetTab.click();
+                        }
                     }
                 }
-                // Scroll to row
                 targetRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
@@ -1415,8 +1621,8 @@ async function showContent(type, title, deepParams = null) {
         contentBody.appendChild(emptyDoc);
     }
 
-    // Update navbar with book info or restore site title
-    updateNavbarBookInfo(type, title, contentElements[title]);
+    // Reset toolbar state for fresh content
+    resetBookToolbarState();
 
     // Update URL state for bookmarkability (skip during initial deep link load and popstate)
     if (!deepParams && !isPopstateNavigation) {
@@ -1512,8 +1718,61 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                 return;
             }
 
+            // Store for column management
+            currentBookColumns = columns;
+            currentBookRows = data;
+            activeColumnCount = 1;
+
             docContent.innerHTML = '';
             let currentChapter = null;
+
+            // Create book toolbar (sticky controls + column headers)
+            if (columns.length > 1) {
+                const toolbar = document.createElement('div');
+                toolbar.className = 'book-toolbar';
+
+                // Controls row: title, +/-, notes checkbox
+                const controls = document.createElement('div');
+                controls.className = 'toolbar-controls';
+
+                const titleSpan = document.createElement('span');
+                titleSpan.className = 'book-title';
+                titleSpan.textContent = title;
+                controls.appendChild(titleSpan);
+
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'toolbar-buttons';
+
+                const addBtn = document.createElement('button');
+                addBtn.className = 'column-btn';
+                addBtn.id = 'add-column-btn';
+                addBtn.textContent = '+';
+                addBtn.title = 'Add column';
+                addBtn.addEventListener('click', addColumn);
+                buttonsDiv.appendChild(addBtn);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'column-btn';
+                removeBtn.id = 'remove-column-btn';
+                removeBtn.textContent = '\u2212';
+                removeBtn.title = 'Remove column';
+                removeBtn.style.display = 'none';
+                removeBtn.addEventListener('click', removeColumn);
+                buttonsDiv.appendChild(removeBtn);
+
+                controls.appendChild(buttonsDiv);
+                toolbar.appendChild(controls);
+
+                // Column headers row
+                const columnHeaders = document.createElement('div');
+                columnHeaders.className = 'column-headers';
+                const header = createColumnHeader(0, columns);
+                columnHeaders.appendChild(header);
+                toolbar.appendChild(columnHeaders);
+
+                docContent.appendChild(toolbar);
+            }
+
             data.forEach((row, rowIndex) => {
                 const chapter = row['Chapter']?.trim() || null;
                 if (chapter && chapter !== currentChapter) {
@@ -1525,126 +1784,39 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                     currentChapter = chapter;
                 }
 
-                if (columns.length === 1) {
-                    const singleCol = columns[0];
-                    if (row[singleCol] && row[singleCol].trim() !== '') {
-                        // Wrap in row-container for consistent section styling
-                        const rowContainer = document.createElement('div');
-                        rowContainer.className = 'row-container';
-                        rowContainer.id = `row-${rowIndex}`;
+                // Check for non-empty D: columns
+                const nonEmptyCols = columns.filter(col => row[col] && row[col].trim() !== '');
+                if (nonEmptyCols.length === 0) return;
 
-                        const rowContent = document.createElement('div');
-                        rowContent.className = 'row-content active';
+                // Create row-group wrapper
+                const rowGroup = document.createElement('div');
+                rowGroup.className = 'row-group';
+                rowGroup.id = `row-${rowIndex}`;
+                rowGroup.dataset.dataIndex = rowIndex;
 
-                        const p = document.createElement('p');
-                        setSanitizedHTML(p, row[singleCol]);
-                        rowContent.appendChild(p);
-                        highlightReferences(rowContent, tooltips);
-                        initializeTooltips(rowContent);
-
-                        rowContainer.appendChild(rowContent);
-                        docContent.appendChild(rowContainer);
-                    }
-                } else {
-                    const nonEmptyCols = [];
-                    columns.forEach(col => {
-                        if (row[col] && row[col].trim() !== '') {
-                            nonEmptyCols.push(col);
-                        }
-                    });
-
-                    if (nonEmptyCols.length === 0) return;
-
-                    if (nonEmptyCols.length === 1) {
-                        // Wrap in row-container for consistent section styling (no tabs needed)
-                        const singleCol = nonEmptyCols[0];
-                        const rowContainer = document.createElement('div');
-                        rowContainer.className = 'row-container';
-                        rowContainer.id = `row-${rowIndex}`;
-
-                        const rowContent = document.createElement('div');
-                        rowContent.className = 'row-content active';
-
-                        const p = document.createElement('p');
-                        setSanitizedHTML(p, row[singleCol]);
-                        rowContent.appendChild(p);
-                        highlightReferences(rowContent, tooltips);
-                        initializeTooltips(rowContent);
-
-                        rowContainer.appendChild(rowContent);
-                        docContent.appendChild(rowContainer);
-                    } else {
-                        // Multi: render tabs/container
-                        const rowContainer = document.createElement('div');
-                        rowContainer.className = 'row-container';
-                        rowContainer.id = `row-${rowIndex}`; // Add ID for deep linking
-
-                        const rowTabs = document.createElement('div');
-                        rowTabs.className = 'row-tabs';
-
-                        nonEmptyCols.forEach((col, adjustedIndex) => {
-                            const colIndex = columns.indexOf(col); // Original index for textContent
-                            const tab = document.createElement('div');
-                            tab.className = 'tab';
-                            tab.textContent = colIndex + 1;
-                            const tooltipContent = col.replace('D:', '').trim(); // Tooltip without 'D:'
-                            tab.dataset.column = col;
-                            tab.dataset.rowIndex = rowIndex;
-                            tab.dataset.tabIndex = colIndex + 1; // Add for deep linking (1-based)
-                            tab.dataset.rowData = JSON.stringify(row); // Store row data for popup cloning
-                            tab.addEventListener('click', (event) => {
-                                const currentTab = event.target;
-                                const tabs = currentTab.parentNode.querySelectorAll('.tab');
-                                tabs.forEach(t => t.classList.remove('active'));
-                                currentTab.classList.add('active');
-
-                                const container = currentTab.closest('.row-container');
-                                const rowContent = container.querySelector('.row-content');
-                                rowContent.innerHTML = '';
-                                const p = document.createElement('p');
-                                setSanitizedHTML(p, row[col]);
-                                rowContent.appendChild(p);
-                                highlightReferences(rowContent, tooltips);
-                                initializeTooltips(rowContent);
-
-                                // Update URL with row/tab for deep linking
-                                const url = new URL(window.location);
-                                url.searchParams.set('row', rowIndex + 1);
-                                url.searchParams.set('tab', colIndex + 1);
-                                history.replaceState(null, '', url);
-                            });
-                            // Simple title attribute for tab tooltip
-                            tab.title = tooltipContent;
-                            rowTabs.appendChild(tab);
-                        });
-
-                        rowContainer.appendChild(rowTabs);
-
-                        const rowContent = document.createElement('div');
-                        rowContent.className = 'row-content';
-
-                        // Set initial content to the first non-empty column
-                        const initialCol = nonEmptyCols[0];
-                        if (initialCol) {
-                            const initP = document.createElement('p');
-                            setSanitizedHTML(initP, row[initialCol]);
-                            rowContent.appendChild(initP);
-                        }
-
-                        rowContainer.appendChild(rowContent);
-
-                        docContent.appendChild(rowContainer);
-
-                        // Set first tab active
-                        const firstTab = rowTabs.querySelector('.tab');
-                        if (firstTab) {
-                            firstTab.classList.add('active');
-                        }
-
-                        highlightReferences(rowContent, tooltips);
-                        initializeTooltips(rowContent);
-                    }
+                // Create initial row-container (column 0)
+                const rowContainer = createRowContainer(row, columns, 0, 1, rowIndex);
+                if (rowContainer) {
+                    rowGroup.appendChild(rowContainer);
                 }
+
+                // Create per-row notes div
+                const rowNotes = document.createElement('div');
+                rowNotes.className = 'row-notes';
+                const notesVal = row['Notes']?.trim();
+                const rowIdx = row['Index']?.trim();
+                if (notesVal && rowIdx) {
+                    const noteIdx = document.createElement('span');
+                    noteIdx.className = 'note-index';
+                    noteIdx.textContent = rowIdx;
+                    rowNotes.appendChild(noteIdx);
+                    const noteText = document.createElement('span');
+                    setSanitizedHTML(noteText, notesVal);
+                    rowNotes.appendChild(noteText);
+                }
+                rowGroup.appendChild(rowNotes);
+
+                docContent.appendChild(rowGroup);
             });
         }
         highlightReferences(docContent, tooltips);
