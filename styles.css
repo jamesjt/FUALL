@@ -63,7 +63,7 @@ body.font-lato { font-family: var(--font-lato); }
 /* ── Book toolbar (sticky controls in content area) ── */
 .book-toolbar {
     position: sticky;
-    top: 48px;
+    top: 0;
     z-index: 10;
     background: #121212;
     padding: 8px 0;
@@ -348,11 +348,10 @@ body.font-lato { font-family: var(--font-lato); }
 /* ── Main content ── */
 .main-content {
     flex-grow: 1;
-    padding: 24px;
+    padding: 0px 12px 12px 12px
     position: relative;
-    overflow: hidden;
     min-height: 500px;
-}
+}con
 
 .main-content h1 {
     margin-top: 0;
@@ -447,6 +446,8 @@ body.font-lato { font-family: var(--font-lato); }
 .content-body {
     flex-grow: 1;
     max-width: 650px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
 }
 
 .content-body:has(.row-group) {
@@ -972,4 +973,28 @@ body.font-lato { font-family: var(--font-lato); }
         max-width: 100%;
         padding: 12px;
     }
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-accent);
+}
+
+/* Firefox */
+html, body, .content-body, .main-content {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-medium) var(--surface);
 }
