@@ -97,7 +97,6 @@ body.font-lato { font-family: var(--font-lato); }
 .column-header {
     flex: 0 1 650px;
     min-width: 0;
-    padding: 0 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -420,6 +419,7 @@ body.font-lato { font-family: var(--font-lato); }
     flex-wrap: nowrap;
     gap: 20px;
     overflow-x: auto;
+    overflow-y: clip;
     padding-bottom: 10px;
 }
 
