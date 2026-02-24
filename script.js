@@ -187,6 +187,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ── Mobile: hide nav/toolbar on scroll down, show on scroll up ──
+    (() => {
+        const mq = window.matchMedia('(max-width: 768px)');
+        let lastY = 0;
+        const threshold = 8;
+
+        const onScroll = (scrollEl) => {
+            if (!mq.matches) return;
+            const y = scrollEl.scrollTop;
+            const nav = document.querySelector('.nav-bar');
+            const toolbar = document.querySelector('.book-toolbar');
+            if (y > lastY + threshold) {
+                if (nav) nav.classList.add('hide-on-scroll');
+                if (toolbar) toolbar.classList.add('hide-on-scroll');
+            } else if (y < lastY - threshold) {
+                if (nav) nav.classList.remove('hide-on-scroll');
+                if (toolbar) toolbar.classList.remove('hide-on-scroll');
+            }
+            lastY = y;
+        };
+
+        // .content-body is the scrolling container
+        const contentBody = document.querySelector('.content-body');
+        if (contentBody) {
+            contentBody.addEventListener('scroll', () => onScroll(contentBody), { passive: true });
+        }
+        // Fallback for window scroll
+        window.addEventListener('scroll', () => onScroll(document.documentElement), { passive: true });
+    })();
+
     // Font switcher
     const fontSwitcher = document.querySelector('.font-switcher');
     if (fontSwitcher) {

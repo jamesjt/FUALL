@@ -46,13 +46,12 @@ body.font-lato { font-family: var(--font-lato); }
 }
 
 .nav-bar button {
-    background-color: var(--gold-accent);
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
+    background-color: var(--surface);
+    border: 1px solid rgba(147, 104, 30, 0.4);
+    padding: 0px 6px 2px 6px;
     border-radius: 6px;
     transition: all 0.2s ease;
-    color: #121212;
+    color: rgba(147, 104, 30, 0.8);
     font-weight: 500;
 }
 
@@ -991,6 +990,21 @@ body.font-lato { font-family: var(--font-lato); }
 
     .nav-bar {
         padding-left: 48px;
+        transition: transform 0.3s ease;
+    }
+
+    .nav-bar.hide-on-scroll {
+        transform: translateY(-100%);
+    }
+
+    .book-toolbar {
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .book-toolbar.hide-on-scroll {
+        transform: translateY(-100%);
+        opacity: 0;
+        pointer-events: none;
     }
 
     .toolbar-buttons {
