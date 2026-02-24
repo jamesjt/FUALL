@@ -1884,7 +1884,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                     const chapterHeading = document.createElement('div');
                     chapterHeading.className = 'chapter-head';
                     chapterHeading.id = `chapter-${chapter}`;
-                    chapterHeading.textContent = `Chapter ${chapter}`;
+                    chapterHeading.textContent = chapter;
                     docContent.appendChild(chapterHeading);
                     currentChapter = chapter;
                 }
