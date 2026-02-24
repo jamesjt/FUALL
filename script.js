@@ -1839,50 +1839,42 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
             docContent.innerHTML = '';
             let currentChapter = null;
 
-            // Create book toolbar (sticky controls + column headers)
+            // Create book toolbar (column headers aligned to content columns)
             if (columns.length > 1) {
                 const toolbar = document.createElement('div');
                 toolbar.className = 'book-toolbar';
 
-                // Controls row: title, +/-, notes checkbox
-                const controls = document.createElement('div');
-                controls.className = 'toolbar-controls';
+                const columnHeaders = document.createElement('div');
+                columnHeaders.className = 'column-headers';
+
+                // First column header: title + select + add/remove buttons
+                const header = createColumnHeader(0, columns);
 
                 const titleSpan = document.createElement('span');
                 titleSpan.className = 'book-title';
                 titleSpan.textContent = title;
-                controls.appendChild(titleSpan);
-
-                const buttonsDiv = document.createElement('div');
-                buttonsDiv.className = 'toolbar-buttons';
+                header.insertBefore(titleSpan, header.firstChild);
 
                 const addBtn = document.createElement('button');
-                addBtn.className = 'column-btn';
+                addBtn.className = 'column-btn column-btn-add';
                 addBtn.id = 'add-column-btn';
                 addBtn.textContent = '+';
                 addBtn.title = 'Add column';
                 addBtn.addEventListener('click', addColumn);
-                buttonsDiv.appendChild(addBtn);
+                header.appendChild(addBtn);
 
                 const removeBtn = document.createElement('button');
-                removeBtn.className = 'column-btn';
+                removeBtn.className = 'column-btn column-btn-remove';
                 removeBtn.id = 'remove-column-btn';
                 removeBtn.textContent = '\u2212';
                 removeBtn.title = 'Remove column';
                 removeBtn.style.display = 'none';
                 removeBtn.addEventListener('click', removeColumn);
-                buttonsDiv.appendChild(removeBtn);
+                header.appendChild(removeBtn);
 
-                controls.appendChild(buttonsDiv);
-                toolbar.appendChild(controls);
-
-                // Column headers row
-                const columnHeaders = document.createElement('div');
-                columnHeaders.className = 'column-headers';
-                const header = createColumnHeader(0, columns);
                 columnHeaders.appendChild(header);
-                toolbar.appendChild(columnHeaders);
 
+                toolbar.appendChild(columnHeaders);
                 docContent.appendChild(toolbar);
             }
 

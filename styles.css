@@ -66,86 +66,103 @@ body.font-lato { font-family: var(--font-lato); }
     top: 0;
     z-index: 10;
     background: #121212;
-    padding: 8px 0;
+    padding: 40px 0 0 0;
     border-bottom: 1px solid var(--border-subtle);
 }
 
 .toolbar-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 4px 8px;
+    display: none;
 }
 
 .book-title {
     font-weight: 600;
     color: var(--gold-accent);
-    font-size: 0.85em;
+    font-size: 0.82em;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    padding: 0 4px 0 8px;
 }
 
 .toolbar-buttons {
+    display: none;
+}
+
+/* ── Column headers (single-row toolbar) ── */
+.column-headers {
     display: flex;
     align-items: center;
+    gap: 0;
+    padding: 6px 0;
+}
+
+.column-header {
+    flex: 0 1 650px;
+    min-width: 0;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 6px;
 }
 
+.column-select {
+    background: transparent;
+    color: #b0b0b0;
+    border: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 5px 4px;
+    border-radius: 0;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 4px center;
+    padding-right: 18px;
+}
+
+.column-select:hover {
+    color: #e0e0e0;
+    border-bottom-color: var(--gold-accent);
+}
+
+.column-select:focus {
+    outline: none;
+    color: #e0e0e0;
+    border-bottom-color: var(--gold-accent);
+}
+
 .column-btn {
-    background-color: #2a2a2a;
-    color: #999;
-    border: 1px solid var(--border-medium);
-    width: 24px;
-    height: 24px;
+    background: transparent;
+    color: #666;
+    border: none;
+    width: 28px;
+    height: 28px;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 50%;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: inherit;
     line-height: 1;
     padding: 0;
+    flex-shrink: 0;
 }
 
 .column-btn:hover {
-    border-color: var(--gold-accent);
     color: var(--gold-accent);
+    background: rgba(210, 154, 56, 0.1);
 }
 
-/* ── Column headers (version selectors per column) ── */
-.column-headers {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    padding: 4px 0 0 0;
+.column-btn-add {
 }
 
-.column-header {
-    flex: 1;
-    min-width: 0;
-    padding: 4px 8px;
-}
-
-.column-select {
-    background-color: #2a2a2a;
-    color: #e0e0e0;
-    border: 1px solid var(--border-medium);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: border-color 0.2s ease;
-    font-family: inherit;
-}
-
-.column-select:hover {
-    border-color: var(--gold-accent);
-}
-
-.column-select:focus {
-    outline: none;
-    border-color: var(--gold-accent);
+.column-btn-remove {
 }
 
 /* ── Row groups (multi-column height sync) ── */
@@ -1011,6 +1028,10 @@ body.font-lato { font-family: var(--font-lato); }
         display: none;
     }
 
+    .column-btn {
+        display: none;
+    }
+
     .sidebar {
         left: -290px;
         transition: left 0.3s ease;
@@ -1282,20 +1303,28 @@ body.light-theme .book-toolbar {
 }
 
 body.light-theme .column-btn {
-    background-color: #fafafa;
-    color: #757575;
-    border-color: rgba(0, 0, 0, 0.1);
+    background: transparent;
+    color: #9e9e9e;
 }
 
 body.light-theme .column-btn:hover {
-    border-color: var(--gold-accent);
     color: var(--gold-accent);
+    background: rgba(210, 154, 56, 0.08);
 }
 
 body.light-theme .column-select {
-    background-color: #ffffff;
-    color: rgba(0, 0, 0, 0.87);
-    border-color: rgba(0, 0, 0, 0.1);
+    background: transparent;
+    color: #757575;
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239e9e9e'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 4px center;
+}
+
+body.light-theme .column-select:hover,
+body.light-theme .column-select:focus {
+    color: #424242;
+    border-bottom-color: var(--gold-accent);
 }
 
 /* ── Light: tabs ── */
