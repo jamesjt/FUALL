@@ -66,7 +66,6 @@ body.font-lato { font-family: var(--font-lato); }
     top: 0;
     z-index: 10;
     background: #121212;
-    padding: 40px 0 0 0;
     border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -528,6 +527,10 @@ body.font-lato { font-family: var(--font-lato); }
     gap: 3px;
     margin-top: 12px;
     flex-shrink: 0;
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+    z-index: 5;
 }
 
 .row-content {
@@ -1030,6 +1033,10 @@ body.font-lato { font-family: var(--font-lato); }
 
     .column-btn {
         display: none;
+    }
+
+    .row-tabs {
+        top: 50px;
     }
 
     .sidebar {
