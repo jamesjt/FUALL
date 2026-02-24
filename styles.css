@@ -1046,6 +1046,10 @@ body.font-lato { font-family: var(--font-lato); }
         padding-left: 0;
     }
 
+    .main-content {
+        padding: 0;
+    }
+
     .content-body {
         max-width: 100%;
     }
