@@ -18,17 +18,32 @@
     <nav class="nav-bar" role="banner" aria-label="Site header">
         <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
         Foundational Understanding
-        <div class="font-switcher" role="group" aria-label="Font selection">
-            <button class="font-btn active" data-font="serif" title="Serif font">Aa</button>
-            <button class="font-btn" data-font="inter" title="Inter font">Aa</button>
-            <button class="font-btn" data-font="open-sans" title="Open Sans font">Aa</button>
-            <button class="font-btn" data-font="lato" title="Lato font">Aa</button>
-        </div>
     </nav>
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
     <div class="container">
         <div class="sidebar" id="sidebar" role="navigation" aria-label="Content navigation">
             <button id="wisdom-map-btn" aria-label="Toggle Wisdom Map">Map</button>
+            <div class="sidebar-section style-section">
+                <button class="section-toggle" aria-expanded="false">Style ▸</button>
+                <div class="section-content collapsed">
+                    <div class="style-group">
+                        <label>Theme</label>
+                        <div class="theme-switcher" role="group" aria-label="Theme selection">
+                            <button class="theme-btn active" data-theme="dark">Dark</button>
+                            <button class="theme-btn" data-theme="light">Light</button>
+                        </div>
+                    </div>
+                    <div class="style-group">
+                        <label>Font</label>
+                        <div class="font-switcher" role="group" aria-label="Font selection">
+                            <button class="font-btn active" data-font="serif">Serif</button>
+                            <button class="font-btn" data-font="inter">Inter</button>
+                            <button class="font-btn" data-font="open-sans">Open Sans</button>
+                            <button class="font-btn" data-font="lato">Lato</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <h2>Articles</h2>
             <ul class="articles-list sidebarList"></ul>
             <h2>Books</h2>

@@ -214,6 +214,43 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // Theme switcher
+    const themeSwitcher = document.querySelector('.theme-switcher');
+    if (themeSwitcher) {
+        const savedTheme = localStorage.getItem('preferredTheme') || 'dark';
+        applyTheme(savedTheme);
+
+        themeSwitcher.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === savedTheme);
+        });
+
+        themeSwitcher.addEventListener('click', (e) => {
+            const btn = e.target.closest('.theme-btn');
+            if (!btn) return;
+
+            const theme = btn.dataset.theme;
+            applyTheme(theme);
+            localStorage.setItem('preferredTheme', theme);
+
+            themeSwitcher.querySelectorAll('.theme-btn').forEach(b => {
+                b.classList.toggle('active', b === btn);
+            });
+        });
+    }
+
+    // Section toggle (collapsible sidebar sections)
+    document.querySelectorAll('.section-toggle').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const content = toggle.nextElementSibling;
+            if (content) {
+                content.classList.toggle('collapsed');
+                const isCollapsed = content.classList.contains('collapsed');
+                toggle.textContent = toggle.textContent.replace(/[▸▾]/, isCollapsed ? '▸' : '▾');
+                toggle.setAttribute('aria-expanded', !isCollapsed);
+            }
+        });
+    });
 });
 
 // Apply font class to body
@@ -224,6 +261,11 @@ function applyFont(fontKey) {
     if (fontKey !== 'serif') {
         document.body.classList.add('font-' + fontKey);
     }
+}
+
+// Apply theme class to body
+function applyTheme(themeKey) {
+    document.body.classList.toggle('light-theme', themeKey === 'light');
 }
 
 // Function to populate a sidebar list
@@ -238,7 +280,14 @@ function populateSidebarList(listSelector, data, itemKey, type) {
             buttonElement.textContent = item;
             buttonElement.dataset.title = item; // For identifying active item
             buttonElement.classList.add('book-button');
-            buttonElement.addEventListener('click', () => showContent(type, item));
+            buttonElement.addEventListener('click', () => {
+                if (buttonElement.classList.contains('active-item')) {
+                    const subList = buttonElement.parentElement.querySelector('.sub-list');
+                    if (subList) subList.classList.toggle('collapsed');
+                    return;
+                }
+                showContent(type, item);
+            });
             listItem.appendChild(buttonElement);
             list.appendChild(listItem);
         }
@@ -1258,6 +1307,33 @@ function buildWisdomMap(data, shapePoints) {
     });
 }
 
+// Mobile notes overlay — singleton, created once
+function getNotesOverlay() {
+    let overlay = document.getElementById('notes-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'notes-overlay';
+        overlay.className = 'notes-overlay';
+        const content = document.createElement('div');
+        content.className = 'notes-overlay-content';
+        overlay.appendChild(content);
+        overlay.addEventListener('click', () => {
+            overlay.classList.remove('active');
+        });
+        document.body.appendChild(overlay);
+    }
+    return overlay;
+}
+
+function showMobileNotes(rowGroup) {
+    const notesDiv = rowGroup.querySelector('.row-notes');
+    if (!notesDiv) return;
+    const overlay = getNotesOverlay();
+    const content = overlay.querySelector('.notes-overlay-content');
+    content.innerHTML = notesDiv.innerHTML;
+    overlay.classList.add('active');
+}
+
 // Create a per-row notes checkbox toggle
 function createRowNotesToggle() {
     const label = document.createElement('label');
@@ -1265,9 +1341,16 @@ function createRowNotesToggle() {
     label.title = 'Show notes';
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.addEventListener('change', () => {
+    checkbox.addEventListener('change', (e) => {
         const rowGroup = label.closest('.row-group');
-        if (rowGroup) rowGroup.classList.toggle('show-row-notes', checkbox.checked);
+        if (!rowGroup) return;
+        if (window.matchMedia('(max-width: 768px)').matches) {
+            e.preventDefault();
+            checkbox.checked = false;
+            showMobileNotes(rowGroup);
+        } else {
+            rowGroup.classList.toggle('show-row-notes', checkbox.checked);
+        }
     });
     label.appendChild(checkbox);
     label.appendChild(document.createTextNode(' N'));
