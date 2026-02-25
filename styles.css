@@ -133,6 +133,11 @@ body.font-lato { font-family: var(--font-lato); }
     border-bottom-color: var(--gold-accent);
 }
 
+.column-select option {
+    background: #1e1e1e;
+    color: #c1c1c1;
+}
+
 .column-btn {
     background: transparent;
     color: #666;
@@ -376,12 +381,61 @@ body.font-lato { font-family: var(--font-lato); }
     padding-left: 8px;
 }
 
+/* Chapter chevron on active book/article with chapters */
+.sidebar button.has-chapters::after {
+    content: '▾';
+    float: right;
+    font-size: 0.75em;
+    opacity: 0.6;
+    transition: transform 0.2s ease;
+}
+
+.sidebar button.has-chapters.chapters-collapsed::after {
+    content: '▸';
+}
+
 .chapter-button {
     font-size: 0.85em !important;
     color: #999 !important;
 }
 
 .chapter-button:hover {
+    color: var(--gold-accent) !important;
+}
+
+/* Thought expand toggle (▸/▾) inside chapter buttons */
+.thought-expand-toggle {
+    display: inline-block;
+    width: 14px;
+    font-size: 0.75em;
+    opacity: 0.5;
+    cursor: pointer;
+    text-align: center;
+    transition: opacity 0.2s ease;
+}
+
+.thought-expand-toggle:hover {
+    opacity: 1;
+}
+
+/* Thought sub-list under each chapter */
+.thought-list {
+    margin-left: 14px;
+    padding: 0;
+    list-style: none;
+}
+
+.thought-list.collapsed {
+    display: none;
+}
+
+.thought-button {
+    font-size: 0.78em !important;
+    color: #777 !important;
+    padding: 2px 8px !important;
+}
+
+.thought-button:hover {
     color: var(--gold-accent) !important;
 }
 
@@ -504,6 +558,7 @@ body.font-lato { font-family: var(--font-lato); }
     max-width: 650px;
     max-height: calc(100vh);
     overflow-y: auto;
+    scroll-padding-top: 38px;
 }
 
 .content-body:has(.row-group) {
@@ -542,7 +597,6 @@ body.font-lato { font-family: var(--font-lato); }
     overflow-wrap: break-word;
     border-left: 1px solid rgba(147, 104, 30, 0.4);
     border-right: 1px solid rgba(147, 104, 30, 0.4);
-    border-radius: 8px;
 }
 
 .row-content p {
@@ -1264,6 +1318,7 @@ body.light-theme .row-content {
     background-color: #f5f5f5;
     border-left-color: rgba(210, 154, 56, 0.25);
     border-right-color: rgba(210, 154, 56, 0.25);
+    border-radius: 8px;
 }
 
 body.light-theme .row-group {
@@ -1336,6 +1391,11 @@ body.light-theme .column-select:hover,
 body.light-theme .column-select:focus {
     color: #424242;
     border-bottom-color: var(--gold-accent);
+}
+
+body.light-theme .column-select option {
+    background: #ffffff;
+    color: #424242;
 }
 
 /* ── Light: tabs ── */

@@ -313,7 +313,10 @@ function populateSidebarList(listSelector, data, itemKey, type) {
             buttonElement.addEventListener('click', () => {
                 if (buttonElement.classList.contains('active-item')) {
                     const subList = buttonElement.parentElement.querySelector('.sub-list');
-                    if (subList) subList.classList.toggle('collapsed');
+                    if (subList) {
+                        subList.classList.toggle('collapsed');
+                        buttonElement.classList.toggle('chapters-collapsed');
+                    }
                     return;
                 }
                 showContent(type, item);
@@ -1656,7 +1659,10 @@ async function showContent(type, title, deepParams = null) {
     contentBody.innerHTML = ''; // Clear previous content
 
     // Update active sidebar item
-    document.querySelectorAll('.sidebar button.active-item').forEach(btn => btn.classList.remove('active-item'));
+    document.querySelectorAll('.sidebar button.active-item').forEach(btn => {
+        btn.classList.remove('active-item');
+        btn.classList.remove('has-chapters');
+    });
     document.querySelectorAll('.sidebar .sub-list').forEach(sl => sl.remove());
     const activeBtn = document.querySelector(`.sidebar button[data-title="${CSS.escape(title)}"]`);
     if (activeBtn) {
@@ -1690,36 +1696,113 @@ async function showContent(type, title, deepParams = null) {
                         }
                     }
                 }
-                targetRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const toolbar = contentBody.querySelector('.book-toolbar');
+                const offset = toolbar ? toolbar.offsetHeight : 0;
+                const top = targetRow.getBoundingClientRect().top - contentBody.getBoundingClientRect().top + contentBody.scrollTop - offset;
+                contentBody.scrollTo({ top, behavior: 'smooth' });
             }
         }
 
-        // Add chapter sub-list to sidebar
-        const chapters = Array.from(docContent.querySelectorAll('.chapter-head')).map(head => ({
-            id: head.id,
-            text: head.textContent.trim()
-        }));
-        if (chapters.length > 0) {
-            // Find the active sidebar item
+        // Add collapsible chapter + thought sub-list to sidebar
+        const chapterHeads = Array.from(docContent.querySelectorAll('.chapter-head'));
+        if (chapterHeads.length > 0) {
             const activeButton = document.querySelector(`.sidebar button[data-title="${title}"]`);
             if (activeButton) {
                 const listItem = activeButton.parentElement;
-                // Clear existing sub-list if any
                 const existingSubList = listItem.querySelector('.sub-list');
                 if (existingSubList) existingSubList.remove();
-                // Create new sub-list
+
+                activeButton.classList.add('has-chapters');
+
                 const subList = document.createElement('ul');
                 subList.className = 'sub-list';
-                chapters.forEach(chapter => {
+
+                chapterHeads.forEach((head, ci) => {
                     const subItem = document.createElement('li');
+
+                    // Chapter button with chevron
                     const chapterButton = document.createElement('button');
-                    chapterButton.className = 'chapter-button';
-                    chapterButton.textContent = chapter.text;
+                    chapterButton.className = 'chapter-button has-thoughts';
+                    chapterButton.textContent = head.textContent.trim();
                     chapterButton.addEventListener('click', () => {
-                        const heading = document.getElementById(chapter.id);
-                        if (heading) heading.scrollIntoView({ behavior: 'smooth' });
+                        const heading = document.getElementById(head.id);
+                        if (heading) {
+                            const toolbar = contentBody.querySelector('.book-toolbar');
+                            const offset = toolbar ? toolbar.offsetHeight : 0;
+                            const top = heading.getBoundingClientRect().top - contentBody.getBoundingClientRect().top + contentBody.scrollTop - offset;
+                            contentBody.scrollTo({ top, behavior: 'smooth' });
+                        }
                     });
                     subItem.appendChild(chapterButton);
+
+                    // Collect row-groups between this chapter-head and the next
+                    const nextHead = chapterHeads[ci + 1] || null;
+                    let sibling = head.nextElementSibling;
+                    const thoughts = [];
+                    while (sibling && sibling !== nextHead) {
+                        if (sibling.classList.contains('row-group')) {
+                            const idx = sibling.dataset.dataIndex;
+                            // Get the Index column value (e.g. "1.1") for the label
+                            const indexCell = currentBookRows?.[idx]?.['Index']?.trim();
+                            const thoughtNum = currentBookRows?.[idx]?.['Thought']?.trim();
+                            // Build a short label from the first line of visible text
+                            const firstText = sibling.querySelector('.paragraph')?.textContent || '';
+                            const preview = firstText.substring(0, 60).replace(/\s+/g, ' ').trim();
+                            thoughts.push({
+                                rowId: sibling.id,
+                                label: indexCell || thoughtNum || sibling.id,
+                                preview: preview ? (preview.length >= 58 ? preview + '...' : preview) : ''
+                            });
+                        }
+                        sibling = sibling.nextElementSibling;
+                    }
+
+                    if (thoughts.length > 0) {
+                        const thoughtList = document.createElement('ul');
+                        thoughtList.className = 'thought-list collapsed';
+
+                        thoughts.forEach(t => {
+                            const tItem = document.createElement('li');
+                            const tBtn = document.createElement('button');
+                            tBtn.className = 'thought-button';
+                            tBtn.textContent = t.label;
+                            if (t.preview) tBtn.title = t.preview;
+                            tBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const row = document.getElementById(t.rowId);
+                                if (row) {
+                                    const toolbar = contentBody.querySelector('.book-toolbar');
+                                    const offset = toolbar ? toolbar.offsetHeight : 0;
+                                    const top = row.getBoundingClientRect().top - contentBody.getBoundingClientRect().top + contentBody.scrollTop - offset;
+                                    contentBody.scrollTo({ top, behavior: 'smooth' });
+                                }
+                            });
+                            tItem.appendChild(tBtn);
+                            thoughtList.appendChild(tItem);
+                        });
+
+                        subItem.appendChild(thoughtList);
+
+                        // Toggle thought list on chapter chevron click
+                        chapterButton.addEventListener('dblclick', (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            thoughtList.classList.toggle('collapsed');
+                            chapterButton.classList.toggle('thoughts-expanded');
+                        });
+                        // Also add a small expand button
+                        const expandBtn = document.createElement('span');
+                        expandBtn.className = 'thought-expand-toggle';
+                        expandBtn.textContent = '▸';
+                        expandBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            thoughtList.classList.toggle('collapsed');
+                            chapterButton.classList.toggle('thoughts-expanded');
+                            expandBtn.textContent = thoughtList.classList.contains('collapsed') ? '▸' : '▾';
+                        });
+                        chapterButton.prepend(expandBtn);
+                    }
+
                     subList.appendChild(subItem);
                 });
                 listItem.appendChild(subList);
