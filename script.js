@@ -1670,8 +1670,21 @@ async function showContent(type, title, deepParams = null) {
         activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
+    // Show loading indicator while content loads
+    const needsLoad = contentMeta[title] && !contentMeta[title].loaded;
+    let loadingEl = null;
+    if (needsLoad) {
+        loadingEl = document.createElement('div');
+        loadingEl.className = 'content-loading';
+        loadingEl.innerHTML = '<img src="images/phi.png" class="loading-phi-large" alt="Loading">';
+        contentBody.appendChild(loadingEl);
+    }
+
     // Lazy-load content if not yet fetched
     await ensureContentLoaded(title);
+
+    // Remove loading indicator
+    if (loadingEl && loadingEl.parentNode) loadingEl.remove();
 
     const docContent = contentElements[title];
     if (docContent) {
