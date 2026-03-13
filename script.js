@@ -1,12 +1,3 @@
-// Helper: safely set text content with newlines as <br> elements
-function setTextWithBreaks(element, text) {
-    element.textContent = '';
-    (text || '').split('\n').forEach((line, i) => {
-        if (i > 0) element.appendChild(document.createElement('br'));
-        element.appendChild(document.createTextNode(line));
-    });
-}
-
 // Helper: create an error paragraph safely (no innerHTML)
 function createErrorP(message) {
     const p = document.createElement('p');
@@ -310,13 +301,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Add MutationObserver to reapply tooltips on DOM changes (debounced)
                 let mutationTimeout = null;
+                let isProcessing = false;
                 const observer = new MutationObserver(() => {
+                    if (isProcessing) return;
                     if (mutationTimeout) clearTimeout(mutationTimeout);
                     mutationTimeout = setTimeout(() => {
-                        observer.disconnect();
+                        isProcessing = true;
                         highlightReferences(contentBody, tooltips);
                         initializeTooltips(contentBody);
-                        observer.observe(contentBody, { childList: true, subtree: true });
+                        isProcessing = false;
                     }, 100);
                 });
                 observer.observe(contentBody, { childList: true, subtree: true });
@@ -622,7 +615,7 @@ async function createMapPopup(nodeId, nodeData, clickX, clickY, container) {
 }
 
 // Z-index counter for popup stacking
-let popupZIndex = 100;
+let popupZIndex = 1050;
 function getNextPopupZ() {
     return ++popupZIndex;
 }
@@ -632,6 +625,16 @@ function makePopupDraggable(popup, handle) {
     let isDragging = false;
     let offsetX = 0;
     let offsetY = 0;
+
+    const onMouseMove = (e) => {
+        if (!isDragging) return;
+        popup.style.left = `${e.clientX - offsetX}px`;
+        popup.style.top = `${e.clientY - offsetY}px`;
+    };
+
+    const onMouseUp = () => {
+        isDragging = false;
+    };
 
     handle.addEventListener('mousedown', (e) => {
         if (e.target.classList.contains('map-popup-close') ||
@@ -644,15 +647,18 @@ function makePopupDraggable(popup, handle) {
         e.preventDefault();
     });
 
-    document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        popup.style.left = `${e.clientX - offsetX}px`;
-        popup.style.top = `${e.clientY - offsetY}px`;
-    });
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
 
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
+    // Clean up listeners when popup is removed from DOM
+    const cleanupObserver = new MutationObserver(() => {
+        if (!popup.isConnected) {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            cleanupObserver.disconnect();
+        }
     });
+    cleanupObserver.observe(popup.parentNode || document.body, { childList: true });
 }
 
 // Function to build wisdom map with phi-shaped layout
@@ -2098,7 +2104,7 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
                 fallbackDiv.innerHTML = DOMPurify.sanitize(htmlText);
                 fallbackDiv.querySelectorAll('style').forEach(style => style.remove());
                 fallbackDiv.querySelectorAll('#banners').forEach(banner => banner.remove());
-                docContent.innerHTML = DOMPurify.sanitize(fallbackDiv.innerHTML);
+                docContent.innerHTML = fallbackDiv.innerHTML;
             }
         } else if (link.includes('spreadsheets')) {
             const csvLink = link.replace('/edit', '/pub?output=csv');
