@@ -2124,40 +2124,53 @@ async function loadAndDisplayContent(link, type, title, targetContentBody = null
             docContent.innerHTML = '';
             let currentChapter = null;
 
-            // Create book toolbar (column headers aligned to content columns)
-            if (columns.length > 1) {
+            // Create book toolbar (always — shows title, adds selector only for multi-column)
+            {
                 const toolbar = document.createElement('div');
                 toolbar.className = 'book-toolbar';
 
                 const columnHeaders = document.createElement('div');
                 columnHeaders.className = 'column-headers';
 
-                // First column header: title + select + add/remove buttons
-                const header = createColumnHeader(0, columns);
+                if (columns.length > 1) {
+                    // Multi-column: title + select + add/remove buttons
+                    const header = createColumnHeader(0, columns);
 
-                const titleSpan = document.createElement('span');
-                titleSpan.className = 'book-title';
-                titleSpan.textContent = title;
-                header.insertBefore(titleSpan, header.firstChild);
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = 'book-title';
+                    titleSpan.textContent = title;
+                    header.insertBefore(titleSpan, header.firstChild);
 
-                const addBtn = document.createElement('button');
-                addBtn.className = 'column-btn column-btn-add';
-                addBtn.id = 'add-column-btn';
-                addBtn.textContent = '+';
-                addBtn.title = 'Add column';
-                addBtn.addEventListener('click', addColumn);
-                header.appendChild(addBtn);
+                    const addBtn = document.createElement('button');
+                    addBtn.className = 'column-btn column-btn-add';
+                    addBtn.id = 'add-column-btn';
+                    addBtn.textContent = '+';
+                    addBtn.title = 'Add column';
+                    addBtn.addEventListener('click', addColumn);
+                    header.appendChild(addBtn);
 
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'column-btn column-btn-remove';
-                removeBtn.id = 'remove-column-btn';
-                removeBtn.textContent = '\u2212';
-                removeBtn.title = 'Remove column';
-                removeBtn.style.display = 'none';
-                removeBtn.addEventListener('click', removeColumn);
-                header.appendChild(removeBtn);
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'column-btn column-btn-remove';
+                    removeBtn.id = 'remove-column-btn';
+                    removeBtn.textContent = '\u2212';
+                    removeBtn.title = 'Remove column';
+                    removeBtn.style.display = 'none';
+                    removeBtn.addEventListener('click', removeColumn);
+                    header.appendChild(removeBtn);
 
-                columnHeaders.appendChild(header);
+                    columnHeaders.appendChild(header);
+                } else {
+                    // Single column: title only
+                    const header = document.createElement('div');
+                    header.className = 'column-header';
+
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = 'book-title';
+                    titleSpan.textContent = title;
+                    header.appendChild(titleSpan);
+
+                    columnHeaders.appendChild(header);
+                }
 
                 toolbar.appendChild(columnHeaders);
                 docContent.appendChild(toolbar);
