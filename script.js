@@ -32,6 +32,184 @@ DOMPurify.addHook('afterSanitizeAttributes', function(node) {
     }
 });
 
+// ── Content Search/Filter ──
+
+function debounce(fn, delay) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+function stripHTML(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html || '';
+    return tmp.textContent || '';
+}
+
+function filterContent(query) {
+    const contentBody = document.querySelector('.content-body');
+    const docContent = contentBody?.querySelector('.doc-content');
+    if (!docContent) return;
+
+    const searchBar = contentBody.querySelector('.content-search-bar');
+    const clearBtn = searchBar?.querySelector('.content-search-clear');
+    const countSpan = searchBar?.querySelector('.content-search-count');
+
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) {
+        clearContentFilter();
+        return;
+    }
+
+    if (clearBtn) clearBtn.style.display = '';
+    // Remove any previous no-results message
+    docContent.querySelector('.content-search-no-results')?.remove();
+
+    const rows = docContent.querySelectorAll('.row-container');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        // Never hide the header row (row-0) — it contains the title and version selector
+        if (row.id === 'row-0') {
+            visibleCount++;
+            return;
+        }
+
+        const tabs = row.querySelectorAll('.tab');
+        let rowMatches = false;
+
+        if (tabs.length > 0) {
+            // Multi-tab row: search all tab data
+            tabs.forEach(tab => {
+                const rowData = JSON.parse(tab.dataset.rowData);
+                const colText = stripHTML(rowData[tab.dataset.column] || '').toLowerCase();
+                if (colText.includes(normalized)) {
+                    rowMatches = true;
+                    tab.classList.add('search-match');
+                } else {
+                    tab.classList.remove('search-match');
+                }
+            });
+        } else {
+            // Single-column row: search visible text
+            const text = (row.querySelector('.row-content')?.textContent || '').toLowerCase();
+            if (text.includes(normalized)) {
+                rowMatches = true;
+            }
+        }
+
+        row.classList.toggle('search-hidden', !rowMatches);
+        if (rowMatches) visibleCount++;
+    });
+
+    // Hide chapter headings whose sections are all hidden
+    // Find the container that actually holds row-containers (may be nested .doc-content)
+    const rowParent = rows.length > 0 ? rows[0].parentElement : docContent;
+    const children = Array.from(rowParent.children);
+    for (let i = 0; i < children.length; i++) {
+        if (children[i].classList.contains('chapter-head')) {
+            let hasVisible = false;
+            for (let j = i + 1; j < children.length; j++) {
+                if (children[j].classList.contains('chapter-head')) break;
+                if (children[j].classList.contains('row-container') && !children[j].classList.contains('search-hidden')) {
+                    hasVisible = true;
+                    break;
+                }
+            }
+            children[i].classList.toggle('search-hidden', !hasVisible);
+        }
+    }
+
+    // Update count
+    if (countSpan) {
+        countSpan.style.display = '';
+        countSpan.textContent = `${visibleCount} of ${rows.length}`;
+    }
+
+    // No results message
+    if (visibleCount === 0) {
+        const msg = document.createElement('div');
+        msg.className = 'content-search-no-results';
+        msg.textContent = 'No matching sections found.';
+        docContent.appendChild(msg);
+    }
+}
+
+function clearContentFilter() {
+    const contentBody = document.querySelector('.content-body');
+    if (!contentBody) return;
+
+    const docContent = contentBody.querySelector('.doc-content');
+    if (docContent) {
+        docContent.querySelectorAll('.search-hidden').forEach(el => el.classList.remove('search-hidden'));
+        docContent.querySelectorAll('.search-match').forEach(el => el.classList.remove('search-match'));
+        docContent.querySelector('.content-search-no-results')?.remove();
+    }
+
+    const searchBar = contentBody.querySelector('.content-search-bar');
+    if (searchBar) {
+        const clearBtn = searchBar.querySelector('.content-search-clear');
+        const countSpan = searchBar.querySelector('.content-search-count');
+        if (clearBtn) clearBtn.style.display = 'none';
+        if (countSpan) countSpan.style.display = 'none';
+    }
+}
+
+function injectSearchBar() {
+    const contentBody = document.querySelector('.content-body');
+    const docContent = contentBody?.querySelector('.doc-content');
+    if (!docContent) return;
+
+    // Only show for spreadsheet content (has row-containers)
+    if (docContent.querySelectorAll('.row-container').length === 0) return;
+
+    // Don't inject twice
+    if (contentBody.querySelector('.content-search-bar')) return;
+
+    const bar = document.createElement('div');
+    bar.className = 'content-search-bar';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'content-search-input';
+    input.placeholder = 'Filter sections…';
+    input.setAttribute('aria-label', 'Filter content sections');
+
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'content-search-clear';
+    clearBtn.textContent = '×';
+    clearBtn.setAttribute('aria-label', 'Clear search');
+    clearBtn.style.display = 'none';
+
+    const count = document.createElement('span');
+    count.className = 'content-search-count';
+    count.style.display = 'none';
+
+    bar.appendChild(input);
+    bar.appendChild(clearBtn);
+    bar.appendChild(count);
+    contentBody.insertBefore(bar, docContent);
+
+    const debouncedFilter = debounce(q => filterContent(q), 200);
+
+    input.addEventListener('input', () => debouncedFilter(input.value));
+
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        clearContentFilter();
+    });
+
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            input.value = '';
+            clearContentFilter();
+            input.blur();
+        }
+    });
+}
+
 let contentElements = {}; // Global object to store preloaded content
 let contentMeta = {}; // Metadata for lazy loading: { title: { link, type, loaded } }
 let tooltips = {}; // Global tooltips object to store refs data
@@ -1821,6 +1999,8 @@ async function showContent(type, title, deepParams = null) {
                 listItem.appendChild(subList);
             }
         }
+
+        injectSearchBar();
     } else {
         const heading = document.createElement('h2');
         heading.textContent = type.charAt(0).toUpperCase() + type.slice(1) + ': ' + title + ' (Content not loaded)';
