@@ -67,7 +67,9 @@ function filterContent(query) {
     // Remove any previous no-results message
     docContent.querySelector('.content-search-no-results')?.remove();
 
-    const rows = docContent.querySelectorAll('.row-container');
+    // Use row-group if present (new layout), fall back to row-container (old layout)
+    let rows = docContent.querySelectorAll('.row-group');
+    if (rows.length === 0) rows = docContent.querySelectorAll('.row-container');
     let visibleCount = 0;
 
     rows.forEach(row => {
@@ -105,15 +107,15 @@ function filterContent(query) {
     });
 
     // Hide chapter headings whose sections are all hidden
-    // Find the container that actually holds row-containers (may be nested .doc-content)
     const rowParent = rows.length > 0 ? rows[0].parentElement : docContent;
     const children = Array.from(rowParent.children);
+    const rowClass = rows[0]?.classList.contains('row-group') ? 'row-group' : 'row-container';
     for (let i = 0; i < children.length; i++) {
         if (children[i].classList.contains('chapter-head')) {
             let hasVisible = false;
             for (let j = i + 1; j < children.length; j++) {
                 if (children[j].classList.contains('chapter-head')) break;
-                if (children[j].classList.contains('row-container') && !children[j].classList.contains('search-hidden')) {
+                if (children[j].classList.contains(rowClass) && !children[j].classList.contains('search-hidden')) {
                     hasVisible = true;
                     break;
                 }
@@ -162,8 +164,8 @@ function injectSearchBar() {
     const docContent = contentBody?.querySelector('.doc-content');
     if (!docContent) return;
 
-    // Only show for spreadsheet content (has row-containers)
-    if (docContent.querySelectorAll('.row-container').length === 0) return;
+    // Only show for spreadsheet content (has row-container or row-group)
+    if (docContent.querySelectorAll('.row-container, .row-group').length === 0) return;
 
     // Don't inject twice
     if (contentBody.querySelector('.content-search-bar')) return;
@@ -190,7 +192,14 @@ function injectSearchBar() {
     bar.appendChild(input);
     bar.appendChild(clearBtn);
     bar.appendChild(count);
-    contentBody.insertBefore(bar, docContent);
+
+    // Nest inside book-toolbar if it exists so they share one sticky container
+    const toolbar = docContent.querySelector('.book-toolbar');
+    if (toolbar) {
+        toolbar.appendChild(bar);
+    } else {
+        contentBody.insertBefore(bar, docContent);
+    }
 
     const debouncedFilter = debounce(q => filterContent(q), 200);
 

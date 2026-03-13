@@ -577,15 +577,10 @@ body.font-lato { font-family: var(--font-lato); }
 
 /* ── Content Search Bar ── */
 .content-search-bar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 0;
-    margin-bottom: 8px;
-    background-color: var(--bg);
 }
 
 .content-search-input {
@@ -631,6 +626,7 @@ body.font-lato { font-family: var(--font-lato); }
 }
 
 .row-container.search-hidden,
+.row-group.search-hidden,
 .chapter-head.search-hidden {
     display: none;
 }
