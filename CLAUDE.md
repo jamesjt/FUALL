@@ -268,3 +268,103 @@ Multiple references in a single note should be comma-separated or line-broken. P
   - Elegant 2.12 (Socrates) — literary compression with emotional weight.
   - Distilled 2.6 ("Confidence in a belief is earned by surviving challenge, not by forbidding it.") — standalone, quotable single sentence.
 - **Notes:** Mill's arguments are densely layered and heavily recursive. Cutting redundancy between adjacent passages is especially important. Many of his examples (religious sects, 1850s court cases) need full replacement, not just modernization.
+
+---
+
+# Knowledge Map Review
+
+## Overview
+The `FUALL.drawio.html` knowledge map (6.2MB, 552 cells) has been extracted into categorized markdown files for iterative review. The goal is to clarify, sharpen, and organize years of accumulated notes into a coherent framework.
+
+## File Map
+
+### Identity
+| File | Purpose | Read When |
+|---|---|---|
+| `IDENTITY.md` | Project mission, audience, framework, voice, key patterns | Start of every session |
+
+### Memory System (adapted from VCI/POD 4-layer architecture)
+| Layer | File | Purpose | Read When |
+|---|---|---|---|
+| 1. Review State | `tasks/knowledge-map/REVIEW-STATE.md` | Cluster review progress + decisions | Start of every review session |
+| 2. Session Notes | `tasks/knowledge-map/sessions/YYYY-MM-DD.md` | Per-session work log and handoff | Start (read latest), end (write) |
+| 3. Tacit Knowledge | `tasks/knowledge-map/MEMORY.md` | Review patterns, user preferences, heuristics | Start of every review session |
+| 4. Scribe | `tasks/knowledge-map/SCRIBE.md` | Full interaction ledger — verbatim prompts, interpretations, actions (append-only) | When looking for patterns across sessions |
+
+### Content Files
+| File | Items | Content |
+|---|---|---|
+| `tasks/knowledge-map/00-index.md` | — | Master index, spatial map, cross-references |
+| `tasks/knowledge-map/01-fundamentals.md` | 79 | Core thesis, outline, mythos, quotes, history |
+| `tasks/knowledge-map/02-ethics-virtue.md` | 7 | Ethics, Golden Mean |
+| `tasks/knowledge-map/03-value-systems.md` | 52 | Wisdom, epistemology, defining wisdom |
+| `tasks/knowledge-map/04-power-domains.md` | 15 | Domains of power, structures, what's failing |
+| `tasks/knowledge-map/05-political-spectrums.md` | 50 | LvA, govt forms, spectrum definitions |
+| `tasks/knowledge-map/06a-prog-con-spectrum.md` | 66 | Prog-Con model & positions |
+| `tasks/knowledge-map/06b-prog-con-arguments.md` | 18 | Substantive essays on prog vs con |
+| `tasks/knowledge-map/06c-prog-con-notes.md` | 12 | Working notes, conservatism analysis |
+| `tasks/knowledge-map/07-education.md` | 30 | Academy, Guilds, Temple, News, Agora, Lab |
+| `tasks/knowledge-map/08-left-right.md` | 7 | Left/Right terminology confusion |
+| `tasks/knowledge-map/09-taxonomy-old.md` | 87 | Legacy conceptual/biological taxonomy |
+| `tasks/knowledge-map/10-drafts-notes.md` | 16 | WIP material, GPT/Grok rewrites |
+| `tasks/knowledge-map/11-page2-overview.md` | 113 | Page 2's condensed overview |
+
+### Tools
+| File | Purpose |
+|---|---|
+| `tasks/knowledge-map/extract_map.py` | Python script that parses drawio HTML → categorized markdown |
+
+## Execution Rules
+
+### Starting a review session:
+1. Read `REVIEW-STATE.md` — what was last reviewed, what's next
+2. Read latest `sessions/YYYY-MM-DD.md` — pick up handoff notes
+3. Read `MEMORY.md` — apply learned review patterns
+4. Open the next cluster file per review order
+
+### Per-cluster review (3 steps):
+1. **Synthesize** — Read the cluster file. Produce a structured summary: core arguments, redundancies, half-formed ideas, contradictions, connections to other clusters.
+2. **User Reacts** — User says what's still relevant vs. stale, what was a passing thought vs. conviction, what's missing.
+3. **Sharpen** — Rewrite scattered notes into clearer statements, propose structure, connect cross-cluster ideas, flag content for the web app.
+
+### Scribe logging (after every user prompt):
+- Append a new entry to `SCRIBE.md` for **every user prompt** — not per session, per prompt
+- Exact format:
+  ```
+  ---
+  [Context Label] — HH:MM TZ DD-MM-YY [HH:MM UTC]
+
+  - User: [verbatim — typos, shorthand, all]
+  - Digest-FUALL: [interpreted intent]
+  - Action-FUALL: [what was done, file paths]
+  - Choice-FUALL: [decision + WHY + alternatives. If user-directed: "User-directed."]
+
+  Xmin — HH:MM TZ DD-MM-YY [HH:MM UTC]
+  ```
+- The `User:` line is **verbatim copy-paste**. Never summarize.
+- `Choice-FUALL` is **mandatory** on every entry — this is the institutional memory.
+- Always run `date "+%H:%M %Z %d-%m-%y" && date -u "+%H:%M UTC"` for real timestamps
+- Never consolidate multiple prompts into a single entry
+
+### After each cluster:
+1. Update `REVIEW-STATE.md` with status and key decisions
+2. If user gave feedback that applies to future reviews → update `MEMORY.md`
+3. Write/update session note in `sessions/`
+
+### Review order:
+1. `11-page2-overview.md` — curated summary, best starting point
+2. `01-fundamentals.md` — core thesis and outline
+3. `04-power-domains.md` → `05-political-spectrums.md` — power framework
+4. `06a` → `06b` → `06c` — progressivism deep-dive
+5. `07-education.md` — institutional framework
+6. Remaining: Ethics → Values → Left/Right → Taxonomy → Drafts
+
+## Framework Summary
+
+The project argues civilization's foundations erode cyclically and the fix is rebuilding intellectual infrastructure:
+
+- **Fundamental Questions** (unanswerable but productive) → **Wisdom** = Reality + Reason + Right
+- **Zocratism** (Zocractic Humanism): pursuit of wisdom as civilization's foundational value
+- **4 Domains of Power** (Physical → Resources → Social → Ideational): ideal is all conflict stays in ideas domain
+- **Political Spectrums** (Prog/Con, Lib/Auth, Collect/Indiv) replace broken left/right
+- **6 Educational Institutions** (Academy, Guilds, Lab, News, Agora, Temple): transmission mechanism, all currently failing
