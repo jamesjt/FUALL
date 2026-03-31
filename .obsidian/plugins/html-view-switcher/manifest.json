@@ -1,0 +1,9 @@
+{
+  "id": "html-view-switcher",
+  "name": "HTML View Switcher",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.3",
+  "description": "Switch between rendered and source views for HTML files. Open source in a split pane or toggle in place.",
+  "author": "Z",
+  "isDesktopOnly": false
+}

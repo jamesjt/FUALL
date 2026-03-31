@@ -354,7 +354,6 @@ body.font-lato { font-family: var(--font-lato); }
     background-color: transparent;
     color: #c1c1c1;
     padding: 6px 8px;
-    border-radius: 4px;
     transition: all 0.2s ease;
 }
 
@@ -366,7 +365,7 @@ body.font-lato { font-family: var(--font-lato); }
 .sidebar button.active-item {
     color: var(--gold-accent);
     background-color: var(--gold-glow);
-    border-left: 3px solid var(--gold-accent);
+    border-left: 1px solid var(--gold-accent);
     padding-left: 8px;
 }
 

@@ -1,0 +1,53 @@
+.html-source-view-container {
+  height: 100%;
+  overflow: auto;
+}
+
+.html-source-editor {
+  height: 100%;
+  overflow: auto;
+}
+
+.html-source-pre {
+  padding: 16px;
+  margin: 0;
+  font-family: var(--font-monospace);
+  font-size: var(--font-text-size);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  tab-size: 2;
+  color: var(--text-normal);
+  background: var(--background-primary);
+}
+
+.html-source-pre code {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Syntax highlighting - adapts to Obsidian's theme */
+.hs-tag {
+  color: var(--color-red);
+}
+
+.hs-attr {
+  color: var(--color-orange);
+}
+
+.hs-string {
+  color: var(--color-green);
+}
+
+.hs-bracket {
+  color: var(--text-muted);
+}
+
+.hs-comment {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.hs-doctype {
+  color: var(--text-faint);
+}

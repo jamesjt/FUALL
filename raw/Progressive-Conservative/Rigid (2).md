@@ -1,0 +1,11 @@
+---
+title: "Rigid (2)"
+tags: [progressive-conservative, progressive---conservative]
+source: drawio
+cell-id: "36s2ipiW3q4-Nu9HSskI-9"
+page: "Page-2"
+---
+
+[[Progressive - Conservative]]
+
+# Rigid (2)

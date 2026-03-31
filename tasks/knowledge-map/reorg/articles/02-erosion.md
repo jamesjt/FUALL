@@ -32,9 +32,34 @@ This is the master decay pattern. It applies everywhere:
 
 The pattern is always the same: the symbol survives, the substance decays, and eventually people defend the symbol precisely because they've forgotten what it was supposed to point to.
 
+## The Fourth Mode: Ethos
+
+There is a fourth way we engage with truth, and it doesn't sit neatly on the pathos-mythos-logos spectrum: **ethos** — trust in authority.
+
+We can't reason through everything from first principles. We aren't experts in every domain. So we delegate: we trust people whose credentials, experience, or reputation signal that they've done the logos for us. This isn't laziness. It's necessity. No one has time to personally verify every claim about medicine, law, engineering, climate, or economics. A functioning civilization requires functional ethos — genuine expertise that earns and deserves trust.
+
+The problem is that ethos has its own decay pattern, and it's the most dangerous one — because **corrupted ethos is disguised as logos.** Pathos is obviously not logos. Mythos is obviously not logos. But a credentialed expert who has stopped pursuing truth and started protecting their position *looks exactly like* a credentialed expert who hasn't. From the outside, they wear the same clothes, stand in the same institutions, use the same vocabulary.
+
+This is what Socrates was fighting. The sophists weren't running pathos or spinning myths. They had the credentials, the rhetorical skill, the social standing. They *looked* like wise people. They could win arguments. But they weren't pursuing truth — they were pursuing victory and payment. Socrates's entire project was exposing that gap: showing that the people who *appeared* wise (ethos) couldn't withstand actual examination (logos).
+
+And that is exactly what's happening now. The "expert class" isn't flooding the zone with emotional manipulation or spinning stories. They're trading on their credentials — their ethos — while the logos behind those credentials has hollowed out. The university professor who publishes to maintain tenure rather than to discover truth. The journalist who appeals to "trust the institution" rather than doing the work that would earn trust. The credentialed expert who gatekeeps access rather than demonstrates excellence.
+
+Aristotle's own taxonomy of persuasion maps the full breakdown:
+- **Logos** — the actual argument, the reasoning, the evidence. The thing itself.
+- **Ethos** — the authority of the speaker. Necessary when you can't verify logos yourself. Corrupted when the credential detaches from competence.
+- **Pathos** — emotional manipulation. What's left when both logos and ethos have failed.
+
+So the erosion has two dimensions, not one:
+
+**How we engage with truth directly:** Logos → degrades to Mythos → degrades to Pathos
+
+**How we delegate trust about truth:** Functional ethos → degrades to Sophistry → degrades to raw social power
+
+Without training in logos, people can't distinguish genuine ethos from corrupted ethos. The sophists win by default. This is why the Academy is upstream of everything — it's the only institution whose job is to produce people capable of telling the difference.
+
 ## Why It Always Goes This Direction
 
-The arrow points from logos to mythos to pathos — never the other way — because of a basic asymmetry in cognitive cost. Building precise understanding is hard. Maintaining it is harder. Losing it is effortless.
+The arrow points from logos toward pathos — never the other way — because of a basic asymmetry in cognitive cost. Building precise understanding is hard. Maintaining it is harder. Losing it is effortless.
 
 Every generation inherits a compressed version of what the previous generation understood. The compression is lossy. Some nuance drops out each time. The children learn the *conclusion* without learning the *reasoning* that produced it. They can repeat the words but not regenerate the insight. And when circumstances change — when the conclusion no longer obviously applies — they have no way to adapt because the underlying logic was never transmitted.
 
