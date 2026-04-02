@@ -660,7 +660,8 @@ body.font-lato { font-family: var(--font-lato); }
 }
 
 .row-content {
-    flex-grow: 1;
+    width: 650px;
+    flex-shrink: 1;
     padding: 16px 10px;
     font-size: 18px;
     line-height: 1.75;
