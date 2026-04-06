@@ -1,0 +1,541 @@
+import json
+
+data = [
+  {
+    "index": "77.0",
+    "refashioned": "Eight questions about the powers of the soul in general: whether the soul's essence is its power, whether there is one power or many, how they are distinguished, their ordering, whether they reside in the soul as their subject, whether they flow from the soul's essence, whether one power arises from another, and whether all powers remain after death."
+  },
+  {
+    "index": "77.1a",
+    "refashioned": "The soul's essence is not the same as its power. Two arguments make this clear.\n\nFirst, a power and the action it produces must belong to the same category. The soul's operations -- thinking, sensing, willing -- are not themselves acts of existence. Only God's operation is identical with His being. So the soul's powers, which produce operations that fall short of pure existence, cannot be the soul's essence either.\n\nSecond, if the soul's essence were directly responsible for every operation, then anything with a soul would always be performing every vital activity. A living thing would never stop thinking or sensing, because its very form would be the immediate source of those acts. But that is obviously false -- we are not always thinking. The soul is like a first-level activation (it makes us alive), but our actual operations are a further activation beyond that. The gap between merely being alive and actually thinking is filled by the soul's powers, which are distinct from its essence."
+  },
+  {
+    "index": "77.1b",
+    "refashioned": "When Augustine says that mind, knowledge, and love exist in the soul \"essentially,\" he means the soul is what is known and loved -- not that knowing and loving are the soul's essence. The soul's substance is the object of its own knowledge and love.\n\nThe analogy with primary matter fails because matter's entire purpose is to receive form -- its potentiality is its essence. The soul is different: it is already an actuality (a form), so its powers must be something beyond its essence.\n\nWhen Aristotle says \"the soul is that by which we sense and understand,\" he means the soul is the first principle of these operations -- but not the proximate principle. The proximate principles are the soul's powers, which flow from its essence the way heat flows from fire.\n\nAs for whether the soul's powers are mere accidents: they are not random accidents but natural properties that flow necessarily from the soul's essence. They stand midway between essence and accident -- not part of what the soul is, but inevitably arising from what it is.\n\nThe soul, though simple (not composed of matter and form), still has potentiality and so can serve as a subject for these powers. And when we call something \"rational\" or \"sensitive,\" we are using the powers as stand-ins for the substantial forms that are, in themselves, unknown to us."
+  },
+  {
+    "index": "77.2",
+    "refashioned": "The soul must have multiple powers, not just one. The reason comes from the scale of perfection in nature.\n\nThe lowest things achieve only limited goodness through a few fixed operations. Higher things achieve greater goodness through more varied operations. The highest being -- God -- achieves perfect goodness with no operations distinct from His essence at all. Humans fall in between: we can achieve the highest good (beatitude), but being the lowest creatures capable of it, we need many different operations and therefore many different powers to get there. Angels need fewer. God needs none.\n\nThere is a second reason: the human soul sits at the boundary between the spiritual and the corporeal. It participates in both realms, and so the powers characteristic of each converge in it."
+  },
+  {
+    "index": "77.3a",
+    "refashioned": "Powers are distinguished by their acts, and acts are distinguished by their objects. This follows from the nature of purpose: a power exists for the sake of its act, and an act is defined by what it is directed toward.\n\nFor passive powers, the object is the cause that sets them in motion -- color moves the sense of sight. For active powers, the object is the goal or endpoint -- the power of growth aims at full size. In both cases, the nature of the act (and therefore the power) depends on the nature of its object.\n\nBut not every difference in objects creates a different power. Only differences in what the power is formally directed toward count. Sight is directed toward color as such -- so there is one power of sight for all colors. The fact that a colored thing happens to be a musician or a stone does not create a new sense power. The formal object matters; incidental features do not."
+  },
+  {
+    "index": "77.3b",
+    "refashioned": "Although acts come after powers in the order of existence, they come before them in the order of explanation -- just as an end comes before the process that aims at it. So it is legitimate to define powers by their acts and objects.\n\nA single power can handle contraries (like sight handling black and white) because it is directed not at one contrary as such, but at the common nature that encompasses both -- in this case, color.\n\nThe same thing can fall under different powers when considered under different aspects: the same object can be both known and desired, because knowing and desiring engage it under different formal descriptions.\n\nFinally, higher powers encompass the objects of multiple lower powers under a more universal description. Common sense, for instance, unifies what sight, hearing, and smell each grasp separately."
+  },
+  {
+    "index": "77.4",
+    "refashioned": "There is a definite order among the soul's powers, and it runs along three lines.\n\nFirst, the order of nature and perfection: intellectual powers are prior to sensitive powers, and sensitive powers are prior to nutritive ones. The higher directs and commands the lower.\n\nSecond, the order of development: this reverses the first. Nutritive powers develop before sensitive ones, and sensitive before intellectual -- the animal is generated before the fully rational human being.\n\nThird, the order among powers of the same level: among the senses, sight comes before hearing, and hearing before smell, based on the relative nobility and universality of their objects."
+  },
+  {
+    "index": "77.5",
+    "refashioned": "Not all the soul's powers reside in the soul alone. The key principle: the subject of a power must be the same thing that performs the operation.\n\nSome operations -- understanding and willing -- require no bodily organ. Their powers belong to the soul alone. But other operations -- sensing, digesting, growing -- are performed through bodily organs. Those powers belong not to the soul by itself but to the composite of soul and body.\n\nWhen we say all powers \"belong to the soul,\" we mean the soul is their source and principle -- not that the soul alone is their subject. The soul gives the composite its ability to perform these operations, but the operations themselves require the body as a co-subject."
+  },
+  {
+    "index": "77.6a",
+    "refashioned": "All the soul's powers flow from its essence as from their source. Here is the logic.\n\nA substantial form (like the soul) gives existence to its subject. An accidental form (like a power) receives its existence from its already-existing subject. The subject, insofar as it is actual, produces its proper accidents; insofar as it is potential, it receives them.\n\nNow, the soul is the substantial form that makes the composite actual. Whether a power resides in the soul alone or in the soul-body composite, the soul's essence is the source of that actuality. So all the soul's powers -- whether purely intellectual or dependent on bodily organs -- flow from the soul's essence as from their principle."
+  },
+  {
+    "index": "77.6b",
+    "refashioned": "A single simple thing can produce many effects when those effects are ordered among themselves or when their recipients differ. Both conditions hold for the soul: its powers are hierarchically ordered, and they are received in different substrates (some in the soul alone, some in bodily organs).\n\nThe soul's essence is the final cause of its powers (they exist for its sake), the active cause (it produces them), and in some cases the material cause (it receives them). Powers do not emerge through physical change but through natural resultance -- the way color naturally results from light."
+  },
+  {
+    "index": "77.7",
+    "refashioned": "One power of the soul can arise from another through the mediation of the soul's essence. Since the powers proceed from the soul in a definite order, the higher ones serve as intermediate causes for the lower.\n\nThis works in two directions. From the standpoint of perfection and purpose, the higher powers are the principles of the lower: the senses exist for the sake of the intellect, not the reverse. From the standpoint of development and reception, the lower powers come first: the sensitive nature prepares the way for the intellectual, just as the animal prepares the way for the human.\n\nPowers that seem opposed -- like intellect and sense -- are really related as perfect to imperfect. The imperfect naturally proceeds from the perfect, not the reverse."
+  },
+  {
+    "index": "77.8",
+    "refashioned": "When the soul separates from the body at death, only those powers that belong to the soul alone -- intellect and will -- remain in act. Powers that belong to the soul-body composite -- all the sensitive and nutritive powers -- cease to operate, since they have no bodily organ to work through. They survive only virtually, as potentials rooted in the separated soul.\n\nThis means the separated soul cannot actually sense, imagine, or remember in the way it did while embodied. If we speak of the dead having memory, joy, or sorrow, these must be understood as acts of the intellectual appetite (the will), not the sensitive faculties.\n\nThe claim that all powers \"go with the soul\" at death should be understood as: they remain virtually, in their root, not actually."
+  },
+  {
+    "index": "78.0",
+    "refashioned": "Four questions about the specific powers of the soul: how many general kinds of power there are, the species of the vegetative part, the exterior senses, and the interior senses. The theological interest lies mainly in the intellectual and appetitive powers, but understanding those requires first understanding the powers that feed into them."
+  },
+  {
+    "index": "78.1a",
+    "refashioned": "There are five general kinds of soul-power: vegetative, sensitive, appetitive, locomotive, and intellectual. Why five, and not three (the traditional vegetative, sensitive, rational) or four (corresponding to the four modes of living)?\n\nThe objections reduce to this: that these categories overlap or that some seem unnecessary. In particular, appetite seems redundant (every power desires its own appropriate object) and locomotion seems reducible to appetite or sensation."
+  },
+  {
+    "index": "78.1b",
+    "refashioned": "The five kinds of power are distinguished by how far the soul's operation transcends mere bodily nature.\n\nAt the lowest level, the vegetative soul operates through bodily organs and by means of physical qualities like heat -- but it still transcends inanimate nature because its movement comes from within, not from outside. Next, the sensitive soul operates through organs but not by virtue of physical qualities -- the senses receive forms without matter, like receiving the color of gold without the gold. At the highest level, the rational soul operates without any bodily organ at all.\n\nThe five kinds can also be derived from the scope of their objects. Vegetative powers deal only with the body to which the soul is united. Sensitive powers extend to all sensible bodies beyond the organism. Intellectual powers extend to all being whatsoever. When the soul relates to external objects by receiving their forms, we get the sensitive and intellectual powers. When it inclines toward external objects as goals, we get the appetitive power. When it moves toward them physically, we get the locomotive power.\n\nAppetite deserves its own category because it is fundamentally different from mere natural inclination. Each sense naturally tends toward its proper object (sight toward color), but the animal appetite desires the thing itself, not just for the sake of sensing it, but for the animal's broader purposes. And locomotion requires its own power because sense and appetite alone are insufficient to produce movement -- immobile animals have both but cannot move."
+  },
+  {
+    "index": "78.2a",
+    "refashioned": "The vegetative soul has three powers: generative, augmentative, and nutritive. Each corresponds to a basic need of the living body. Generation gives it existence. Growth brings it to proper size. Nutrition maintains it in being and size.\n\nOf these three, generation is the noblest, because it is the mark of a perfected thing to produce something like itself. It also comes closest to transcending the vegetative level, since it produces an effect in another body rather than just the organism's own body. Growth serves generation (the organism must reach maturity to reproduce), and nutrition serves growth (the organism must be sustained to develop). So there is a clear hierarchy: nutrition supports growth, growth supports generation."
+  },
+  {
+    "index": "78.2b",
+    "refashioned": "These vegetative powers are called \"natural\" because they produce effects similar to what inanimate nature does -- giving existence, quantity, and preservation -- but in a higher way, from an intrinsic principle. They operate instrumentally through physical qualities like heat.\n\nThe generative power in living things differs from generation in non-living things because it works from an internal principle (the semen), not an external agent. The augmentative power is necessary because living things start small and must grow to their proper size, unlike inanimate things that receive their full dimensions at once. The nutritive power restores the moisture that heat consumes in the organism's operations."
+  },
+  {
+    "index": "78.3a",
+    "refashioned": "Are there exactly five exterior senses? The objections press from both sides: perhaps there should be more (given how many kinds of sensible qualities exist) or the existing ones should be divided differently (touch seems to handle too many contraries, and taste seems like a subspecies of touch)."
+  },
+  {
+    "index": "78.3b",
+    "refashioned": "The five senses are distinguished not by their organs or media but by the different ways external objects affect them.\n\nThe key distinction is between spiritual and natural immutation. All sensation involves spiritual immutation -- the sense organ receives the form of the object without its matter, as the pupil receives color without becoming colored. But some senses also involve natural (physical) change.\n\nSight involves only spiritual immutation, making it the most refined and universal sense. Hearing involves natural change in the object (air is physically displaced to produce sound). Smell involves natural change in the object (a body must be heated to release odor). Touch and taste involve natural change in the organ itself -- the hand becomes hot when touching something hot, the tongue becomes moist from flavored food.\n\nThis gives us a hierarchy: sight is the most spiritual, followed by hearing and smell, with touch and taste the most material. The three higher senses operate through an external medium (air or the like), precisely to protect their organs from the physical changes that touch and taste undergo directly.\n\nCommon sensibles like size, shape, and motion are perceived through the proper sensibles -- we sense magnitude through color, not independently -- so they do not require additional senses."
+  },
+  {
+    "index": "78.3c",
+    "refashioned": "Only qualities that can cause physical alteration are proper objects of the senses -- which is why not every kind of accident requires its own sense.\n\nTouch is generically one sense but encompasses several specific sensitivities (hot/cold, wet/dry, etc.) spread throughout the body. Taste is a specialized form of touch, limited to the tongue, and distinguished from other touch modalities because its organ is not physically altered by the flavor itself but only by the moisture that carries the flavor."
+  },
+  {
+    "index": "78.4a",
+    "refashioned": "Are the interior senses -- common sense, imagination, estimative power, and memory -- properly distinguished? The objections suggest this taxonomy is either redundant or insufficient. Why not let the exterior senses or the intellect handle these functions? Why distinguish imagination from memory, or add a separate estimative power for perceiving non-sensory features like danger?"
+  },
+  {
+    "index": "78.4b",
+    "refashioned": "A perfect animal needs four interior sense powers, each handling a distinct cognitive function.\n\nFirst, the animal must be able to register what multiple senses report simultaneously and recognize that it is sensing. This is the common sense -- the integrating center that unifies the data from all five exterior senses and enables awareness of one's own acts of perception.\n\nSecond, the animal must retain sensory forms even after the object is gone. Without this, it could never pursue absent prey or return to a remembered location. This is the imagination (or phantasy) -- the storehouse of sensory impressions.\n\nThird, the animal must perceive features that the senses themselves cannot detect -- significance, danger, usefulness. A sheep sees the wolf's shape and color, but what makes it flee is not any visible quality; it is the perception that this thing is dangerous. This is the estimative power, which grasps what the medievals called \"intentions\" -- practical meanings that go beyond raw sensory data.\n\nFourth, the animal must store these practical assessments. Memory preserves not just sensory images but the estimative judgments attached to them -- this is why animals remember that certain things are harmful.\n\nIn humans, these powers are enhanced by the proximity of reason. The estimative power becomes the cogitative power (or \"particular reason\"), which compares individual impressions using something like rational inference. Human memory becomes reminiscence -- the ability to deliberately search for past experiences through a quasi-logical process."
+  },
+  {
+    "index": "78.4c",
+    "refashioned": "The common sense is not \"common\" in the sense of being a genus -- it is the common root of all exterior sensation, the power that integrates their reports. It is what allows us to compare white and sweet, which no single exterior sense can do, and what enables us to perceive that we are seeing.\n\nThe cogitative and memorative powers in humans owe their superiority not to the sensitive part as such but to the overflow of reason into the sensitive faculties. They are not distinct powers from their animal counterparts but the same powers operating at a higher level due to their proximity to intellect."
+  },
+  {
+    "index": "79.0",
+    "refashioned": "Thirteen questions about the intellectual powers: whether the intellect is a power or the soul's essence, whether it is passive, whether there is an active intellect, whether it is part of the soul, whether it is shared by all humans, whether memory belongs to the intellect, whether memory is a distinct power, whether reason differs from intellect, whether higher and lower reason are different powers, whether intelligence differs from intellect, whether speculative and practical intellect are distinct powers, whether synderesis is a power, and whether conscience is a power."
+  },
+  {
+    "index": "79.1",
+    "refashioned": "The intellect is a power of the soul, not the soul's essence. Only in God is the act of understanding identical with being itself. In every creature, understanding is an operation distinct from existence, so the principle of understanding (the intellect) must be a power distinct from the essence.\n\nWhen we call the soul \"intellect\" or \"mind,\" we are naming it after its highest power -- the way we might call a person by their profession. Angels can properly be called \"intellects\" because intellect is virtually their only power. But the human soul has many other powers besides, so the identification is looser.\n\nThe soul is immaterial, and immateriality is the condition for intellectual power -- but immateriality is not the same thing as the intellect itself. It is what makes the power of intelligence possible, not what constitutes it."
+  },
+  {
+    "index": "79.2a",
+    "refashioned": "The intellect is a passive power -- but \"passive\" in a specific, non-destructive sense.\n\nThere are three ways something can be passive. First, when it loses something natural to it (water losing its coolness when heated). Second, when something is removed, whether good or bad (both getting sick and getting well count). Third -- and this is the relevant sense -- when something in potentiality simply receives what it was potential to, without losing anything at all. In this way, learning is a kind of passivity: the mind receives what it was open to receiving.\n\nThe human intellect must be passive in this third sense because it is not the actuality of all intelligible things. Only God's intellect is pure act with respect to everything intelligible. The angelic intellect is always in act regarding what it can know, because angels are close to the source. But the human intellect starts as \"a blank tablet on which nothing is written\" -- pure potentiality with respect to intelligible objects. We begin knowing nothing and gradually come to know things. That passage from potential to actual knowledge is what makes the intellect passive."
+  },
+  {
+    "index": "79.2b",
+    "refashioned": "When Aristotle says the passive intellect is corruptible, he is not referring to the intellect that is in potentiality to all intelligible things (the \"possible\" intellect). He is referring either to the sensitive appetite or to the cogitative power -- both of which are called \"passive\" in the first two senses (they are acts of bodily organs). The possible intellect is incorruptible precisely because it has no bodily organ.\n\nAs for the objection that passive powers are inferior to active ones: this holds only when the comparison is between the same domain. The intellect is passive with respect to all being, while the vegetative power is active with respect to the body alone. A passive power with universal scope outranks an active power with narrow scope."
+  },
+  {
+    "index": "79.3",
+    "refashioned": "There must be an active intellect in addition to the passive one. The reason is straightforward.\n\nSensible things exist in matter. Things embedded in matter are not actually intelligible -- they are only potentially so. But nothing moves from potential to actual without something already in act. So there must be a power that makes potentially intelligible things actually intelligible. This is the active intellect: it abstracts universal forms from the material conditions of particular things, rendering them fit to be received by the passive intellect.\n\nPlato avoided this problem by positing that intelligible forms exist separately, already immaterial and therefore already intelligible. But Aristotle rejected separate forms. If the natures of things exist only in matter, then something must strip away the material conditions to make them intelligible. That something is the active intellect.\n\nThe active intellect is compared to light: just as light makes potentially visible colors actually visible, the active intellect makes potentially intelligible natures actually intelligible."
+  },
+  {
+    "index": "79.4a",
+    "refashioned": "Is the active intellect part of the soul, or is it a separate substance? Some have argued it must be external -- perhaps God or an angel -- because our soul does not always understand, and a truly active principle should always be at work. Others argued it must be separate because the same soul cannot be both pure potentiality (passive intellect) and actuality (active intellect) with respect to the same objects."
+  },
+  {
+    "index": "79.4b",
+    "refashioned": "The active intellect is something within the soul, though it derives from a higher source.\n\nThe human soul is intellectual by participation, not by essence. It reasons step by step, understands imperfectly, and does not grasp everything. This means it depends on a superior intellect -- ultimately God -- as the source of its intellectual light. But just as the sun is not the only cause of generation (each organism has its own generative power derived from the sun's influence), so God is not the only cause of understanding. The human soul has its own active intellect, a power derived from the divine light, by which it can abstract universal forms from the phantasms of particular things.\n\nWe know this from experience: we actually do abstract universals from particulars. Since no action belongs to a thing except through a principle inherent in it, this abstractive power must be within the soul itself. Aristotle compared it to light received in the air. The separate divine intellect is the ultimate source, but the proximate source is the soul's own active power."
+  },
+  {
+    "index": "79.4c",
+    "refashioned": "The active intellect is not an object that the passive intellect contemplates -- it is the power that makes objects ready for contemplation. This is why its presence alone does not guarantee understanding. We also need phantasms (sensory images), well-functioning sensitive powers, and practice. Understanding builds on itself: from individual insights we form propositions, from propositions we draw conclusions.\n\nThe soul can contain both an active and a passive intellectual power without contradiction, because they relate to different aspects: the soul is actually immaterial (enabling it to abstract), while it is in potentiality to any determinate intelligible content (enabling it to receive). The active intellect flows from the soul's essence just as naturally as any other power, because the soul's essence is itself immaterial and created by the supreme intellect."
+  },
+  {
+    "index": "79.5",
+    "refashioned": "The active intellect is not one shared power in all human beings. It is multiplied individually, one per soul.\n\nSince the active intellect is a power belonging to the soul, and each human being has a distinct soul, each has a distinct active intellect. It is impossible for one power to belong to multiple substances.\n\nThe fact that all humans agree on first principles does not prove a single shared intellect. It proves only that all human intellects share the same nature and are derived from the same ultimate source. Aristotle compared the active intellect to light -- and light is not the same in every illuminated object, even though it comes from a common source."
+  },
+  {
+    "index": "79.6a",
+    "refashioned": "Is there memory in the intellectual part of the soul? Avicenna denied it. He argued that since the intellect has no bodily organ, it cannot store anything -- whatever is in the intellect must be actively understood. So once we stop thinking about something, its intelligible form leaves our intellect entirely, and we must re-derive it from the separate active intelligence whenever we want to think about it again. On this view, what we call \"knowledge\" is just the acquired ease of turning back to that external source.\n\nBut this contradicts both Aristotle and reason. Aristotle explicitly says the passive intellect, once it has learned something, retains the ability to think about it at will -- it is in potentiality, but differently from before learning. And reason confirms this: if even corporeal matter retains the forms it receives, how much more should the intellect, which is more stable and immovable than anything material?"
+  },
+  {
+    "index": "79.6b",
+    "refashioned": "There is memory in the intellect, but with a qualification.\n\nIf memory means simply the power to retain intelligible forms even when not actively thinking about them, then yes -- intellectual memory exists. The intellect holds knowledge in three states: pure potentiality (before learning), habitual possession (after learning but not currently thinking), and full act (currently understanding). The middle state is intellectual memory.\n\nBut if memory means awareness of the past as past -- remembering that something happened at a particular time and place -- then memory belongs only to the sensitive part. \"Past\" and \"present\" are temporal conditions, and time is the domain of particular things. The intellect grasps \"human nature\" without caring whether the human existed yesterday or today.\n\nHowever, the intellect can reflexively know that it previously understood something -- it can know the pastness of its own acts. It just does not know past things as located in specific times and places the way the senses do."
+  },
+  {
+    "index": "79.6c",
+    "refashioned": "Intellectual memory is not the same as sensitive memory. Sensitive memory requires a bodily organ and preserves images tied to particular times and places. Intellectual memory retains species in the intellect without any corporeal organ.\n\nThe intelligible species exists in the intellect in three states: pure potentiality (not yet learned), habitual knowledge (learned but not currently considered), and full act (currently being thought about). The second state -- habitual knowledge -- is what intellectual memory consists of."
+  },
+  {
+    "index": "79.7",
+    "refashioned": "Intellectual memory is not a power separate from the intellect. It is simply the intellect's capacity to retain what it has received.\n\nPowers are distinguished by the formal character of their objects. The intellect relates to its object under the maximally general description of \"being\" -- it is potentially all things. Within that scope, the only legitimate distinction is between the active power (which makes things intelligible) and the passive power (which receives intelligible forms). Retention is simply part of what it means to be a receptive power. You do not need a separate faculty for storing what you have received.\n\nWhen Augustine distinguishes memory, understanding, and will as three aspects of the mind, he is not identifying three separate powers. Memory is the soul's habit of retention, understanding is the intellect in act, and will is the act of love. They arise from one another as habit gives rise to activity -- not as one power generates another."
+  },
+  {
+    "index": "79.8",
+    "refashioned": "Reason and intellect are the same power in the human soul.\n\nTo understand is to grasp an intelligible truth directly. To reason is to move from one understood truth to another. Angels understand without reasoning -- they apprehend truth immediately, the way we grasp self-evident principles. Humans arrive at truth by a process of inquiry and argument.\n\nBut reasoning relates to understanding the way movement relates to rest: they are not different powers but different states of the same power. Every chain of reasoning starts from principles that are directly understood and returns to them when checking its conclusions. The same faculty that grasps first principles also draws conclusions from them -- just as the same nature that moves a thing to a place is what holds it at rest once it arrives.\n\nSo when Boethius says intellect is to reason as eternity is to time, he is describing a difference of operation, not of faculty. The human rational power operates discursively (in time), while the angelic intellectual power operates all at once (like eternity) -- but both are the same kind of power at different levels of perfection."
+  },
+  {
+    "index": "79.9a",
+    "refashioned": "The higher reason (which contemplates eternal truths and derives moral principles from them) and the lower reason (which manages temporal affairs) are not two separate powers. They are two functions of a single rational faculty.\n\nThe logic is simple: we come to know eternal truths through temporal things (reasoning upward from creation to creator), and we judge temporal things by eternal standards (reasoning downward from principles to applications). Both directions of reasoning belong to the same power, because both the starting point and the destination fall within reason's scope.\n\nThe distinction is real but functional, not structural. It is like the difference between two intellectual habits: wisdom (directed at eternal things) and science (directed at temporal things). These are different habits operating through the same power."
+  },
+  {
+    "index": "79.9b",
+    "refashioned": "When we call higher and lower reason \"parts\" of the soul, we mean parts of the soul's activity, not separate powers. The lower reason is \"ruled by\" the higher in the sense that the principles it applies are drawn from and evaluated by the higher.\n\nAristotle's distinction between the \"scientific\" and \"ratiocinative\" parts of the soul is also a distinction of habits and aptitudes, not of powers. The intellect knows both necessary and contingent things under the same formal aspect (being and truth) -- it just knows necessary things perfectly and contingent things imperfectly. Different habits arise from this difference, but the underlying power is the same."
+  },
+  {
+    "index": "79.10",
+    "refashioned": "\"Intelligence\" (in the sense of direct insight) is not a separate power from the intellect. It is an act of the intellect -- specifically, the act of grasping something indivisible and simple, without discursive reasoning.\n\nThe intellect operates in stages: first it apprehends something (intelligence), then it directs that apprehension toward further knowledge (intention), then it searches (invention), then it evaluates what it has found (wisdom/phronesis), then it formulates its conclusions internally (thought), and finally it expresses them (speech). But all these stages belong to a single power. Different acts do not automatically require different powers -- only acts that cannot be traced to a single principle require distinct faculties.\n\nThe various \"intellects\" that philosophers enumerate -- active, passive, habitual, and actual -- are not four powers. Active and passive are two powers. The other three (passive, habitual, actual) are three states of the passive intellect: pure potentiality, formed knowledge, and current understanding."
+  },
+  {
+    "index": "79.11",
+    "refashioned": "The speculative intellect and the practical intellect are not distinct powers. They are the same power directed to different ends.\n\nThe speculative intellect considers truth for its own sake. The practical intellect considers truth in order to direct action. But whether a known truth is directed toward action or contemplation is accidental to the truth itself -- it does not change the formal object (being, truth) that the intellect grasps.\n\nThe practical intellect does not execute movement directly -- it only directs toward it. And truth and good are not truly separate objects: truth is a kind of good (it is desirable), and good is a kind of truth (it is intelligible). The practical intellect knows truth just as the speculative does; it simply puts that truth to a different use."
+  },
+  {
+    "index": "79.12",
+    "refashioned": "Synderesis is not a power of the soul but a natural habit -- specifically, the habit of first practical principles.\n\nJust as the speculative intellect naturally grasps theoretical axioms (like \"the whole is greater than the part\"), the practical intellect naturally grasps basic moral principles (like \"good is to be pursued and evil avoided\"). These practical first principles do not require a special power any more than theoretical first principles do. They require a special habit: a built-in disposition to recognize certain moral truths immediately.\n\nThis is why synderesis \"incites to good and murmurs at evil\" -- it is the starting point from which all practical reasoning proceeds. It is related to reason the way the habit of first principles is related to the speculative intellect: not a separate faculty, but the foundational habit that makes the faculty's work possible."
+  },
+  {
+    "index": "79.13",
+    "refashioned": "Conscience is not a power but an act -- the act of applying knowledge to a particular case.\n\nThe word itself (con-scientia, \"knowing-with\") implies the application of what one knows to what one does. Conscience witnesses (\"I know I did this\"), binds (\"I know I should do that\"), and accuses or excuses (\"I know that was right or wrong\"). All of these are applications of knowledge, not a distinct faculty.\n\nSometimes \"conscience\" is loosely used to mean synderesis -- the foundational habit from which moral judgments flow. But properly speaking, conscience is the act, and synderesis is the habit that makes the act possible. A power can be lost; an act can be performed or not. Conscience can be laid aside (we can fail to apply what we know), which confirms it is an act rather than a power."
+  },
+  {
+    "index": "80.0",
+    "refashioned": "Two questions about the appetitive powers in general: whether appetite is a special power of the soul, and whether the sensitive and intellectual appetites are distinct powers."
+  },
+  {
+    "index": "80.1",
+    "refashioned": "Appetite is a distinct power of the soul, not reducible to the knowing powers.\n\nEvery natural form comes with a natural inclination -- fire naturally rises, heavy things naturally fall. But beings with knowledge have something extra: they receive the forms of other things into themselves (through sensation or understanding), and from this arises a new, higher kind of inclination. A rock only inclines toward what its own nature demands. An animal inclines toward whatever it perceives as good -- not just for one faculty's purposes but for the whole organism.\n\nThis is why appetite is not just the sum of each power's natural tendency toward its own object. Sight naturally tends toward color, but the animal appetite desires the colored thing for the animal's broader needs. The appetitive power is the soul's response to the good as apprehended -- not merely to the good as naturally suited to this or that organ."
+  },
+  {
+    "index": "80.2",
+    "refashioned": "The sensitive appetite and the intellectual appetite (the will) are genuinely distinct powers.\n\nThe appetitive power is passive -- it is moved by the apprehended good. And passive powers are distinguished by what moves them. What is apprehended by the senses differs generically from what is apprehended by the intellect: sense grasps particular material things, intellect grasps universals and immaterial goods. Since the movers differ generically, the appetites they move must be distinct powers.\n\nThe intellectual appetite can desire universals (\"every thief should be punished\") and immaterial goods (knowledge, virtue) -- things the sensitive appetite cannot reach. And although the will's desire ultimately concerns individual things that exist in the world, it relates to them under universal descriptions, not through sensory images."
+  },
+  {
+    "index": "81.0",
+    "refashioned": "Three questions about sensuality (the sensitive appetite): whether it is purely appetitive, whether it divides into irascible and concupiscible, and whether these obey reason."
+  },
+  {
+    "index": "81.1",
+    "refashioned": "Sensuality -- the sensitive appetite -- is purely appetitive, not cognitive. The name comes from \"sensual movement,\" which is the appetite's response to sensory apprehension, not the apprehension itself.\n\nThe distinction is fundamental: apprehension is completed when the object is taken into the knower (like a photograph capturing a scene). Appetite is completed when the knower moves toward the object (like walking toward the scene). Apprehension is like rest; appetite is like movement. Sensuality names the movement, not the rest.\n\nThe bodily senses relate to sensuality as a preamble -- they provide the information to which the appetite responds, but they are not part of the appetite itself."
+  },
+  {
+    "index": "81.2",
+    "refashioned": "The sensitive appetite divides into two distinct powers: the concupiscible and the irascible.\n\nThe concupiscible appetite inclines the animal toward what is pleasant and away from what is harmful -- it handles attraction and aversion in their simplest form. The irascible appetite handles resistance -- it empowers the animal to fight against obstacles that block what is desired or threaten what is possessed.\n\nThese cannot be reduced to a single power. Sometimes the irascible appetite drives the animal to endure something unpleasant (fighting a rival, resisting pain) against the concupiscible appetite's inclination to flee. The two can work against each other: aroused anger diminishes desire, and intensified desire calms anger. The irascible is the \"champion and defender\" of the concupiscible -- it arises from the concupiscible's frustrations and terminates in the concupiscible's satisfactions. Anger rises from sadness and, once vengeance is achieved, terminates in joy."
+  },
+  {
+    "index": "81.3a",
+    "refashioned": "The irascible and concupiscible appetites do obey reason -- but in the way free citizens obey a constitutional ruler, not in the way slaves obey a master.\n\nThey obey reason because, in humans, the estimative power has been upgraded to the cogitative power (particular reason), which is naturally guided by universal reason. When you apply a general principle (\"this type of thing is dangerous\") to a particular case, you can redirect your emotional response. Anyone can verify this: by deliberately considering certain truths, you can calm your fear or intensify your anger.\n\nThey obey the will because in humans, the lower appetite does not automatically produce action the way it does in animals. A sheep sees a wolf and flees instantly. A human sees a threat and waits -- the will, as the superior appetite, must consent before the body moves. The higher appetite governs the lower the way a higher authority governs a lower one."
+  },
+  {
+    "index": "81.3b",
+    "refashioned": "But this obedience is political, not despotic. The soul rules the body with absolute authority -- command a limb to move and it moves. But reason rules the emotions the way a constitutional government rules free subjects: the subjects have something of their own and can resist.\n\nThe sensitive appetite has its own sources of activation -- not just the cogitative power that reason guides, but also the imagination and the senses, which can present pleasant or frightening images that bypass rational control. This is why we experience emotional resistance to what reason commands: we see something attractive that reason forbids, or imagine something frightening that reason tells us to face. The emotions can push back. But this resistance does not mean they are outside reason's jurisdiction -- only that their obedience is imperfect and requires ongoing governance."
+  },
+  {
+    "index": "82.0",
+    "refashioned": "Five questions about the will: whether it desires anything of necessity, whether it desires everything of necessity, whether it is higher than the intellect, whether it moves the intellect, and whether it divides into irascible and concupiscible parts."
+  },
+  {
+    "index": "82.1",
+    "refashioned": "The will does desire some things of necessity -- but this does not destroy freedom.\n\nThree kinds of necessity must be distinguished. Coercive necessity (being forced against your inclination) is flatly incompatible with willing. You cannot be forced to will something, because willing just is inclining toward something -- force and inclination are opposites. Necessity of means (needing a ship to cross the sea) is compatible with willing -- the will embraces the necessary means once it has chosen the end. And natural necessity (the will's inherent orientation toward happiness) is not only compatible with willing but is its foundation.\n\nJust as the intellect necessarily assents to self-evident first principles, the will necessarily desires the ultimate end -- happiness, the complete good. This is the will's equivalent of a first principle: the immovable starting point from which all other desires proceed. We cannot not want to be happy. But this natural necessity does not eliminate freedom, because freedom operates in the domain of means, not ultimate ends."
+  },
+  {
+    "index": "82.2",
+    "refashioned": "The will does not desire everything of necessity. Only the ultimate end (happiness, the perfect good) is desired necessarily.\n\nThe parallel with the intellect is exact. The intellect necessarily assents to self-evident axioms but not to every proposition -- only to those with a demonstrable, necessary connection to first principles. Contingent propositions leave the intellect free. Similarly, the will necessarily desires complete happiness but not every particular good -- only those with a necessary connection to happiness would compel the will. And in this life, no particular good presents itself with that kind of necessity.\n\nA particular good can always be seen as lacking something -- no finite good exhausts the will's capacity for the universal good. So the will remains free with respect to every particular option. Even God, in this life, does not necessitate the will, because we do not yet see the necessary connection between God and our happiness with the kind of certainty that would eliminate alternatives.\n\nThe sensitive appetite is moved determinately by what it perceives because sense does not compare alternatives. But reason compares, weighs, and considers multiple options -- which is precisely why the intellectual appetite (the will) is not locked into any single particular good."
+  },
+  {
+    "index": "82.3a",
+    "refashioned": "Which is higher, intellect or will? The answer depends on the comparison.\n\nConsidered absolutely -- in terms of what each faculty is in itself -- the intellect is higher. Its object (truth, the idea of the good) is simpler and more abstract than the will's object (the good itself as it exists in things). The more abstract and universal an object, the nobler the power directed toward it.\n\nBut considered relatively -- in terms of particular cases -- the will can be higher than the intellect. The intellect draws its object into itself; the will goes out toward its object as it exists in reality. So when the object is something higher than the soul (like God), the will's movement toward that thing as it actually is surpasses the intellect's grasp of a diminished representation of it. Loving God is better than knowing God, because love reaches God as He is, while knowledge pulls God down to the level of the knower's capacity.\n\nConversely, when the object is something lower than the soul (like a stone), knowledge is better than love, because knowledge elevates the object into the immaterial realm of the intellect, while love drags the soul down toward the inferior thing.\n\nAbsolutely, however, the intellect remains the nobler faculty."
+  },
+  {
+    "index": "82.3b",
+    "refashioned": "Truth and good include each other: truth is a kind of good (it is desirable), and good is a kind of truth (it is intelligible). So the will's object (good) does not stand simply above the intellect's object (truth) -- each encompasses the other from a different angle.\n\nThe intellect is prior to the will in the order of nature, just as the active is prior to the passive: the understood good is what moves the will. The fact that charity (a perfection of the will) is the highest virtue confirms the relative superiority of the will -- but only when directed toward what exceeds the soul, namely God."
+  },
+  {
+    "index": "82.4a",
+    "refashioned": "The will moves the intellect -- but in a different way than the intellect moves the will.\n\nThe intellect moves the will as a final cause: the good apprehended by the intellect is the end that attracts the will. The will moves the intellect as an efficient cause: the will directs the intellect to attend to this rather than that, to investigate this question rather than another.\n\nThe will moves all the soul's powers to their respective activities (except the vegetative powers, which are not under voluntary control) because the will's object is the good in general, which encompasses the particular goods that each power aims at. It is like a king who aims at the common good of the kingdom and thereby directs all subordinate officials, each of whom pursues a particular good within their domain."
+  },
+  {
+    "index": "82.4b",
+    "refashioned": "Intellect and will each contain the other in their scope. Under the concept of being and truth, the intellect grasps the will, its acts, and its objects. Under the concept of good, the will encompasses the intellect, its acts, and its objects. Each is both higher and lower than the other depending on which aspect we consider.\n\nThis mutual inclusion explains why each can move the other without infinite regress. The intellect moves the will (by presenting the good), and the will moves the intellect (by directing attention). But the chain does not go back forever: it terminates in an intellectual principle higher than ourselves -- God -- who initiates the first apprehension that sets the whole process in motion."
+  },
+  {
+    "index": "82.5a",
+    "refashioned": "The will does not divide into irascible and concupiscible parts the way the sensitive appetite does.\n\nThe reason traces back to how powers are differentiated. The sensitive appetite does not apprehend the universal good -- it responds to particular goods under particular descriptions. So it naturally splits into one power that pursues the pleasant (concupiscible) and another that fights off obstacles (irascible). These are genuinely different orientations toward genuinely different aspects of particular goods.\n\nBut the will relates to good under the universal description of good as such. A power that grasps its object under a universal description cannot be subdivided by the particular differences contained under that description -- just as sight, which grasps the universal notion of color, is not split into separate powers for each color. The will's scope is too broad to be carved into subspecies."
+  },
+  {
+    "index": "82.5b",
+    "refashioned": "When scripture speaks of \"concupiscence\" or \"anger\" in the intellectual soul, these are not passions in the strict sense (which involve bodily agitation) but simple acts of the will -- desire for good and rejection of evil -- without any sensory disturbance. In God and the angels, love and anger are attributed in this way.\n\nSo we can say the will \"is irascible\" insofar as it wills to repel evil through rational judgment, and \"is concupiscible\" insofar as it desires good. But these are not distinct powers within the will -- they are different acts of a single power."
+  },
+  {
+    "index": "83.0",
+    "refashioned": "Four questions about free will: whether humans have it, whether it is a power, a habit, or an act, whether it is appetitive or cognitive, and whether it is the same power as the will."
+  },
+  {
+    "index": "83.1a",
+    "refashioned": "Humans have free will. Without it, moral advice, commands, rewards, and punishments would all be pointless.\n\nThe argument is built on the difference between three types of agents. Inanimate things (stones, fire) act without any judgment at all -- they follow natural laws mechanically. Animals act from judgment but not free judgment -- a sheep judges the wolf dangerous by instinct, not by rational evaluation. Humans act from rational judgment: we weigh alternatives, compare options, and reason about what to do. Because particular situations are contingent (they could go either way), and because reason can argue for opposite courses of action in contingent matters, the human agent retains the power to choose one way or the other.\n\nFree will is grounded in rationality. Because we can reason, we can choose. Because we can choose, we are free."
+  },
+  {
+    "index": "83.1b",
+    "refashioned": "The internal resistance we experience -- wanting to do good but doing evil instead -- does not disprove free will. It proves that the sensitive appetite, though subject to reason, can resist it. Free will governs rational choice, not every impulse of the body.\n\nNor does God's role in moving the will eliminate freedom. God is the first cause who operates through secondary causes according to their natures. Just as moving natural causes does not make their effects unnatural, moving voluntary causes does not make their acts involuntary. God causes the very voluntariness of our acts.\n\nBodily temperament and acquired habits can incline us, but these inclinations remain subject to rational judgment. A hot-tempered person is inclined to anger, but reason can overrule the inclination. Free will operates not in the ultimate end (which we desire necessarily) but in the means to that end -- the domain where genuine alternatives exist."
+  },
+  {
+    "index": "83.2",
+    "refashioned": "Free will is a power, not a habit or an act.\n\nIt cannot be a habit, because habits dispose us well or badly toward specific actions -- but free will is indifferent between good and evil choice. A habit of temperance makes you good at moderating desire; free will is the underlying capacity to choose either moderation or excess. No habit is indifferent in this way.\n\nIt cannot be merely an act, because then it would not always exist in us -- acts are intermittent, but we always possess free will even when not exercising it.\n\nSo free will must be a power: the abiding capacity from which the act of free choice proceeds. When Augustine says free will can be \"lost\" through sin, he means we lose the freedom from moral corruption, not the natural power of choice itself."
+  },
+  {
+    "index": "83.3",
+    "refashioned": "Free will is an appetitive power, not a cognitive one.\n\nIts defining act is choice -- taking one option while refusing another. Choice involves two elements: rational deliberation (cognitive) and the desire to embrace the deliberated option (appetitive). Aristotle called it either \"appetitive intellect\" or \"intellectual appetite,\" but ultimately concluded it is a desire proceeding from counsel -- which places it on the appetitive side.\n\nThe reason: choice is about means to an end, and means are pursued because they are useful -- a species of the good. Since good is the proper object of appetite, choice is fundamentally an appetitive act, even though it requires cognitive input from reason."
+  },
+  {
+    "index": "83.4",
+    "refashioned": "Free will is not a power distinct from the will. It is the will itself in the act of choosing.\n\nThe relationship between will and free choice mirrors the relationship between intellect and reason. Understanding grasps first principles directly; reasoning moves from principles to conclusions. Willing desires the end directly; choosing desires the means for the sake of the end. But understanding and reasoning belong to the same power (as established in Q. 79, Art. 8), because moving toward a conclusion and resting in a principle are two states of the same faculty. Likewise, willing an end and choosing a means are two acts of the same power.\n\nSo \"the will\" and \"free will\" name the same power under different descriptions: the will as oriented toward the end, and the will as selecting among means."
+  },
+  {
+    "index": "84.0",
+    "refashioned": "We turn now from the soul's powers to its acts, beginning with intellectual knowledge. The overarching question: how does the embodied soul understand corporeal things? This divides into three inquiries: through what medium does it know them, in what mode and order, and what does it know within them.\n\nEight specific questions follow: whether the soul knows bodies through the intellect, whether through its own essence or through species, whether intelligible species are innate, whether they come from separate immaterial forms, whether we know things in God's eternal ideas, whether knowledge comes from the senses, whether the intellect can understand without phantasms, and whether sensory impairment hinders intellectual judgment."
+  },
+  {
+    "index": "84.1a",
+    "refashioned": "Can the intellect know bodies at all? The objection: bodies are material and changeable, while the intellect deals with the immaterial and necessary. If the intellect cannot grasp bodies, then natural science (the study of mobile, corporeal things) would be impossible."
+  },
+  {
+    "index": "84.1b",
+    "refashioned": "The intellect does know bodies -- but not in the way the early philosophers or Plato supposed.\n\nThe pre-Socratics, assuming that only bodies exist and that everything is in flux, concluded that certain knowledge is impossible. Plato, wanting to rescue certainty, posited a separate realm of immaterial Forms that the intellect grasps directly -- we do not really know this horse but the Form of Horse.\n\nPlato went wrong by assuming that the form must exist in the knower in the same way it exists in reality. Because the intellect grasps things universally and immaterially, he thought the objects of knowledge must themselves be universal and immaterial -- hence the separate Forms. But this assumption is false. A form can exist differently in different receivers. Gold's color exists materially in the gold but immaterially in the eye that sees it. Similarly, the nature of a horse exists materially in individual horses but immaterially and universally in the intellect that understands it.\n\nThe principle is: \"the received is in the receiver according to the mode of the receiver.\" The intellect receives the forms of material things in its own mode -- immaterially, universally, necessarily -- even though those forms exist materially, particularly, and contingently in the things themselves. So the intellect does know bodies, but through an immaterial, universal mode of knowledge."
+  },
+  {
+    "index": "84.1c",
+    "refashioned": "When Augustine says bodies cannot be understood by the intellect, he means the intellect does not know bodies through bodies -- not that bodies cannot be its objects. The medium of intellectual knowledge is immaterial; the object can still be material.\n\nThe intellect is not limited the way the senses are. Sense cannot reach what is above it (the intelligible), but the intellect can reach what is below it (the sensible) -- it just grasps sensible things in a higher, more abstract way.\n\nAnd the changeability of bodies does not prevent certain knowledge, because beneath every change lies something unchangeable: substance persists through qualitative change, matter through substantial change, and universal truths hold regardless of particular circumstances."
+  },
+  {
+    "index": "84.2a",
+    "refashioned": "Does the soul understand things through its own essence -- by finding all natures within itself? The ancients thought so, because they accepted the principle that \"like knows like\" and assumed the knower must contain the same stuff as the known. Some made the soul out of fire, others out of air, and Empedocles composed it from all four elements."
+  },
+  {
+    "index": "84.2b",
+    "refashioned": "The soul does not know things through its own essence. The ancient theory fails for two reasons.\n\nFirst, the elements in the soul would exist only in potentiality, and you cannot know something through what is merely potential -- knowledge requires actuality. You would need the soul to contain not just the principles of things but the actual natures of bone, flesh, and everything else, which is absurd.\n\nSecond, if material composition were sufficient for knowledge, then fire outside the soul should know fire too -- but it obviously does not.\n\nThe real principle is the inverse of what the ancients assumed: knowledge increases as materiality decreases. Plants have no knowledge because they receive forms only materially. Senses have limited knowledge because they receive forms without matter but still subject to material conditions. The intellect has the most perfect knowledge because it abstracts from matter entirely. The more immaterial the reception, the more complete the knowledge.\n\nOnly a being whose essence immaterially contains all things could know everything through its essence -- and that is God alone. The human soul, with its finite, determinate essence, must receive the forms of other things from outside."
+  },
+  {
+    "index": "84.2c",
+    "refashioned": "When Augustine says the soul \"gives something of its substance\" in forming images, he means the soul serves as the subject that gets informed by images -- not that pieces of the soul transform into images. Aristotle's claim that \"the soul is in a way all things\" means it is potentially all things through its powers of sense and intellect, not actually composed of all things."
+  },
+  {
+    "index": "84.3a",
+    "refashioned": "Does the soul have innate knowledge of all things? Plato thought so -- the soul comes pre-loaded with all intelligible forms, and bodily union merely obscures them. Learning is really recollection.\n\nBut this is unreasonable. First, if the soul naturally knew everything, it could not completely forget that it does -- we never forget truly natural knowledge (like the principle that the whole is greater than the part). It makes no sense that something natural to the soul would be totally blocked by the body, which is also natural to it. Second, people born without a sense (like sight) never acquire knowledge of that sense's objects (like color). If knowledge were innate, the absence of a sense would not matter."
+  },
+  {
+    "index": "84.3b",
+    "refashioned": "Humans do share intellectual nature with angels, but not at the same level of perfection. Angels come with their intellects fully stocked with intelligible species, the way heavenly bodies come fully actualized by their forms. The human intellect, like lower matter, starts in potentiality and must be actualized through experience.\n\nAs for the Socratic demonstration in Plato's Meno -- where an untaught slave answers geometry questions correctly -- this does not prove innate knowledge. It proves that when questions proceed in orderly fashion from self-evident universal principles, a learner can arrive at new conclusions. The slave learns for the first time through the questioning; he does not remember what he already knew."
+  },
+  {
+    "index": "84.4a",
+    "refashioned": "Do our intelligible concepts come from separate immaterial substances -- whether Platonic Forms existing on their own or, as Avicenna proposed, intelligible species flowing from a separate Active Intelligence into our minds?"
+  },
+  {
+    "index": "84.4b",
+    "refashioned": "Our intelligible species are not derived from separate immaterial forms. Both Plato's and Avicenna's versions of this theory fail for the same fundamental reason: they cannot explain why the soul needs a body.\n\nIf the soul received its knowledge from separate Forms or a separate Active Intelligence, the body would be irrelevant to understanding -- at best a distraction, at worst an obstacle. But the soul is naturally united to the body, and natural union must serve the soul's proper operation. If the soul could think perfectly without the body, there would be no reason for the union.\n\nThe strongest evidence against these theories: a person born without a particular sense never acquires knowledge of that sense's objects. A person born blind has no concept of color. If intelligible species came from a separate source rather than from the senses, the absence of one sense would not create a gap in knowledge -- the soul could simply access the relevant species directly from the external source, or be triggered to receive them by another sense. But this clearly does not happen.\n\nTherefore, our intelligible species must come through the senses, not from separate substances."
+  },
+  {
+    "index": "84.4c",
+    "refashioned": "Our intelligible species trace back ultimately to God as their first cause, but they reach us through material things and sensory experience, not through direct emanation. The active intellect within our own soul -- not a separate intelligence -- is the proximate cause that abstracts intelligible content from the phantasms of sense."
+  },
+  {
+    "index": "84.5a",
+    "refashioned": "Does the soul know material things by seeing them in God's eternal ideas? Augustine was drawn to this view from his reading of Plato, but he adapted it to Christian theology."
+  },
+  {
+    "index": "84.5b",
+    "refashioned": "We know things in the eternal ideas -- but only in the sense that our intellectual light is a participation in the divine light, not in the sense that we directly see the eternal ideas themselves.\n\nAugustine took what was true in Plato's theory and Christianized it. Where Plato posited separate Forms subsisting on their own, Augustine relocated them into the mind of God as the eternal types according to which all things are created and known. The question is: do we see these types directly?\n\nThe answer involves a distinction. Knowing something \"in\" something else can mean two things. First, as in a mirror -- seeing the thing reflected in an object you are looking at. Only the blessed in heaven know things this way, by directly seeing God and all things in Him. Second, as in a source of illumination -- knowing by a light that comes from something. In this sense, we do know all things in the eternal types. The intellectual light within us is nothing other than a participated likeness of the uncreated divine light. We know by God's light the way we see by the sun's light -- without seeing the sun directly.\n\nBut this participation alone is not enough for knowledge. We also need intelligible species derived from sensory experience. Pure participation in divine light does not tell you how many species of animals there are or what happened in history -- you need sense experience for that."
+  },
+  {
+    "index": "84.6a",
+    "refashioned": "Is intellectual knowledge derived from the senses? Against this view: the senses are unreliable (constantly changing, unable to distinguish reality from dream), and the body cannot impress itself on the higher soul. In its favor: \"the principle of knowledge is in the senses.\""
+  },
+  {
+    "index": "84.6b",
+    "refashioned": "Intellectual knowledge is derived from the senses, but the senses are not its complete cause. Aristotle's position represents the correct middle path between two extremes.\n\nDemocritus thought knowledge is caused by physical images literally entering the soul from objects. This fails because it does not distinguish intellect from sense -- if knowledge were just physical impression, everything that gets physically affected would know something.\n\nPlato thought the intellect operates independently of the senses, receiving its content from separate Forms. Sensory experience merely \"awakens\" the soul to what it already knows. This fails because it makes the body useless and cannot explain why missing a sense means missing a whole category of knowledge.\n\nAristotle's synthesis: the senses receive forms from external objects (agreeing with Democritus that knowledge starts with external input), but the intellect operates without a bodily organ (agreeing with Plato that intellectual knowledge transcends the material). The bridge is the active intellect, which takes the sensory images (phantasms) and abstracts from them the universal, intelligible content that the passive intellect then receives.\n\nSo sensory experience provides the raw material for intellectual knowledge -- it is the \"material cause.\" But the active intellect, by its work of abstraction, is the higher cause that transforms this material into actual understanding."
+  },
+  {
+    "index": "84.6c",
+    "refashioned": "Augustine's claim that we cannot learn the full truth from the senses is correct -- the senses provide material, but the active intellect's abstractive power is needed to achieve stable, universal truth from changing, particular sensory data. Sensory knowledge is the starting point of intellectual knowledge, not its totality, which is why intellectual knowledge can extend beyond what the senses directly perceive."
+  },
+  {
+    "index": "84.7a",
+    "refashioned": "In our present embodied state, the intellect cannot actually understand anything without turning to phantasms -- mental images derived from the senses.\n\nTwo lines of evidence. First, clinical: damage to the brain (which houses the imagination) impairs understanding, even of things previously known. If the intellect could operate with stored species alone, brain damage would not affect it. But it does, which proves that every act of understanding requires the concurrent activity of the imagination.\n\nSecond, introspective: when you try to understand something, you spontaneously form mental images as examples. When you teach, you provide illustrations from which the learner can construct phantasms.\n\nThe deeper reason: the human intellect's proper object is the nature of material things as they exist in individuals. To understand what a stone is, you need some acquaintance with actual individual stones. You apprehend individuals through the senses and imagination. So the intellect must turn to phantasms to find the universal nature it abstracts -- the universal only exists concretely in the particular."
+  },
+  {
+    "index": "84.7b",
+    "refashioned": "Even stored intelligible species are not enough for actual understanding without phantasms. Having the species in a habitual state (retained in memory) still requires turning to an image to activate them into full understanding.\n\nIncorporeal things -- truth, God, angels -- are known by comparison with and contrast to sensible things. We need phantasms not because these things are material, but because our intellect can only operate by starting from material images and working outward."
+  },
+  {
+    "index": "84.8",
+    "refashioned": "When the senses are suspended -- as in sleep, intoxication, or brain injury -- the intellect's judgment is impaired. This follows from everything established above: since the intellect must turn to phantasms, and phantasms depend on the senses and imagination, shutting down the senses cripples the intellect.\n\nDuring sleep, the degree of impairment depends on how deeply the senses are suppressed. In heavy sleep (especially after eating and drinking), even the imagination shuts down -- no dreams at all. In lighter sleep, phantasms appear but are disordered. In the lightest sleep, the imagination operates fairly freely and even the common sense may partially function -- a person may realize they are dreaming. But even in this best case, some deception persists. This is why we do not hold people morally responsible for what they do while asleep: their rational judgment is compromised at the source."
+  },
+  {
+    "index": "85.0",
+    "refashioned": "Eight questions about the mode and order of understanding: whether the intellect understands by abstracting from phantasms, whether the abstracted species is what we understand or the means by which we understand, whether we naturally understand the more universal first, whether we can understand many things at once, whether the intellect works by composing and dividing, whether it can err, whether one intellect can be better than another, and whether it understands the indivisible before the divisible."
+  },
+  {
+    "index": "85.1a",
+    "refashioned": "Does our intellect understand material things by abstracting species from phantasms? The objections claim this would be a distortion -- abstracting what does not exist separately would make the intellect's knowledge false. And if the intellect needs the phantasm the way sight needs color, it should work by direct impression rather than abstraction."
+  },
+  {
+    "index": "85.1b",
+    "refashioned": "The intellect does understand by abstracting from phantasms, and this abstraction does not produce falsehood.\n\nAbstraction means considering one aspect of something without attending to another. When I think about the color of an apple without thinking about its taste, I am not falsely claiming the apple has no taste -- I am simply attending to one feature and not another. Similarly, when the intellect considers human nature without the individualizing conditions of this particular flesh and these particular bones, it is not claiming human nature exists without matter. It is simply grasping what human nature is, apart from what makes this instance of it particular.\n\nThis is exactly what the active intellect does: it illuminates the phantasm and abstracts from it the intelligible form -- the universal nature -- by stripping away the individuating material conditions. The resulting intelligible species is not a separate thing floating in a Platonic realm; it is the very nature of the material thing, received into the intellect according to the intellect's own immaterial mode.\n\nMathematics abstracts quantity from sensible matter. Natural science considers forms in matter but at a general level. Metaphysics abstracts from matter altogether. In each case, abstraction is not falsification -- it is selective attention to what is formally relevant."
+  },
+  {
+    "index": "85.2a",
+    "refashioned": "Is the intelligible species -- the abstracted form -- the thing we understand, or the means by which we understand? This matters because if the species is what we understand, then we know only our own mental representations, not things in the world."
+  },
+  {
+    "index": "85.2b",
+    "refashioned": "The intelligible species is not what is understood but that by which the intellect understands. It is the form of the intellect in act, the way color-in-the-eye is the form of sight in act.\n\nIf the species were itself the object of knowledge, then science would not be about external realities but about internal representations -- and all theories would be equally true, since each would correctly describe its own mental content. But we obviously intend to know real things, not just ideas.\n\nThe species is to the intellect what the sensory image is to the eye: not the thing seen, but the form by which seeing occurs. Through the intelligible species, the intellect makes contact with the nature of the external thing itself.\n\nHowever, the intellect can reflect and take its own species as an object of inquiry -- this is how we study the nature of knowledge itself. But in its primary operation, the intellect uses the species to know the thing, not to know the species."
+  },
+  {
+    "index": "85.2c",
+    "refashioned": "The ancient materialists went wrong precisely here: by identifying the soul with the things it knows, they confused the means of knowing with the object known. The soul does not need to be made of fire to know fire -- it needs to receive the form of fire immaterially. The species is a likeness that enables knowledge, not the object of knowledge itself."
+  },
+  {
+    "index": "85.3a",
+    "refashioned": "The intellect naturally knows the more universal before the less universal. We grasp \"animal\" before \"human,\" \"being\" before \"substance.\"\n\nThe reason traces to how our knowledge develops. We move from potentiality to actuality, and what is more general and indeterminate is known before what is specific and determinate. In sense perception, we recognize a distant figure as \"something alive\" before we identify it as a person, and as a person before we recognize it as Socrates. The intellect follows the same pattern: the more universal concept, because it is simpler and more abstract, is the first to emerge from the process of abstraction.\n\nThis does not mean we have explicit knowledge of the universal before encountering any particulars. Rather, in the very act of encountering particulars, the mind first grasps the broadest features and progressively narrows to the specific."
+  },
+  {
+    "index": "85.3b",
+    "refashioned": "Parts are known before wholes in one sense (the order of composition), but wholes are known before parts in another (the order of cognition). We know the confused whole (\"animal\") before the distinct parts (\"rational\" + \"sensitive\"). A child calls every man \"father\" before distinguishing individuals -- the broader concept comes first, then gets refined.\n\nThe universal is a kind of whole that contains its species potentially. Since potentiality is known before actuality in the order of our discovery, we know the universal whole (the genus) before we know the species distinctly."
+  },
+  {
+    "index": "85.4",
+    "refashioned": "The intellect cannot understand multiple things simultaneously if they require multiple intelligible species. It can only be activated by one species at a time, just as one body cannot simultaneously have multiple shapes.\n\nHowever, things that are known under a single intelligible species can be understood together. We can think about a whole proposition at once, or about the relation between parts and a whole, because these are unified under one concept. And things that are habitually known can be held in readiness while only one is actually contemplated -- the others remain in potentiality, ready to be called up.\n\nSo the intellect's \"one thing at a time\" limitation applies to actual understanding through distinct species, not to habitual knowledge or to things unified under a single concept."
+  },
+  {
+    "index": "85.5a",
+    "refashioned": "The intellect understands by composing and dividing -- that is, by forming affirmative and negative propositions. This follows from the gap between the intellect's mode of knowing and the mode of reality.\n\nThe intellect grasps simple natures first (what a thing is), but the reality it knows involves complex structures -- a thing's essence, its existence, its properties, its relations. To capture this complexity, the intellect must combine concepts (\"the human is rational\") and separate them (\"the human is not a stone\"). Composition and division are how the intellect reconstructs in its own medium what exists as a unity in reality."
+  },
+  {
+    "index": "85.5b",
+    "refashioned": "In grasping a simple essence (like \"what is a human?\"), the intellect does not compose or divide -- it simply apprehends. Error is impossible at this level. But when the intellect says something about that essence (\"humans are rational,\" \"humans are not stones\"), it composes or divides, and here error becomes possible.\n\nThe angelic intellect also composes and divides when forming propositions, but it does not need discursive reasoning to reach its conclusions -- it sees the connections immediately."
+  },
+  {
+    "index": "85.6",
+    "refashioned": "The intellect can err -- but not about everything equally.\n\nRegarding the simple apprehension of essences (\"what is this?\"), the intellect cannot err in itself. Either it grasps the essence or it fails to grasp it entirely -- there is no middle ground of getting it wrong. Grasping \"what a circle is\" either succeeds or does not engage at all.\n\nBut when the intellect composes and divides -- when it predicates one concept of another -- it can err. It may wrongly attribute the definition of one thing to another, or wrongly connect elements in a proposition. And in reasoning (drawing conclusions from premises), error is even more common.\n\nThe parallel with sense: each sense is infallible about its own proper object under normal conditions (sight does not err about color), but can err about common sensibles (size, motion) and especially about incidental features. Similarly, the intellect does not err about what it directly grasps, but can err in its judgments and inferences."
+  },
+  {
+    "index": "85.7",
+    "refashioned": "One person can understand the same thing better than another. Not because they have a different intellect in kind, but for two reasons.\n\nFirst, the body matters. A better-disposed body produces better-functioning internal senses (imagination, memory, cogitative power), which supply better phantasms to the intellect. Since the intellect depends on phantasms, better raw material yields better understanding. This is why people with refined physical constitution tend to have sharper minds.\n\nSecond, practice matters. Someone who has exercised their intellectual powers more develops greater facility in understanding. The active intellect becomes more efficient at abstraction, and the passive intellect becomes more responsive.\n\nSo intellectual inequality among humans comes from differences in bodily constitution and in training -- not from fundamentally different kinds of intellect."
+  },
+  {
+    "index": "85.8",
+    "refashioned": "Does the intellect understand the indivisible before the divisible? It depends on what kind of indivisibility we mean.\n\nThe continuous is understood before its points and boundaries -- we know the line before we know the point, the surface before the edge. The point is understood only as a boundary of the line.\n\nSimple universal concepts (\"being,\" \"one\") are understood before complex ones -- we grasp the genus before the species, the broader before the narrower.\n\nBut simple essences (separate substances, indivisible forms) are not understood first by us. In the order of our knowledge, we move from the composite and material to the simple and immaterial -- not the reverse. We know the divisible before the indivisible when it comes to substance, even though the indivisible is prior in the order of nature.\n\nAs for propositions: the incomplex (simple concepts) must be known before the complex (propositions), because propositions are built from simple terms."
+  },
+  {
+    "index": "86.0",
+    "refashioned": "Four questions about what the intellect can know in material things: whether it knows singulars, the infinite, contingent things, and future things."
+  },
+  {
+    "index": "86.1",
+    "refashioned": "The intellect does not know singulars directly. Its proper operation is abstraction, which strips away the individualizing material conditions that make this thing this particular thing. What remains after abstraction is the universal nature -- \"human,\" not \"Socrates.\"\n\nBut the intellect knows singulars indirectly, through a kind of reflexive turn. After abstracting the universal, the intellect turns back to the phantasm from which it abstracted -- and in that phantasm, the singular is represented. This is how we can form propositions like \"Socrates is a man.\" The intellect grasps the universal directly and the singular indirectly, through the mediation of the sensory image.\n\nPractical knowledge also requires this indirect route: the universal principle of the practical intellect (\"theft is wrong\") cannot be applied to a particular action without the particular apprehension supplied by the senses."
+  },
+  {
+    "index": "86.2a",
+    "refashioned": "Can the intellect know the infinite? Not actually and not habitually -- only potentially.\n\nThe infinite cannot be represented by a single intelligible species (it is not a complete whole), so it cannot be grasped in a single act of understanding. Nor can it be known by successive consideration of all its parts, because an infinite series cannot be completed. And since habitual knowledge arises from actual consideration, we cannot have habitual knowledge of infinite things either.\n\nBut the intellect has a potential infinity: it can always consider one more thing, because its power is not confined to any finite set. The universal itself extends to an infinite number of individuals -- knowing \"thief\" covers infinitely many possible thieves. This is infinite capacity, not infinite content."
+  },
+  {
+    "index": "86.2b",
+    "refashioned": "God is called infinite because He is unlimited form -- and infinite form is knowable in itself, though not by us in our present state. Material infinity (infinite extension, infinite number) is unknowable precisely because it lacks form -- it is pure potentiality without completion. We can know God exists but not comprehend His essence in this life; in heaven, we will see His essence without fully comprehending it.\n\nThe intellect's power is infinite in scope (it is not bounded by any corporeal limit), but this means it can know the universal -- which potentially extends to infinitely many individuals -- not that it can actually enumerate them."
+  },
+  {
+    "index": "86.3",
+    "refashioned": "The intellect can know contingent things, but not in the same way it knows necessary things.\n\nEvery contingent thing contains something necessary: that Socrates runs is contingent, but that running involves motion is necessary. Contingency comes from matter (the capacity to be or not be); necessity comes from form (what follows from a thing's nature). The intellect, which abstracts form from matter, grasps the necessary aspects of contingent things.\n\nConsidered as contingent (as this particular event that might or might not happen), a thing is known by the senses, which deal with individuals in their concrete circumstances. Considered in its universal principles, the same thing falls within the intellect's grasp. So science can be about contingent subject matter as long as it focuses on the universal and necessary principles within it -- which is exactly what moral science and natural science do."
+  },
+  {
+    "index": "86.4a",
+    "refashioned": "The intellect can know the future only in its causes, not in itself. Only God, who sees the entire course of time from eternity, knows future events as they are in themselves.\n\nWhen a cause necessarily produces its effect, we can predict the future with scientific certainty -- as astronomers predict eclipses. When a cause tends toward an effect but not necessarily, we can make probabilistic forecasts. But future contingent events, considered as such, remain unknowable to us."
+  },
+  {
+    "index": "86.4b",
+    "refashioned": "Reports of future-knowledge in sleep or altered states do not prove the soul naturally knows the future. Since our intellect naturally gets its knowledge from the senses, withdrawing from the senses does not liberate a hidden capacity for prophecy.\n\nWhat does happen: in sleep, when the noise of waking life quiets down, the soul becomes more receptive to subtle influences -- whether from divine illumination (through angels), from demonic suggestion, or from natural causes like atmospheric conditions that affect the imagination. Animals, lacking rational interference, are sometimes better weather forecasters than humans for precisely this reason -- their imaginations follow natural influences without the distortions of rational anxiety."
+  },
+  {
+    "index": "87.0",
+    "refashioned": "Four questions about how the intellectual soul knows itself and what is within it: whether it knows itself through its own essence, whether it knows its own habits, how it knows its own acts, and how it knows the acts of the will."
+  },
+  {
+    "index": "87.1a",
+    "refashioned": "Does the intellectual soul know itself through its own essence? Angels do, because their essences are fully actual in the order of intelligibility. God does, because His essence is pure act. But the human intellect is positioned differently."
+  },
+  {
+    "index": "87.1b",
+    "refashioned": "The human mind does not know itself through its own essence. It knows itself through its acts.\n\nThe principle: everything is knowable insofar as it is actual. God's essence is pure act, so He knows Himself and everything else through His essence. An angel's essence is actual in the intelligible order, so it knows itself through its essence (though it must know other things through additional species). But the human intellect is mere potentiality in the intelligible order -- like a blank tablet. Since something purely potential is not yet actual enough to be an object of knowledge, the human intellect cannot know itself by simply inspecting its own essence.\n\nInstead, it knows itself in two ways. First, particular self-awareness: Socrates perceives that he has an intellect because he perceives that he understands. This requires only the presence of the mind to itself -- you know you are thinking by the very act of thinking. Second, universal self-knowledge: we investigate what the human mind is by studying the nature of intellectual acts and reasoning from effects to causes. This requires careful inquiry and is where most errors about the soul occur.\n\nThe first kind of self-knowledge is immediate. The second is hard-won philosophical work."
+  },
+  {
+    "index": "87.1c",
+    "refashioned": "When Augustine says the mind knows itself \"through itself,\" he means it arrives at self-knowledge through its own activity -- by noticing that it understands and loves. It knows itself because it is the thing doing the knowing, not because its essence is transparent to itself in the way first principles are self-evident.\n\nThe angelic mind, being fully actual in the intelligible order, can serve as both intellect and intelligible object simultaneously. The human mind cannot -- it is either pure potentiality (passive intellect) or the act of abstracting from phantasms (active intellect), neither of which constitutes a ready-made object for self-knowledge."
+  },
+  {
+    "index": "87.2",
+    "refashioned": "We know our intellectual habits (like knowledge and faith) not through their essence but through their acts.\n\nA habit is midway between pure power and full act. Since knowledge requires actuality, a habit is knowable only insofar as it produces acts. You know you have the habit of geometry by observing that you can solve geometry problems. You investigate the nature of that habit by studying the acts it produces.\n\nWhen Augustine says faith is known with certainty to exist in the soul, he means: you know you have faith because you notice yourself believing. The act of believing reveals the habit. But habits are not themselves objects present to the intellect the way external things are -- they are the means by which the intellect operates, not what it contemplates."
+  },
+  {
+    "index": "87.3",
+    "refashioned": "The intellect can know its own act of understanding. In fact, understanding is the first thing the intellect grasps reflexively -- because the act of understanding is the intellect's own perfection, and a thing is naturally known together with its perfection.\n\nBut the human intellect comes at this reflexively, not directly. God understands His understanding as identical with His essence. An angel understands its understanding through its essence. The human intellect's first object is the nature of a material thing, and only secondarily does it turn back to know the act by which it grasped that thing, and through the act, itself.\n\nThis reflexivity does not produce an infinite regress. The act by which I understand a stone and the act by which I understand that I understand a stone are genuinely different acts -- but the intellect's capacity for such acts is potentially infinite without viciousness, just as the intellect can always consider one more thing.\n\nUnlike the proper senses (which cannot perceive their own perceiving because they operate through physical organs), the intellect can reflect on its own activity because it has no bodily organ. Physical change is always caused by another; intellectual activity is not."
+  },
+  {
+    "index": "87.4",
+    "refashioned": "The intellect knows the act of the will through a kind of intimate presence. The will's act -- an inclination following from a form understood -- exists in the intelligent subject intelligibly, as in its proper home. So the intellect perceives willing the way it perceives its own understanding: by being present to itself as the place where the act occurs.\n\nWe know that we will just as we know that we understand: by the immediate awareness that accompanies the act itself. And we can investigate the nature of willing, just as we investigate the nature of understanding, through careful philosophical inquiry."
+  },
+  {
+    "index": "88.0",
+    "refashioned": "Three questions about how the human soul knows what is above it: whether it can know immaterial substances (like angels) through innate species, whether it can reach such knowledge from material things, and whether God is the first thing we know."
+  },
+  {
+    "index": "88.1a",
+    "refashioned": "Can we know immaterial substances -- angels, separated souls -- through innate concepts or natural species? Some have argued that the soul, being itself immaterial, should have a natural capacity to know other immaterial beings directly."
+  },
+  {
+    "index": "88.1b",
+    "refashioned": "In this life, we cannot know immaterial substances through their own essences or through innate species. We can only know them indirectly, through the material things we do experience.\n\nPlato thought we could, because he believed the soul once contemplated the Forms directly and retains that knowledge innately. Avicenna thought we could, because he held that intelligible species flow into our souls from a separate Active Intelligence. But both positions contradict experience: our knowledge demonstrably starts from the senses, and what the senses cannot reach, the intellect in this life cannot directly grasp.\n\nAristotle's position is correct: in this life, the human intellect's proper object is the nature of material things. We can arrive at knowledge of immaterial substances only by starting from what we know about material reality and reasoning upward -- through negation (what they are not), through causality (what effects they produce), and through eminence (recognizing that they possess perfections beyond what material things exhibit).\n\nThis knowledge is real but incomplete. We can know that immaterial substances exist and can establish certain things about them, but we cannot grasp their essences the way we grasp the nature of a stone or a horse. Our knowledge of them remains indirect and analogical, not intuitive."
+  },
+  {
+    "index": "88.1c",
+    "refashioned": "The fact that we can define immaterial substances does not mean we grasp their essences. Our definitions proceed by negation and relation -- we say what they are not (not material, not composed) and what they do (understand, will). This gives real knowledge but not the kind of direct, essential knowledge that angels have of themselves.\n\nThe intellect's relationship to immaterial substances is like the eye's relationship to the sun: we can know something about it (it is bright, it is the source of light), but we cannot look directly at it without being overwhelmed."
+  },
+  {
+    "index": "88.2",
+    "refashioned": "Our intellect cannot reach knowledge of immaterial substances from material things if \"knowledge\" means grasping their essence. The intelligible species abstracted from material phantasms represent the natures of material things -- they cannot adequately represent a nature that has no matter at all.\n\nWe can know that immaterial substances exist and can know certain things about them through negation and analogy. We know God as the cause of all things, as exceeding all things, as lacking all material limitations. We know angels similarly. But we never arrive at knowing what they are in themselves -- only what they are not, and how they relate to what we do know.\n\nThis was the error Averroes tried to escape: he thought that by understanding all material natures we would somehow achieve union with the separate Active Intelligence and thereby know immaterial substances directly. But abstraction from material phantasms, no matter how complete, never produces a form adequate to represent a purely immaterial nature."
+  },
+  {
+    "index": "88.3",
+    "refashioned": "God is not the first thing we know. The first thing the human intellect knows is the nature of material things -- this is its proper and proportionate object in our present state.\n\nSome have argued that God is the first thing known, since He is the primary truth in which all other truths participate, or the first intelligible being by whose light everything else is understood. But our participation in God's light is not the same as knowing God. We know by God's light the way we see by the sun's light -- without seeing the light source itself first.\n\nOthers have suggested that God is known first because the mind naturally tends toward Him. But a natural tendency toward something is not the same as explicit knowledge of it. We naturally desire happiness, but many people disagree about what happiness consists in -- which proves that the desire is not yet knowledge.\n\nSo God is not the first thing we know but in some sense the last -- the thing we arrive at by reasoning from what we know first (material natures) toward their ultimate cause."
+  },
+  {
+    "index": "89.0",
+    "refashioned": "Eight questions about the knowledge of the separated soul -- the soul after death, apart from the body: whether it can understand at all, whether it knows separate substances, whether it knows all natural things, whether it knows singulars, whether habits of knowledge persist, whether the soul can use acquired knowledge, whether spatial distance affects its knowledge, and whether separated souls know what happens on earth."
+  },
+  {
+    "index": "89.1a",
+    "refashioned": "Can the separated soul understand anything at all? If the intellect depends on phantasms (sensory images), and phantasms require a body, then it seems the separated soul should be unable to think."
+  },
+  {
+    "index": "89.1b",
+    "refashioned": "The separated soul can understand, but in a different mode than it does while embodied.\n\nIn this life, the intellect's natural and proper mode of knowing is through abstraction from phantasms -- it is calibrated to material things experienced through the body. But this is the soul's mode of knowing insofar as it is united to a body. The soul has a deeper nature as an intellectual substance, and intellectual substances in general understand through intelligible species that flow from the divine light, not through sensory abstraction.\n\nWhen the soul separates from the body, it can no longer use its familiar sensory route. Instead, it receives intelligible species through divine illumination -- the way angels naturally know. But because the human soul occupies the lowest rank among intellectual substances, the species it receives in this separated state are less perfectly specified than what angels receive. Its knowledge in separation is real but less clear and distinct than either its embodied sensory knowledge or angelic intuitive knowledge.\n\nThe embodied mode of knowing through phantasms is natural to the soul as united to the body. The separated mode of knowing through received species is natural to the soul as an intellectual substance. Neither mode is unnatural, but neither is perfectly adequate on its own -- which is why the soul naturally desires reunion with the body."
+  },
+  {
+    "index": "89.1c",
+    "refashioned": "The soul's mode of understanding does change at separation -- not because of any change in the soul's essence, but because of a change in its relationship to the body. Just as the same person would walk differently on flat ground versus climbing a mountain (same locomotive power, different conditions), the same intellect operates differently when embodied versus separated.\n\nThe separated soul's knowledge through received species is not as precise as its former sensory knowledge was for material things. It knows things in a more general, less differentiated way -- the way someone might know the general principles of botany without being able to identify a particular plant."
+  },
+  {
+    "index": "89.2",
+    "refashioned": "The separated soul can know other separate substances (angels) -- something it could not do while embodied. Since the separated soul now receives its intelligible content through species infused by divine illumination (the same basic mode that angels use), it can understand beings of its own general kind.\n\nHowever, it does not know them with the clarity that they know themselves. The human soul, even separated, remains the lowest in the hierarchy of intellectual substances. Its received species are less perfectly specified, so its knowledge of angels is real but imperfect -- like seeing through a fog rather than in clear light."
+  },
+  {
+    "index": "89.3",
+    "refashioned": "The separated soul does know all natural things -- but in a general and confused way, not with the specific detail it could achieve through bodily senses.\n\nAngels know all material natures through the comprehensive intelligible species they receive. The separated human soul also receives intelligible species from the divine light, but because it is the lowest intellectual substance, these species are less determinate. It can grasp the general natures of things (what fire is, what water is) but may not be able to distinguish every specific variety or individual instance with precision.\n\nThis knowledge surpasses what we can achieve through philosophy in this life in scope (covering all natural kinds) but falls short in precision (lacking the detailed sensory data that embodied inquiry provides)."
+  },
+  {
+    "index": "89.4",
+    "refashioned": "The separated soul knows singulars -- specific individual beings -- but through a different route than it used while embodied.\n\nIn the body, singulars were known through the senses and imagination. Separated from the body, the soul knows them through its prior connections (things it experienced in life), through divine disposition (God or angels directing its attention), and through natural affinity (its relationship to certain individuals and places).\n\nBut this knowledge of singulars is not unlimited. The separated soul does not automatically know every individual thing in the universe. Its knowledge of particulars is determined by the relevance of those particulars to the soul's own situation and by divine providence."
+  },
+  {
+    "index": "89.5a",
+    "refashioned": "The habits of knowledge acquired in this life do remain in the separated soul. Since these habits reside in the intellect itself (not in the body or in a bodily organ), the destruction of the body does not destroy them.\n\nThe intelligible species stored in the passive intellect persist -- they do not depend on the body for their retention. What the soul learned in life, it retains after death.\n\nHowever, the phantasms (sensory images) that were stored in the imagination and memory do not survive, because the imagination is a power of the body-soul composite. The soul retains the intelligible content it abstracted from those phantasms, but not the phantasms themselves."
+  },
+  {
+    "index": "89.5b",
+    "refashioned": "The body relates to the soul's knowledge as an instrument, not as an object. So when the instrument is destroyed, the knowledge previously acquired through it is not lost -- only the instrument's ongoing contribution ceases. The intellectual habits remain intact."
+  },
+  {
+    "index": "89.6",
+    "refashioned": "The separated soul can use the knowledge it acquired in life, but not in the same way. While embodied, it activated stored intelligible species by turning to phantasms. Separated from the body, it lacks phantasms. Instead, it exercises its acquired knowledge through the intelligible species that remain in it, now activated by the more general, angel-like mode of understanding that comes with separation.\n\nThe knowledge functions differently: what was once understood through concrete sensory examples is now understood more abstractly. The soul can still deploy what it knows, but the mode of deployment has shifted from image-dependent to purely intellectual."
+  },
+  {
+    "index": "89.7",
+    "refashioned": "Spatial distance does not impede the separated soul's knowledge. Distance is an obstacle to sensation (which requires physical contact between object and organ, possibly through a medium), but the separated soul does not know things through sensation. Its knowledge comes through intelligible species that are not transmitted through physical space.\n\nHowever, the separated soul does not know everything everywhere. Its knowledge is determined not by spatial proximity but by divine disposition and natural affinity. It knows what it is meant to know, regardless of where those things are located."
+  },
+  {
+    "index": "89.8a",
+    "refashioned": "The separated souls of the dead do not, as a general rule, know what happens among the living on earth. Their condition and mode of knowing is directed toward what pertains to their own state (whether in reward or punishment), not toward the ongoing affairs of the temporal world.\n\nGregory compares the dead to the living the way the living relate to the unborn: just as we have no direct knowledge of what the unborn will experience, the dead have no direct knowledge of what the living are currently doing.\n\nThere are exceptions: divine revelation can inform separated souls of earthly events when God wills it, just as prophets in life received knowledge of distant or future events. And the blessed in heaven, who see God, may know earthly affairs insofar as God reveals them. But naturally speaking, the separated soul's attention is oriented away from the temporal world."
+  },
+  {
+    "index": "89.8b",
+    "refashioned": "The fact that the dead may sometimes appear to the living (in visions or apparitions) does not prove they know what happens on earth. These appearances may occur through divine dispensation, angelic mediation, or demonic activity -- not through the separated soul's natural knowledge of earthly events. Or, as Augustine suggests, such visions may be like dream images that do not reflect the real awareness of the person who appears in them."
+  }
+]
+
+with open("D:/Projects/Websites/Git/FUALL/content/books/build/summa_p1_refashioned_part6.json", "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+
+print(f"Saved {len(data)} refashioned entries to summa_p1_refashioned_part6.json")
