@@ -1,3 +1,4 @@
+- 2026-04-06T2341 · [[02-erosion-v1]]
 - 2026-04-06T2337 · [[02-erosion]]
 - 2026-03-30T1620 · [[Primary Spectrums]]
 - 2026-03-30T1608 · [[Index]]
@@ -22,4 +23,3 @@
 - 2026-03-30T1608 · [[On Spirits, Souls, and Gods]]
 - 2026-03-30T1608 · [[Love]]
 - 2026-03-30T1608 · [[Love (closest to Storge) - care over a threshold where your wellbeing is in]]
-- 2026-03-30T1608 · [[If a man will begin in certainties he shall end in doubts, but if he will be]]

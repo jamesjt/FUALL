@@ -191,6 +191,11 @@
   },
   "active": "234b5234f699f430",
   "lastOpenFiles": [
+    "content/books/build/epictetus_book4_output.json",
+    "content/books/build/epictetus_book3_output.json",
+    "content/books/build/epictetus_book2_output.json",
+    "drafts/docx/02-erosion-v1.docx",
+    "tasks/knowledge-map/reorg/articles/02-erosion-v1.md",
     "content/erosion.rtf",
     "content/Foundations old.rtf",
     "content/books/build/epictetus_book1_output.json",
@@ -198,10 +203,6 @@
     "drafts/csv/Foundations - Foundations.csv",
     "drafts/csv/Unconfirmed 964355.crdownload",
     "drafts/csv",
-    "content/books/Epictetus - Discourses.csv",
-    "content/books/build/epictetus_book4_originals.json",
-    "content/books/build/epictetus_book3_originals.json",
-    "content/books/build/epictetus_book2_originals.json",
     "Index.md",
     "FU-Changelog.md",
     "CLAUDE.md",
@@ -227,7 +228,6 @@
     "articles/01-foundations.md",
     "articles/00-outline.md",
     "raw/Value Systems/httpsen.wikipedia.orgwikiSarvastivada.md",
-    "raw/Value Systems/httpsen.wikipedia.orgwikiAkrasia.md",
-    "raw/Value Systems/exploring reality helps us learn about it and ourselves.md"
+    "raw/Value Systems/httpsen.wikipedia.orgwikiAkrasia.md"
   ]
 }
