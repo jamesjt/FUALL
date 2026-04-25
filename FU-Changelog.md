@@ -1,3 +1,5 @@
+- 2026-04-24T1704 · [[Western tradition and progress]]
+- 2026-04-20T2152 · [[foundations-review-2026-04-20]]
 - 2026-04-06T2341 · [[02-erosion-v1]]
 - 2026-04-06T2337 · [[02-erosion]]
 - 2026-03-30T1620 · [[Primary Spectrums]]
@@ -21,5 +23,3 @@
 - 2026-03-30T1608 · [[Sin (2)]]
 - 2026-03-30T1608 · [[Other takes on reality reason and right (nature, beliefs, and social]]
 - 2026-03-30T1608 · [[On Spirits, Souls, and Gods]]
-- 2026-03-30T1608 · [[Love]]
-- 2026-03-30T1608 · [[Love (closest to Storge) - care over a threshold where your wellbeing is in]]

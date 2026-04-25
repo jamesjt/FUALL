@@ -1678,3 +1678,928 @@ body.light-theme .content p.loading {
 body.light-theme .content p.error {
     color: #d32f2f;
 }
+
+/* ── Agora (discussion notes) ── */
+.agora-doc {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 24px 20px 64px;
+    line-height: 1.6;
+    color: #d0d0d0;
+}
+
+.agora-header {
+    border-bottom: 1px solid rgba(210, 154, 56, 0.3);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+}
+
+.agora-title {
+    font-family: var(--font-serif);
+    font-size: 1.8em;
+    font-weight: 600;
+    color: var(--gold-accent);
+    margin: 0 0 10px;
+    letter-spacing: 0.01em;
+}
+
+.agora-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.92em;
+}
+
+.agora-meta-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: baseline;
+}
+
+.agora-meta-label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72em;
+    color: #888;
+    min-width: 90px;
+    font-weight: 600;
+}
+
+.agora-meta-value {
+    color: #c1c1c1;
+    flex: 1;
+    min-width: 0;
+}
+
+.agora-section {
+    margin-bottom: 28px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 18px 20px;
+    background: rgba(255, 255, 255, 0.015);
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.agora-section.is-collapsible:not(.collapsed) {
+    background: rgba(255, 255, 255, 0.025);
+    border-color: rgba(210, 154, 56, 0.22);
+}
+
+.agora-section-title {
+    font-family: var(--font-serif);
+    font-size: 1.35em;
+    font-weight: 600;
+    color: #e8e8e8;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.agora-section.is-collapsible > .agora-section-title {
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.agora-section.is-collapsible > .agora-section-title .agora-chev {
+    cursor: pointer;
+}
+
+.agora-section-label {
+    cursor: text;
+    user-select: text;
+}
+
+.agora-section-label.is-claim {
+    font-weight: 600;
+    line-height: 1.4;
+    font-size: 0.76em;
+}
+
+.agora-section.is-collapsible > .agora-section-title:hover {
+    color: var(--gold-accent);
+}
+
+.agora-section.is-collapsible > .agora-section-title:focus-visible {
+    outline: 1px dashed var(--gold-accent);
+    outline-offset: 3px;
+}
+
+.agora-section.is-collapsible.collapsed > .agora-section-body {
+    display: none;
+}
+
+.agora-section-body {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dotted var(--border-subtle);
+}
+
+.agora-section-label {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Subsection summary — always visible (sits inside the subsection card) */
+.agora-subsection-summary {
+    margin: 0;
+    color: #b8b8b8;
+    font-size: 0.94em;
+    line-height: 1.55;
+}
+
+.agora-subsection-summary.is-toggle {
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.agora-subsection-summary.is-toggle:hover {
+    color: #d0d0d0;
+}
+
+/* "Justifications" label inside the collapsed body */
+.agora-justifications-label {
+    font-size: 0.66em;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #888;
+    font-weight: 600;
+    margin: 4px 0 10px;
+    font-family: var(--font-inter), -apple-system, sans-serif;
+    padding-bottom: 4px;
+    border-bottom: 1px dotted var(--border-subtle);
+}
+
+/* Justification block: mixed prose + bullets */
+.agora-justification-prose {
+    margin: 0 0 10px;
+    color: #c5c5c5;
+    font-size: 0.98em;
+    line-height: 1.65;
+}
+
+.agora-justification-prose:last-child {
+    margin-bottom: 0;
+}
+
+.agora-justification-bullets {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0 0 0 4px;
+}
+
+.agora-justification-bullets li {
+    position: relative;
+    padding: 3px 0 3px 18px;
+    color: #d0d0d0;
+    font-size: 0.96em;
+    line-height: 1.55;
+}
+
+.agora-justification-bullets li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0.78em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--gold-accent);
+    opacity: 0.7;
+}
+
+.agora-section-summary {
+    color: #b8b8b8;
+    font-style: italic;
+    margin: 0 0 22px;
+    font-size: 0.98em;
+    line-height: 1.6;
+}
+
+.agora-subsection {
+    margin: 0 0 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.018);
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.agora-subsection.is-collapsible:not(.collapsed),
+.agora-subsection.is-flat {
+    background: rgba(210, 154, 56, 0.03);
+    border-color: rgba(210, 154, 56, 0.22);
+}
+
+/* Flat subsection: fact bullets with inline source link */
+.agora-subsection-points {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+}
+
+.agora-subsection-points li {
+    position: relative;
+    padding: 8px 0 8px 18px;
+    line-height: 1.55;
+    color: #d0d0d0;
+    font-size: 0.95em;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.agora-subsection-points li:last-child {
+    border-bottom: none;
+}
+
+.agora-subsection-points li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0.95em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--gold-accent);
+    opacity: 0.55;
+}
+
+.agora-point-source {
+    display: inline;
+    font-size: 0.88em;
+    color: #8a8a8a;
+    white-space: nowrap;
+    margin-left: 2px;
+}
+
+.agora-doc .agora-subsection-points .agora-link {
+    color: #a8a8a8;
+    text-decoration: underline;
+    text-decoration-color: rgba(210, 154, 56, 0.45);
+    font-weight: 500;
+    border-bottom: none;
+}
+
+.agora-doc .agora-subsection-points .agora-link:hover,
+.agora-doc .agora-subsection-points .agora-link:focus-visible {
+    color: var(--gold-accent);
+    text-decoration-color: var(--gold-accent);
+    border-bottom: none;
+}
+
+.agora-subsection-title {
+    font-family: var(--font-serif);
+    font-size: 1.02em;
+    font-weight: 600;
+    color: #e8e8e8;
+    margin: 0 0 8px;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.agora-subsection-label {
+    flex: 1;
+    min-width: 0;
+    cursor: text;
+    user-select: text;
+}
+
+.agora-subsection.is-collapsible > .agora-subsection-title {
+    cursor: pointer;
+    padding: 0;
+    margin: 0 0 8px;
+    transition: color 0.15s ease;
+}
+
+.agora-subsection.is-collapsible > .agora-subsection-title:hover {
+    color: var(--gold-accent);
+}
+
+.agora-subsection.is-collapsible > .agora-subsection-title:focus-visible {
+    outline: 1px dashed var(--gold-accent);
+    outline-offset: 2px;
+}
+
+/* CSS-drawn chevron (right-aligned in flex header) */
+.agora-chev {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 0.2s ease;
+    opacity: 0.7;
+    margin-right: 4px;
+    margin-bottom: 3px;
+}
+
+.agora-section.is-collapsible:not(.collapsed) > .agora-section-title .agora-chev,
+.agora-subsection.is-collapsible:not(.collapsed) > .agora-subsection-title .agora-chev {
+    transform: rotate(45deg);
+    margin-bottom: 0;
+    margin-top: -3px;
+}
+
+.agora-subsection.is-collapsible > .agora-subsection-body {
+    display: none;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dotted var(--border-subtle);
+}
+
+.agora-subsection.is-collapsible:not(.collapsed) > .agora-subsection-body {
+    display: block;
+}
+
+/* ── Claim / Verdict / Justification ── */
+.agora-claim {
+    margin: 0 0 14px;
+    padding: 14px 18px;
+    background: rgba(210, 154, 56, 0.06);
+    border-left: 3px solid var(--gold-accent);
+    border-radius: 0 4px 4px 0;
+}
+
+.agora-claim-label {
+    display: block;
+    font-size: 0.68em;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gold-accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.agora-claim-text {
+    margin: 0;
+    font-size: 1.08em;
+    line-height: 1.45;
+    color: #f0f0f0;
+    font-weight: 500;
+}
+
+.agora-assessment {
+    margin: 0 0 24px;
+    padding: 14px 16px 10px;
+    border: 1px solid rgba(140, 180, 230, 0.18);
+    border-radius: 4px;
+    background: rgba(140, 180, 230, 0.03);
+    position: relative;
+}
+
+.agora-assessment-byline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #7ba7d6;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-family: var(--font-inter), -apple-system, sans-serif;
+}
+
+.agora-assessment-icon {
+    font-size: 1em;
+    color: #7ba7d6;
+    line-height: 1;
+    opacity: 0.9;
+}
+
+.agora-verdict {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0 0 12px;
+    flex-wrap: wrap;
+    padding: 0;
+}
+
+.agora-verdict-label {
+    font-size: 0.68em;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #888;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.agora-verdict-text {
+    color: #d8d8d8;
+    font-size: 0.98em;
+    font-style: italic;
+    flex: 1;
+    min-width: 0;
+}
+
+.agora-justification {
+    margin: 0;
+    color: #c5c5c5;
+    font-size: 0.98em;
+    line-height: 1.65;
+}
+
+.agora-assessment .agora-justification {
+    margin: 0;
+}
+
+.agora-subsection-note {
+    color: #a8a8a8;
+    font-size: 0.92em;
+    margin: 0 0 10px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-subtle);
+}
+
+.agora-author-note {
+    margin: 0 0 24px;
+    padding: 12px 16px;
+    border-left: 2px solid var(--gold-accent);
+    background: rgba(210, 154, 56, 0.05);
+    color: #c5c5c5;
+    font-size: 0.96em;
+    line-height: 1.6;
+    border-radius: 0 4px 4px 0;
+}
+
+/* Bullet group heading inside a flat-format subsection */
+.agora-bullet-heading {
+    font-family: var(--font-inter), -apple-system, sans-serif;
+    font-size: 0.78em;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gold-accent);
+    font-weight: 600;
+    margin: 14px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px dotted var(--border-subtle);
+}
+
+.agora-bullet-heading:first-child {
+    margin-top: 0;
+}
+
+body.light-theme .agora-bullet-heading {
+    color: var(--gold-accent);
+}
+
+/* Claude's assessment — now collapsible */
+.agora-assessment.is-collapsible > .agora-assessment-byline {
+    cursor: pointer;
+    margin-bottom: 0;
+    user-select: none;
+    transition: color 0.15s ease;
+}
+
+.agora-assessment.is-collapsible > .agora-assessment-byline:hover {
+    color: #a8c5e8;
+}
+
+.agora-assessment.is-collapsible > .agora-assessment-byline:focus-visible {
+    outline: 1px dashed #7ba7d6;
+    outline-offset: 3px;
+}
+
+.agora-assessment.is-collapsible > .agora-assessment-byline .agora-chev {
+    margin-left: auto;
+    color: #7ba7d6;
+}
+
+.agora-assessment.is-collapsible:not(.collapsed) > .agora-assessment-byline {
+    margin-bottom: 10px;
+}
+
+.agora-assessment.is-collapsible:not(.collapsed) > .agora-assessment-byline .agora-chev {
+    transform: rotate(45deg);
+    margin-bottom: 0;
+    margin-top: -3px;
+}
+
+.agora-assessment.is-collapsible.collapsed > .agora-assessment-body {
+    display: none;
+}
+
+.agora-assessment-body {
+    /* No extra spacing — verdict/justification carry their own margins */
+}
+
+/* "Justifications for claim" — collapsible wrapper around author note + subsections */
+.agora-justifications-wrap {
+    margin: 0 0 24px;
+}
+
+.agora-justifications-wrap.is-collapsible > .agora-justifications-title {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.02);
+    font-family: var(--font-inter), -apple-system, sans-serif;
+    font-size: 0.78em;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #b8b8b8;
+    font-weight: 600;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.agora-justifications-wrap.is-collapsible > .agora-justifications-title:hover {
+    color: var(--gold-accent);
+    border-color: rgba(210, 154, 56, 0.35);
+}
+
+.agora-justifications-wrap.is-collapsible > .agora-justifications-title:focus-visible {
+    outline: 1px dashed var(--gold-accent);
+    outline-offset: 3px;
+}
+
+.agora-justifications-title-text {
+    flex: 1;
+}
+
+.agora-justifications-wrap.is-collapsible > .agora-justifications-title .agora-chev {
+    margin-left: auto;
+}
+
+.agora-justifications-wrap.is-collapsible:not(.collapsed) > .agora-justifications-title {
+    margin-bottom: 16px;
+    border-color: rgba(210, 154, 56, 0.22);
+    color: var(--gold-accent);
+}
+
+.agora-justifications-wrap.is-collapsible:not(.collapsed) > .agora-justifications-title .agora-chev {
+    transform: rotate(45deg);
+    margin-bottom: 0;
+    margin-top: -3px;
+}
+
+.agora-justifications-wrap.is-collapsible.collapsed > .agora-justifications-body {
+    display: none;
+}
+
+body.light-theme .agora-justifications-wrap.is-collapsible > .agora-justifications-title {
+    background: rgba(0, 0, 0, 0.02);
+    color: #555;
+}
+
+body.light-theme .agora-justifications-wrap.is-collapsible:not(.collapsed) > .agora-justifications-title {
+    color: var(--gold-accent);
+}
+
+.agora-author-note-label {
+    display: inline;
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold-accent);
+    font-weight: 600;
+    font-family: var(--font-inter), -apple-system, sans-serif;
+    margin-right: 8px;
+}
+
+.agora-author-note-label::after {
+    content: ' \2014';
+    color: var(--gold-accent);
+    opacity: 0.7;
+}
+
+.agora-author-note-text {
+    color: #c5c5c5;
+}
+
+p.agora-author-note-text {
+    margin: 8px 0 0;
+}
+
+body.light-theme .agora-author-note {
+    background: rgba(210, 154, 56, 0.08);
+    color: #2a2a2a;
+}
+
+body.light-theme .agora-author-note-text {
+    color: #2a2a2a;
+}
+
+.agora-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.agora-link-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    line-height: 1.55;
+    font-size: 0.95em;
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 14px;
+    row-gap: 4px;
+    align-items: baseline;
+}
+
+.agora-link-item:last-child {
+    border-bottom: none;
+}
+
+.agora-link-item:not(.relation-supports):not(.relation-qualifies):not(.relation-context) {
+    grid-template-columns: 1fr;
+}
+
+.agora-link-head {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.agora-link-item:not(.relation-supports):not(.relation-qualifies):not(.relation-context) .agora-link-head {
+    grid-column: 1;
+}
+
+.agora-doc .agora-link {
+    color: #e4e4e4;
+    font-weight: 500;
+    word-break: break-word;
+    text-decoration: underline;
+    text-decoration-color: rgba(210, 154, 56, 0.55);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    border-bottom: none;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.agora-doc .agora-link:hover,
+.agora-doc .agora-link:focus-visible {
+    color: var(--gold-accent);
+    text-decoration-color: var(--gold-accent);
+    border-bottom: none;
+}
+
+.agora-link-note {
+    grid-column: 2;
+    grid-row: 2;
+    margin: 0;
+    color: #a8a8a8;
+    font-size: 0.93em;
+    line-height: 1.55;
+}
+
+.agora-link-item:not(.relation-supports):not(.relation-qualifies):not(.relation-context) .agora-link-note {
+    grid-column: 1;
+}
+
+/* Relation tags (Supports / Qualifies / Context) */
+.agora-relation {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    align-self: baseline;
+    font-size: 0.64em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 3px 7px;
+    border-radius: 3px;
+    border: 1px solid;
+    line-height: 1.3;
+    white-space: nowrap;
+    font-family: var(--font-inter), -apple-system, sans-serif;
+}
+
+.agora-relation.agora-relation-inline {
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: auto;
+    align-self: center;
+    margin-left: auto;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.agora-relation.relation-supports {
+    color: #8fbf6f;
+    border-color: rgba(143, 191, 111, 0.4);
+    background: rgba(143, 191, 111, 0.08);
+}
+
+.agora-relation.relation-qualifies {
+    color: #d29a38;
+    border-color: rgba(210, 154, 56, 0.4);
+    background: rgba(210, 154, 56, 0.08);
+}
+
+.agora-relation.relation-context {
+    color: #8a8a8a;
+    border-color: rgba(138, 138, 138, 0.35);
+    background: rgba(138, 138, 138, 0.06);
+}
+
+.agora-embed {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    margin: 14px 0 4px;
+    border-radius: 6px;
+    background: #000;
+    border: 1px solid var(--border-medium);
+}
+
+.agora-embed iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+@media (max-width: 768px) {
+    .agora-doc {
+        padding: 16px 14px 48px;
+        font-size: 0.98em;
+    }
+
+    .agora-title {
+        font-size: 1.4em;
+    }
+
+    .agora-meta-label {
+        min-width: 0;
+        flex-basis: 100%;
+    }
+
+    .agora-meta-value {
+        flex-basis: 100%;
+    }
+
+    .agora-section-title {
+        font-size: 1.15em;
+    }
+
+    .agora-link-item {
+        grid-template-columns: 1fr;
+        row-gap: 6px;
+        padding: 12px 0;
+    }
+
+    .agora-link-item .agora-relation {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .agora-link-item .agora-link-head {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .agora-link-item .agora-link-note {
+        grid-column: 1;
+        grid-row: 3;
+        font-size: 0.92em;
+    }
+
+    .agora-claim {
+        padding: 12px 14px;
+    }
+
+    .agora-claim-text {
+        font-size: 1em;
+    }
+
+    .agora-subsection.is-collapsible > .agora-subsection-body {
+        padding-left: 14px;
+    }
+}
+
+body.light-theme .agora-claim {
+    background: rgba(210, 154, 56, 0.1);
+}
+
+body.light-theme .agora-claim-text {
+    color: #1a1a1a;
+}
+
+body.light-theme .agora-verdict-text {
+    color: #333;
+}
+
+body.light-theme .agora-justification {
+    color: #424242;
+}
+
+body.light-theme .agora-assessment {
+    background: rgba(30, 100, 170, 0.04);
+    border-color: rgba(30, 100, 170, 0.2);
+}
+
+body.light-theme .agora-assessment-byline,
+body.light-theme .agora-assessment-icon {
+    color: #3b74a8;
+}
+
+body.light-theme .agora-section {
+    background: rgba(0, 0, 0, 0.015);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .agora-section.is-collapsible:not(.collapsed) {
+    background: rgba(210, 154, 56, 0.04);
+    border-color: rgba(210, 154, 56, 0.25);
+}
+
+body.light-theme .agora-subsection {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .agora-subsection.is-collapsible:not(.collapsed),
+body.light-theme .agora-subsection.is-flat {
+    background: rgba(210, 154, 56, 0.05);
+    border-color: rgba(210, 154, 56, 0.3);
+}
+
+body.light-theme .agora-subsection-points li {
+    color: #333;
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-theme .agora-point-source {
+    color: #666;
+}
+
+body.light-theme .agora-doc .agora-subsection-points .agora-link {
+    color: #555;
+}
+
+body.light-theme .agora-subsection-title {
+    color: #1a1a1a;
+}
+
+body.light-theme .agora-subsection-summary {
+    color: #555;
+}
+
+body.light-theme .agora-subsection-summary.is-toggle:hover {
+    color: #2a2a2a;
+}
+
+body.light-theme .agora-justifications-label {
+    color: #777;
+}
+
+body.light-theme .agora-justification-prose,
+body.light-theme .agora-justification-bullets li {
+    color: #424242;
+}
+
+body.light-theme .agora-doc .agora-link {
+    color: #1a1a1a;
+}
+
+body.light-theme .agora-doc .agora-link:hover,
+body.light-theme .agora-doc .agora-link:focus-visible {
+    color: var(--gold-hover);
+}
+
+body.light-theme .agora-relation.relation-supports {
+    color: #5a8a3d;
+    background: rgba(90, 138, 61, 0.08);
+}
+
+body.light-theme .agora-doc {
+    color: #333;
+}
+
+body.light-theme .agora-section-title {
+    color: #1a1a1a;
+}
+
+body.light-theme .agora-section-summary,
+body.light-theme .agora-subsection-note,
+body.light-theme .agora-link-note {
+    color: #555;
+}
+
+body.light-theme .agora-meta-value {
+    color: #333;
+}
+
+body.light-theme .agora-meta-label {
+    color: #888;
+}
+
+body.light-theme .agora-embed {
+    background: #f0f0f0;
+    border-color: rgba(0, 0, 0, 0.1);
+}

@@ -251,6 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
             booksData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'book');
             breakdownsData = unifiedData.filter(row => row.Type?.trim().toLowerCase() === 'breakdown');
 
+            // Register local Agora entries (discussion notes authored in-repo)
+            registerAgoraEntries();
+
             // Register content metadata for lazy loading (don't fetch yet)
             const contentBody = document.querySelector('.content-body');
             if (unifiedData.length === 0) {
@@ -278,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (loadingEl) loadingEl.remove();
 
                 // Populate sidebars right away
+                populateSidebarList('.agora-list', agoraEntries.map(e => ({ Title: e.title })), 'Title', 'agora');
                 populateSidebarList('.articles-list', articlesData, 'Title', 'article');
                 populateSidebarList('.books-list', booksData, 'Title', 'book');
                 populateSidebarList('.breakdowns-list', breakdownsData, 'Title', 'breakdown');
