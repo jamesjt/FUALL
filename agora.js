@@ -277,7 +277,7 @@ const agoraEntries = [
                         title: 'Confucian',
                         claimRelation: 'context',
                         bullets: [
-                            { relation: 'context', note: 'Orientation: maintaining the ideals of the [sage-kings](https://en.wikipedia.org/wiki/Sage_king) through becoming [jūnzǐ](https://en.wikipedia.org/wiki/Junzi).' },
+                            { relation: 'context', note: 'Orientation: maintaining the ideals of the [sage-kings](https://en.wikipedia.org/wiki/Three_Sovereigns_and_Five_Emperors) through becoming [jūnzǐ](https://en.wikipedia.org/wiki/Junzi).' },
                             { relation: 'context', note: 'Educational legacy: [Five Classics](https://en.wikipedia.org/wiki/Five_Classics) → [Four Books](https://en.wikipedia.org/wiki/Four_Books) → Neo-Confucian synthesis ([Zhu Xi](https://en.wikipedia.org/wiki/Zhu_Xi), ~1190) → [imperial examination canon](https://en.wikipedia.org/wiki/Imperial_examination) (605–1905).' }
                         ]
                     },
